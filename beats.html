@@ -919,6 +919,9 @@
               <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); openEditModal('${beat.id}')">
                 <i data-lucide="edit-2" style="width:14px;height:14px;"></i> Edit
               </button>
+              <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); openSendBeatModal('${beat.id}', '${beat.title.replace(/'/g, "\\'")}', '${beat.cover_art_url || ''}')">
+                <i data-lucide="send" style="width:14px;height:14px;"></i> Send
+              </button>
               <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteBeat('${beat.id}', '${beat.title}')">
                 <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
               </button>
@@ -2121,6 +2124,156 @@
     function closeBulkUploadModal() {
       document.getElementById('bulkUploadModal')?.remove();
       bulkUploadFiles = [];
+    }
+
+    // ===== DIRECT SEND FEATURE =====
+    // Send beats directly to customers via email
+
+    function openSendBeatModal(beatId, beatTitle, coverArtUrl) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'sendBeatModal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Send Beat</h3>
+            <button class="modal-close" onclick="closeSendBeatModal()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <!-- Beat Preview -->
+            <div style="display: flex; gap: 16px; padding: 16px; background: var(--gray-light); border-radius: 8px; margin-bottom: 20px;">
+              ${coverArtUrl
+                ? `<img src="${coverArtUrl}" alt="${beatTitle}" style="width: 60px; height: 60px; border-radius: 6px; object-fit: cover;">`
+                : `<div style="width: 60px; height: 60px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="music" style="width: 24px; height: 24px; color: white;"></i>
+                   </div>`
+              }
+              <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-weight: 600; font-size: 14px;">${beatTitle}</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Will be sent to customer</div>
+              </div>
+            </div>
+
+            <input type="hidden" id="sendBeatId" value="${beatId}">
+
+            <div class="form-group">
+              <label class="form-label">Customer Email *</label>
+              <input type="email" class="form-input" id="sendCustomerEmail" placeholder="customer@example.com" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Customer Name (optional)</label>
+              <input type="text" class="form-input" id="sendCustomerName" placeholder="John Doe">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Personal Message (optional)</label>
+              <textarea class="form-input" id="sendBeatMessage" rows="3" placeholder="Hey! I think you'll love this beat..." style="resize: vertical;"></textarea>
+            </div>
+
+            <div id="sendBeatError" style="margin-top: 12px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeSendBeatModal()">Cancel</button>
+            <button class="btn btn-primary" id="sendBeatBtn" onclick="sendBeatToCustomer()">
+              <i data-lucide="send" style="width:16px;height:16px;"></i> Send Beat
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // Focus email field
+      setTimeout(() => document.getElementById('sendCustomerEmail').focus(), 100);
+    }
+
+    function closeSendBeatModal() {
+      document.getElementById('sendBeatModal')?.remove();
+    }
+
+    async function sendBeatToCustomer() {
+      const beatId = document.getElementById('sendBeatId').value;
+      const customerEmail = document.getElementById('sendCustomerEmail').value.trim();
+      const customerName = document.getElementById('sendCustomerName').value.trim();
+      const message = document.getElementById('sendBeatMessage').value.trim();
+      const errorDiv = document.getElementById('sendBeatError');
+      const sendBtn = document.getElementById('sendBeatBtn');
+
+      // Validate email
+      if (!customerEmail) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a customer email address.</div>';
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(customerEmail)) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a valid email address.</div>';
+        return;
+      }
+
+      // Get producer info
+      const user = await checkAuth();
+      if (!user) {
+        errorDiv.innerHTML = '<div class="alert alert-error">You must be logged in to send beats.</div>';
+        return;
+      }
+
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('id, name, store_name, username')
+        .eq('email', user.email)
+        .single();
+
+      if (!producer) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Producer profile not found.</div>';
+        return;
+      }
+
+      // Disable button and show loading state
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Sending...';
+      lucide.createIcons();
+      errorDiv.innerHTML = '';
+
+      try {
+        const response = await fetch('/.netlify/functions/send-beat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            beatId,
+            customerEmail,
+            customerName: customerName || null,
+            message: message || null,
+            producerId: producer.id,
+            producerName: producer.store_name || producer.name,
+            storeUrl: producer.username ? `https://${producer.username}.redpine.systems` : 'https://redpine.systems'
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          closeSendBeatModal();
+          showToast(`Beat sent to ${customerEmail}!`, 'success');
+        } else {
+          throw new Error(result.error || 'Failed to send beat');
+        }
+      } catch (error) {
+        console.error('Send beat error:', error);
+        errorDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i data-lucide="send" style="width:16px;height:16px;"></i> Send Beat';
+        lucide.createIcons();
+      }
+    }
+
+    // Add CSS for spinner animation if not exists
+    if (!document.getElementById('spinnerStyle')) {
+      const style = document.createElement('style');
+      style.id = 'spinnerStyle';
+      style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+      document.head.appendChild(style);
     }
 
     loadBeats();

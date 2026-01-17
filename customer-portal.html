@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Purchases - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .portal-container {
+      min-height: 100vh;
+      background: var(--gray-light);
+    }
+    .portal-header {
+      background: white;
+      border-bottom: 1px solid var(--gray-medium);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .portal-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .portal-logo img {
+      width: 32px;
+      height: 32px;
+    }
+    .portal-logo span {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--black);
+    }
+    .portal-user {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .portal-user-email {
+      font-size: 14px;
+      color: var(--gray-dark);
+    }
+    .portal-main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    .portal-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--gray-medium);
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--gray-dark);
+    }
+    .purchases-section {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--gray-medium);
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--gray-medium);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--black);
+    }
+    .purchase-item {
+      display: flex;
+      gap: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--gray-light);
+      transition: background 0.2s;
+    }
+    .purchase-item:last-child {
+      border-bottom: none;
+    }
+    .purchase-item:hover {
+      background: var(--gray-light);
+    }
+    .purchase-cover {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .purchase-cover img {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .purchase-cover i {
+      color: rgba(255,255,255,0.5);
+    }
+    .purchase-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .purchase-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--black);
+      margin-bottom: 4px;
+    }
+    .purchase-meta {
+      font-size: 13px;
+      color: var(--gray-dark);
+      margin-bottom: 8px;
+    }
+    .purchase-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .purchase-tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: var(--gray-light);
+      color: var(--gray-dark);
+    }
+    .purchase-tag.license {
+      background: rgba(206, 7, 7, 0.1);
+      color: var(--red);
+    }
+    .purchase-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    .purchase-price {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--black);
+    }
+    .purchase-date {
+      font-size: 12px;
+      color: var(--gray-dark);
+    }
+    .download-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      background: #b00606;
+      transform: translateY(-1px);
+    }
+    .download-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .download-options {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 180px;
+      z-index: 10;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .download-options.show {
+      display: block;
+    }
+    .download-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--black);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .download-option:hover {
+      background: var(--gray-light);
+    }
+    .download-option i {
+      color: var(--gray-dark);
+    }
+    .empty-state {
+      padding: 60px 24px;
+      text-align: center;
+    }
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--gray-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 8px;
+    }
+    .empty-state-text {
+      font-size: 14px;
+      color: var(--gray-dark);
+    }
+    .loading-state {
+      padding: 60px 24px;
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--gray-light);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 640px) {
+      .purchase-item {
+        flex-direction: column;
+      }
+      .purchase-cover {
+        width: 100%;
+        height: 160px;
+      }
+      .purchase-actions {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 12px;
+      }
+      .portal-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Dark mode support */
+    [data-theme="dark"] .portal-container {
+      background: var(--black);
+    }
+    [data-theme="dark"] .portal-header {
+      background: var(--card-bg);
+      border-color: var(--gray-medium);
+    }
+    [data-theme="dark"] .portal-logo span {
+      color: white;
+    }
+    [data-theme="dark"] .stat-card,
+    [data-theme="dark"] .purchases-section {
+      background: var(--card-bg);
+      border-color: var(--gray-medium);
+    }
+    [data-theme="dark"] .stat-value,
+    [data-theme="dark"] .section-title,
+    [data-theme="dark"] .purchase-title,
+    [data-theme="dark"] .purchase-price {
+      color: white;
+    }
+    [data-theme="dark"] .purchase-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    [data-theme="dark"] .download-options {
+      background: var(--card-bg);
+      border: 1px solid var(--gray-medium);
+    }
+    [data-theme="dark"] .download-option {
+      color: white;
+    }
+    [data-theme="dark"] .download-option:hover {
+      background: rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- Header -->
+    <header class="portal-header">
+      <div class="portal-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        <span>My Purchases</span>
+      </div>
+      <div class="portal-user">
+        <span class="portal-user-email" id="userEmail"></span>
+        <button class="btn btn-secondary btn-small" onclick="logout()">
+          <i data-lucide="log-out" style="width:14px;height:14px;"></i>
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="portal-main">
+      <!-- Stats -->
+      <div class="portal-stats" id="statsSection">
+        <div class="stat-card">
+          <div class="stat-value" id="statPurchases">-</div>
+          <div class="stat-label">Total Purchases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSpent">-</div>
+          <div class="stat-label">Total Spent</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statProducers">-</div>
+          <div class="stat-label">Producers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statMember">-</div>
+          <div class="stat-label">Member Since</div>
+        </div>
+      </div>
+
+      <!-- Purchases List -->
+      <div class="purchases-section">
+        <div class="section-header">
+          <h2 class="section-title">Your Beats</h2>
+          <button class="btn btn-secondary btn-small" onclick="loadPurchases()">
+            <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+            Refresh
+          </button>
+        </div>
+        <div id="purchasesList">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <div style="color: var(--gray-dark);">Loading your purchases...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    // Check authentication
+    const customerEmail = sessionStorage.getItem('customerEmail');
+    const customerToken = sessionStorage.getItem('customerToken');
+    const customerSession = sessionStorage.getItem('customerSession');
+
+    // Session expires after 24 hours
+    const SESSION_DURATION = 24 * 60 * 60 * 1000;
+
+    if (!customerEmail || !customerSession || (Date.now() - parseInt(customerSession)) > SESSION_DURATION) {
+      // No valid session, redirect to login
+      window.location.href = 'customer-login.html';
+    } else {
+      // Show email in header
+      document.getElementById('userEmail').textContent = customerEmail;
+      // Load purchases
+      loadPurchases();
+    }
+
+    async function loadPurchases() {
+      const purchasesList = document.getElementById('purchasesList');
+
+      try {
+        const response = await fetch('/.netlify/functions/get-customer-purchases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: customerEmail,
+            token: customerToken
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load purchases');
+        }
+
+        // Update stats
+        document.getElementById('statPurchases').textContent = data.stats.totalPurchases;
+        document.getElementById('statSpent').textContent = '$' + data.stats.totalSpent.toFixed(2);
+        document.getElementById('statProducers').textContent = data.stats.uniqueProducers;
+        document.getElementById('statMember').textContent = data.stats.firstPurchase
+          ? new Date(data.stats.firstPurchase).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          : '-';
+
+        // Render purchases
+        if (data.purchases.length === 0) {
+          purchasesList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i data-lucide="music" style="width:32px;height:32px;color:var(--gray-dark);"></i>
+              </div>
+              <div class="empty-state-title">No purchases yet</div>
+              <div class="empty-state-text">Your purchased beats will appear here</div>
+            </div>
+          `;
+        } else {
+          purchasesList.innerHTML = data.purchases.map(purchase => `
+            <div class="purchase-item">
+              <div class="purchase-cover">
+                ${purchase.coverArt
+                  ? `<img src="${purchase.coverArt}" alt="${purchase.beatTitle}">`
+                  : `<i data-lucide="music" style="width:32px;height:32px;"></i>`
+                }
+              </div>
+              <div class="purchase-info">
+                <div class="purchase-title">${escapeHtml(purchase.beatTitle)}</div>
+                <div class="purchase-meta">by ${escapeHtml(purchase.producerName)}</div>
+                <div class="purchase-tags">
+                  <span class="purchase-tag license">${purchase.licenseType}</span>
+                  ${purchase.genre ? `<span class="purchase-tag">${escapeHtml(purchase.genre)}</span>` : ''}
+                  ${purchase.bpm ? `<span class="purchase-tag">${purchase.bpm} BPM</span>` : ''}
+                  ${purchase.key ? `<span class="purchase-tag">Key: ${escapeHtml(purchase.key)}</span>` : ''}
+                </div>
+              </div>
+              <div class="purchase-actions">
+                <div class="purchase-price">$${parseFloat(purchase.amount).toFixed(2)}</div>
+                <div class="purchase-date">${formatDate(purchase.purchaseDate)}</div>
+                <div style="position: relative;">
+                  <button class="download-btn" onclick="toggleDownloadOptions('${purchase.id}')">
+                    <i data-lucide="download" style="width:14px;height:14px;"></i>
+                    Download
+                  </button>
+                  <div class="download-options" id="download-options-${purchase.id}">
+                    ${purchase.audioUrl ? `
+                      <div class="download-option" onclick="downloadFile('${purchase.audioUrl}', '${escapeHtml(purchase.beatTitle)}', 'audio')">
+                        <i data-lucide="music" style="width:16px;height:16px;"></i>
+                        Main Audio File
+                      </div>
+                    ` : ''}
+                    ${purchase.audioPreviewUrl ? `
+                      <div class="download-option" onclick="downloadFile('${purchase.audioPreviewUrl}', '${escapeHtml(purchase.beatTitle)}-preview', 'preview')">
+                        <i data-lucide="headphones" style="width:16px;height:16px;"></i>
+                        Preview File
+                      </div>
+                    ` : ''}
+                    ${purchase.stemsUrl && (purchase.licenseType.includes('Premium') || purchase.licenseType.includes('Exclusive')) ? `
+                      <div class="download-option" onclick="downloadFile('${purchase.stemsUrl}', '${escapeHtml(purchase.beatTitle)}-stems', 'stems')">
+                        <i data-lucide="layers" style="width:16px;height:16px;"></i>
+                        Stem Files
+                      </div>
+                    ` : ''}
+                    <div class="download-option" onclick="downloadLicense('${purchase.id}', '${escapeHtml(purchase.beatTitle)}', '${purchase.licenseType}')">
+                      <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                      License Agreement
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        lucide.createIcons();
+
+      } catch (error) {
+        console.error('Error loading purchases:', error);
+        purchasesList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="alert-circle" style="width:32px;height:32px;color:var(--red);"></i>
+            </div>
+            <div class="empty-state-title">Error loading purchases</div>
+            <div class="empty-state-text">${error.message}</div>
+            <button class="btn btn-primary" style="margin-top: 16px;" onclick="loadPurchases()">Try Again</button>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    function toggleDownloadOptions(purchaseId) {
+      // Close all other dropdowns
+      document.querySelectorAll('.download-options.show').forEach(el => {
+        if (el.id !== `download-options-${purchaseId}`) {
+          el.classList.remove('show');
+        }
+      });
+
+      // Toggle this dropdown
+      const dropdown = document.getElementById(`download-options-${purchaseId}`);
+      dropdown.classList.toggle('show');
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.download-btn') && !e.target.closest('.download-options')) {
+        document.querySelectorAll('.download-options.show').forEach(el => el.classList.remove('show'));
+      }
+    });
+
+    function downloadFile(url, filename, type) {
+      if (!url) {
+        showToast('File not available', 'error');
+        return;
+      }
+
+      showToast(`Downloading ${type}...`, 'info');
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Close dropdown
+      document.querySelectorAll('.download-options.show').forEach(el => el.classList.remove('show'));
+    }
+
+    function downloadLicense(purchaseId, beatTitle, licenseType) {
+      // Generate license agreement text
+      const licenseText = generateLicenseAgreement(beatTitle, licenseType, customerEmail);
+
+      // Create blob and download
+      const blob = new Blob([licenseText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${beatTitle.replace(/[^a-z0-9]/gi, '_')}_License_Agreement.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+      showToast('License downloaded', 'success');
+
+      // Close dropdown
+      document.querySelectorAll('.download-options.show').forEach(el => el.classList.remove('show'));
+    }
+
+    function generateLicenseAgreement(beatTitle, licenseType, customerEmail) {
+      const date = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      let terms = '';
+      if (licenseType.includes('Basic')) {
+        terms = `
+BASIC LICENSE TERMS:
+- Non-exclusive license
+- Up to 10,000 streams/sales
+- Must credit producer
+- Cannot be resold or transferred
+- For personal and commercial use`;
+      } else if (licenseType.includes('Premium')) {
+        terms = `
+PREMIUM LICENSE TERMS:
+- Non-exclusive license
+- Up to 100,000 streams/sales
+- Includes stem files
+- Must credit producer
+- Cannot be resold or transferred
+- For personal and commercial use
+- Radio play permitted`;
+      } else if (licenseType.includes('Exclusive')) {
+        terms = `
+EXCLUSIVE LICENSE TERMS:
+- Exclusive license (beat removed from sale)
+- Unlimited streams/sales
+- Includes all stem files and project files
+- Full ownership of the recording
+- No credit required (but appreciated)
+- Cannot resell the beat itself
+- For all commercial purposes including sync licensing`;
+      }
+
+      return `
+═══════════════════════════════════════════════════════════════
+                     LICENSE AGREEMENT
+═══════════════════════════════════════════════════════════════
+
+Beat Title: ${beatTitle}
+License Type: ${licenseType}
+Licensed To: ${customerEmail}
+Date: ${date}
+
+───────────────────────────────────────────────────────────────
+${terms}
+───────────────────────────────────────────────────────────────
+
+This license agreement is a binding contract between the Licensor
+(Producer) and the Licensee (Customer).
+
+By purchasing this beat, you agree to abide by the terms outlined
+above. Violation of these terms may result in legal action.
+
+For questions about your license, contact the producer directly.
+
+───────────────────────────────────────────────────────────────
+This license was generated by Red Pine - https://redpine.systems
+═══════════════════════════════════════════════════════════════
+`.trim();
+    }
+
+    function logout() {
+      sessionStorage.removeItem('customerEmail');
+      sessionStorage.removeItem('customerToken');
+      sessionStorage.removeItem('customerSession');
+      window.location.href = 'customer-login.html';
+    }
+
+    function formatDate(dateString) {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+
+      const colors = {
+        success: '#10B981',
+        error: '#EF4444',
+        info: '#3B82F6'
+      };
+
+      toast.style.cssText = `
+        padding: 12px 20px;
+        background: ${colors[type] || colors.success};
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-top: 8px;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Add toast animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Red Pine Beats - Robots.txt
+# https://redpine.systems
+
+User-agent: *
+Allow: /
+
+# Block admin and sensitive areas
+Disallow: /supabase/
+Disallow: /netlify/
+Disallow: /scripts/
+Disallow: /.claude/
+
+# Allow search engines to index public pages
+Allow: /index.html
+Allow: /public-store.html
+Allow: /store-preview.html
+Allow: /checkout.html
+
+# Sitemap location
+Sitemap: https://redpine.systems/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
