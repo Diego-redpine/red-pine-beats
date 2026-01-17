@@ -325,7 +325,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
               ${beats.map(beat => `
                 <div class="beat-card">
-                  <img src="${beat.cover_art_url || `https://via.placeholder.com/400x400/667eea/ffffff?text=${encodeURIComponent(beat.title)}`}" class="beat-cover">
+                  <img src="${beat.cover_art_url || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27400%27%3E%3Crect width=%27400%27 height=%27400%27 fill=%27%23667eea%27/%3E%3Ctext x=%27200%27 y=%27210%27 text-anchor=%27middle%27 font-family=%27system-ui%27 font-size=%2772%27 fill=%27white%27%3E♪%3C/text%3E%3C/svg%3E'}" class="beat-cover">
                   <div class="beat-info">
                     <div class="beat-title">${beat.title}</div>
                     <div class="beat-meta">${beat.bpm} BPM • ${beat.key || 'N/A'} • ${beat.genre || 'Beat'}</div>

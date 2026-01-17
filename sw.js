@@ -1,67 +1,77 @@
-// Red Pine Service Worker
-const CACHE_NAME = 'red-pine-v1';
+// Red Pine Service Worker - Network First Strategy
+const CACHE_NAME = 'red-pine-v2';
 const urlsToCache = [
   '/',
+  '/login.html',
   '/dashboard.html',
   '/beats.html',
   '/customers.html',
   '/analytics.html',
   '/settings.html',
-  '/customize.html',
   '/assets/css/style.css',
   '/assets/js/config.js',
-  '/assets/js/branding.js',
-  '/assets/js/dashboard.js',
   '/assets/images/red_pine_logo.png'
 ];
 
-// Install event - cache assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        // Cache opened
-        return cache.addAll(urlsToCache);
-      })
-      .catch(err => console.log('Cache error:', err))
-  );
-});
+// URLs to never cache
+const SKIP_CACHE_PATTERNS = [
+  'chrome-extension://',
+  'moz-extension://',
+  'safari-extension://',
+  'edge-extension://',
+  'supabase.co',
+  'googleapis.com',
+  'gstatic.com'
+];
 
-// Fetch event - serve from cache, fallback to network
-self.addEventListener('fetch', event => {
-  // RP-ANALYTICS-004: Skip caching for non-HTTP(S) requests (like chrome-extension://)
-  if (!event.request.url.startsWith('http')) {
-    return;
+/**
+ * Check if a URL should be skipped from caching
+ * @param {string} url - The URL to check
+ * @returns {boolean} - True if should skip caching
+ */
+function shouldSkipCache(url) {
+  // Skip non-HTTP(S) URLs
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return true;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Return cached version or fetch from network
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).then(response => {
-          // Don't cache non-successful responses or non-GET requests
-          if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
-            return response;
-          }
-          // Clone and cache the response with error handling
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              try {
-                cache.put(event.request, responseToCache);
-              } catch (err) {
-                console.warn('Cache put failed:', err);
-              }
-            })
-            .catch(err => console.warn('Cache open failed:', err));
-          return response;
-        }).catch(() => {
-          // Network failed, return offline fallback if available
-          return caches.match('/dashboard.html');
-        });
+  // Skip URLs matching skip patterns
+  for (const pattern of SKIP_CACHE_PATTERNS) {
+    if (url.includes(pattern)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if a response can be cached
+ * @param {Response} response - The response to check
+ * @returns {boolean} - True if response can be cached
+ */
+function canCacheResponse(response) {
+  // Don't cache non-successful responses
+  if (!response || response.status !== 200) {
+    return false;
+  }
+
+  // Don't cache opaque responses (cross-origin without CORS)
+  if (response.type === 'opaque') {
+    return false;
+  }
+
+  return true;
+}
+
+// Install event - cache static assets
+self.addEventListener('install', event => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+      .catch(err => {
+        // Silently fail on install cache errors
       })
   );
 });
@@ -69,15 +79,64 @@ self.addEventListener('fetch', event => {
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            // Deleting old cache
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(name => name !== CACHE_NAME)
+            .map(name => caches.delete(name))
+        );
+      })
+      .then(() => self.clients.claim())
+  );
+});
+
+// Fetch event - network first, fallback to cache
+self.addEventListener('fetch', event => {
+  const requestUrl = event.request.url;
+
+  // Skip non-cacheable requests entirely
+  if (shouldSkipCache(requestUrl)) {
+    return;
+  }
+
+  // Only handle GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Got network response - cache it if valid
+        if (canCacheResponse(response)) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseClone).catch(() => {
+                // Silently fail on cache put errors
+              });
+            })
+            .catch(() => {
+              // Silently fail on cache open errors
+            });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Network failed - try cache
+        return caches.match(event.request)
+          .then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // Return offline fallback for navigation requests
+            if (event.request.mode === 'navigate') {
+              return caches.match('/login.html');
+            }
+            // Return empty response for other failed requests
+            return new Response('', { status: 503, statusText: 'Service Unavailable' });
+          });
+      })
   );
 });

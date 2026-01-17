@@ -1,0 +1,3155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Editor - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <meta name="theme-color" content="#CE0707">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    /* Editor Layout */
+    .editor-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: #f3f4f6;
+    }
+
+    /* Top Toolbar */
+    .editor-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .toolbar-logo {
+      height: 32px;
+      width: auto;
+    }
+
+    .toolbar-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: #e5e7eb;
+    }
+
+    .toolbar-center {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-toolbar-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-toolbar-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-toolbar-primary {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-toolbar-primary:hover {
+      background: #b91c1c;
+    }
+
+    /* Device Preview Buttons */
+    .device-buttons {
+      display: flex;
+      background: #f3f4f6;
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .device-btn {
+      padding: 6px 10px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .device-btn.active {
+      background: white;
+      color: #1f2937;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .device-btn:hover:not(.active) {
+      color: #1f2937;
+    }
+
+    /* Main Editor Area */
+    .editor-main {
+      display: flex;
+      margin-top: 56px;
+      height: calc(100vh - 56px);
+      width: 100%;
+    }
+
+    /* Left Sidebar - Block Library */
+    .editor-sidebar-left {
+      width: 240px;
+      background: white;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 12px;
+    }
+
+    .sidebar-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+
+    .sidebar-search input {
+      border: none;
+      background: transparent;
+      outline: none;
+      flex: 1;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .sidebar-search i {
+      color: #9ca3af;
+      width: 16px;
+      height: 16px;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .block-category {
+      margin-bottom: 16px;
+    }
+
+    .block-category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .block-category-header i {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.2s;
+    }
+
+    .block-category.collapsed .block-category-header i {
+      transform: rotate(-90deg);
+    }
+
+    .block-category.collapsed .block-list {
+      display: none;
+    }
+
+    .block-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .block-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 8px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: grab;
+      transition: all 0.2s;
+      font-size: 11px;
+      color: #374151;
+      text-align: center;
+    }
+
+    .block-item:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+
+    .block-item:active {
+      cursor: grabbing;
+    }
+
+    .block-item.dragging {
+      opacity: 0.5;
+      border-color: #dc2626;
+    }
+
+    .block-item i {
+      width: 20px;
+      height: 20px;
+      color: #6b7280;
+    }
+
+    /* Drop Zone Styles */
+    .editor-canvas.drag-over {
+      background: #fef2f2;
+    }
+
+    .drop-indicator {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #dc2626;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+    }
+
+    .drop-indicator::before,
+    .drop-indicator::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      width: 12px;
+      height: 12px;
+      background: #dc2626;
+      border-radius: 50%;
+    }
+
+    .drop-indicator::before {
+      left: -6px;
+    }
+
+    .drop-indicator::after {
+      right: -6px;
+    }
+
+    .editor-canvas.drag-over .drop-indicator {
+      display: block;
+    }
+
+    /* Canvas block wrapper */
+    .canvas-block {
+      position: relative;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .canvas-block:hover {
+      border-color: #e5e7eb;
+    }
+
+    .canvas-block.selected {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    /* Block toolbar */
+    .block-toolbar {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background: #1f2937;
+      padding: 6px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .canvas-block.selected .block-toolbar {
+      display: flex;
+    }
+
+    .block-toolbar button {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.2s;
+    }
+
+    .block-toolbar button:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .block-toolbar button.drag-handle {
+      cursor: grab;
+    }
+
+    .block-toolbar button.drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .block-toolbar button.delete:hover {
+      background: #ef4444;
+    }
+
+    /* Canvas block dragging state */
+    .canvas-block.dragging {
+      opacity: 0.5;
+      border-color: #dc2626;
+    }
+
+    /* Canvas Area */
+    .editor-canvas-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .editor-canvas-container {
+      flex: 1;
+      overflow: auto;
+      padding: 40px;
+      background-image:
+        linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+        linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+      background-size: 20px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .editor-canvas {
+      width: 100%;
+      max-width: 1200px;
+      min-height: 600px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: width 0.3s ease;
+    }
+
+    .editor-canvas.mobile {
+      max-width: 375px;
+    }
+
+    .editor-canvas.tablet {
+      max-width: 768px;
+    }
+
+    .editor-canvas-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 400px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .editor-canvas-empty i {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+
+    .editor-canvas-empty h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .editor-canvas-empty p {
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* Zoom Controls */
+    .zoom-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .zoom-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .zoom-btn:hover {
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+
+    .zoom-level {
+      padding: 0 8px;
+      font-size: 12px;
+      color: #6b7280;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    /* Right Panel - Properties */
+    .editor-sidebar-right {
+      width: 320px;
+      background: white;
+      border-left: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .properties-header {
+      padding: 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .properties-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .properties-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .properties-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #9ca3af;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .properties-empty i {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+    }
+
+    .properties-empty p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Properties Panel - PROPS-001 */
+    .props-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .props-section {
+      margin-bottom: 16px;
+    }
+
+    .props-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .props-section-header i {
+      transition: transform 0.2s;
+    }
+
+    .props-section.collapsed .props-section-header i {
+      transform: rotate(-90deg);
+    }
+
+    .props-section.collapsed .props-section-content {
+      display: none;
+    }
+
+    .prop-field {
+      margin-bottom: 12px;
+    }
+
+    .prop-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .prop-field input[type="text"],
+    .prop-field input[type="number"],
+    .prop-field textarea,
+    .prop-field select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .prop-field input[type="text"]:focus,
+    .prop-field textarea:focus,
+    .prop-field select:focus {
+      outline: none;
+      border-color: #dc2626;
+    }
+
+    .prop-field textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .number-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .number-input-group input[type="range"] {
+      flex: 1;
+      height: 4px;
+      -webkit-appearance: none;
+      background: #e5e7eb;
+      border-radius: 2px;
+    }
+
+    .number-input-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #dc2626;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .number-input-group input[type="number"] {
+      width: 60px;
+      text-align: center;
+      padding: 4px;
+    }
+
+    .number-input-group .unit {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .color-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-input-group input[type="color"] {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .color-input-group input[type="text"] {
+      flex: 1;
+      text-transform: uppercase;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 24px;
+      transition: 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: #dc2626;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    .file-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .file-input-group input {
+      flex: 1;
+    }
+
+    .file-input-group .btn-upload {
+      padding: 8px 12px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .file-input-group .btn-upload:hover {
+      background: #e5e7eb;
+    }
+
+    /* Save Status */
+    .save-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .save-status i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .save-status.saving {
+      color: #f59e0b;
+    }
+
+    .save-status.saved {
+      color: #10b981;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .editor-toolbar {
+        padding: 0 12px;
+      }
+
+      .toolbar-title,
+      .toolbar-divider {
+        display: none;
+      }
+
+      .editor-main {
+        flex-direction: column;
+      }
+
+      .editor-sidebar-left,
+      .editor-sidebar-right {
+        width: 100%;
+        max-height: 40vh;
+      }
+
+      .editor-sidebar-left {
+        display: none;
+      }
+
+      .editor-sidebar-right {
+        display: none;
+      }
+
+      .editor-sidebar-left.active,
+      .editor-sidebar-right.active {
+        display: flex;
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        max-height: none;
+        z-index: 90;
+      }
+
+      .editor-canvas-container {
+        padding: 16px;
+      }
+
+      .device-buttons {
+        display: none;
+      }
+
+      .mobile-panel-toggle {
+        display: flex;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-panel-toggle {
+        display: none;
+      }
+    }
+
+    /* Template Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+    }
+
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: #f3f4f6;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: #e5e7eb;
+      color: #1f2937;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .template-categories {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .template-category-btn {
+      padding: 8px 16px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .template-category-btn:hover {
+      border-color: #d1d5db;
+    }
+
+    .template-category-btn.active {
+      background: #dc2626;
+      color: white;
+      border-color: #dc2626;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .template-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .template-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .template-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .template-card:hover {
+      border-color: #dc2626;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+    }
+
+    .template-card:hover .template-overlay {
+      opacity: 1;
+    }
+
+    .template-thumbnail {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: #f9fafb;
+    }
+
+    .template-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 150px;
+      background: rgba(220, 38, 38, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .template-overlay-btn {
+      padding: 10px 20px;
+      background: white;
+      color: #dc2626;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .template-info {
+      padding: 16px;
+    }
+
+    .template-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+
+    .template-description {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .template-category-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 8px;
+      text-transform: capitalize;
+    }
+
+    /* STYLE-001: Site Styles Modal */
+    .styles-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 16px;
+    }
+
+    .styles-tab {
+      padding: 8px 16px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .styles-tab:hover {
+      background: #e5e7eb;
+      color: #1f2937;
+    }
+
+    .styles-tab.active {
+      background: #dc2626;
+      color: white;
+    }
+
+    .styles-tab-content {
+      display: none;
+    }
+
+    .styles-tab-content.active {
+      display: block;
+    }
+
+    .style-field {
+      margin-bottom: 16px;
+    }
+
+    .style-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .style-field select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+    }
+
+    .style-field select:focus {
+      outline: none;
+      border-color: #dc2626;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    /* STYLE-002: Color Palette */
+    .color-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .color-swatch.selected {
+      outline: 2px solid #dc2626;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Toolbar -->
+  <header class="editor-toolbar">
+    <div class="toolbar-left">
+      <a href="dashboard.html">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" class="toolbar-logo">
+      </a>
+      <div class="toolbar-divider"></div>
+      <span class="toolbar-title">Site Editor</span>
+      <div class="save-status" id="saveStatus">
+        <i data-lucide="check-circle"></i>
+        <span>All changes saved</span>
+      </div>
+    </div>
+
+    <div class="toolbar-center">
+      <!-- HISTORY-001: Undo/Redo buttons -->
+      <button class="btn-toolbar btn-toolbar-secondary" id="undoBtn" onclick="undo()" disabled title="Undo (Cmd+Z)">
+        <i data-lucide="undo-2" style="width:16px;height:16px;"></i>
+      </button>
+      <button class="btn-toolbar btn-toolbar-secondary" id="redoBtn" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">
+        <i data-lucide="redo-2" style="width:16px;height:16px;"></i>
+      </button>
+      <div class="toolbar-divider"></div>
+      <div class="device-buttons">
+        <button class="device-btn" onclick="setDevicePreview('mobile')" title="Mobile">
+          <i data-lucide="smartphone" style="width:16px;height:16px;"></i>
+        </button>
+        <button class="device-btn" onclick="setDevicePreview('tablet')" title="Tablet">
+          <i data-lucide="tablet" style="width:16px;height:16px;"></i>
+        </button>
+        <button class="device-btn active" onclick="setDevicePreview('desktop')" title="Desktop">
+          <i data-lucide="monitor" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <button class="btn-toolbar btn-toolbar-secondary" id="templateBtn" onclick="openTemplateModal()">
+        <i data-lucide="layout-template" style="width:16px;height:16px;"></i>
+        <span>Templates</span>
+      </button>
+      <button class="btn-toolbar btn-toolbar-secondary" id="stylesBtn" onclick="openStylesModal()">
+        <i data-lucide="palette" style="width:16px;height:16px;"></i>
+        <span>Site Styles</span>
+      </button>
+      <button class="btn-toolbar btn-toolbar-secondary" id="previewBtn" onclick="openPreview()">
+        <i data-lucide="eye" style="width:16px;height:16px;"></i>
+        <span>Preview</span>
+      </button>
+      <button class="btn-toolbar btn-toolbar-primary" id="publishBtn" onclick="publishSite()">
+        <i data-lucide="globe" style="width:16px;height:16px;"></i>
+        <span>Publish</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Editor Area -->
+  <div class="editor-main">
+    <!-- Left Sidebar - Block Library -->
+    <aside class="editor-sidebar-left" id="blockLibrary">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Block Library</div>
+        <div class="sidebar-search">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Search blocks..." id="blockSearch" oninput="filterBlocks(this.value)">
+        </div>
+      </div>
+      <div class="sidebar-content" id="blockList">
+        <!-- Blocks will be populated by JavaScript -->
+        <div class="block-category">
+          <div class="block-category-header" onclick="toggleCategory(this)">
+            <span>Content</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="block-list">
+            <div class="block-item" draggable="true" data-block-type="heading">
+              <i data-lucide="heading"></i>
+              <span>Heading</span>
+            </div>
+            <div class="block-item" draggable="true" data-block-type="text">
+              <i data-lucide="type"></i>
+              <span>Text</span>
+            </div>
+            <div class="block-item" draggable="true" data-block-type="button">
+              <i data-lucide="square"></i>
+              <span>Button</span>
+            </div>
+            <div class="block-item" draggable="true" data-block-type="link">
+              <i data-lucide="link"></i>
+              <span>Link</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="block-category">
+          <div class="block-category-header" onclick="toggleCategory(this)">
+            <span>Media</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="block-list">
+            <div class="block-item" draggable="true" data-block-type="image">
+              <i data-lucide="image"></i>
+              <span>Image</span>
+            </div>
+            <div class="block-item" draggable="true" data-block-type="video">
+              <i data-lucide="video"></i>
+              <span>Video</span>
+            </div>
+            <div class="block-item" draggable="true" data-block-type="audio">
+              <i data-lucide="music"></i>
+              <span>Audio</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="block-category">
+          <div class="block-category-header" onclick="toggleCategory(this)">
+            <span>Layout</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="block-list">
+            <div class="block-item" draggable="true" data-block-type="spacer">
+              <i data-lucide="move-vertical"></i>
+              <span>Spacer</span>
+            </div>
+            <div class="block-item" draggable="true" data-block-type="divider">
+              <i data-lucide="minus"></i>
+              <span>Divider</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="block-category">
+          <div class="block-category-header" onclick="toggleCategory(this)">
+            <span>Interactive</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="block-list">
+            <div class="block-item" draggable="true" data-block-type="social-icons">
+              <i data-lucide="share-2"></i>
+              <span>Social</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas Area -->
+    <div class="editor-canvas-wrapper">
+      <div class="editor-canvas-container">
+        <div class="editor-canvas" id="editorCanvas">
+          <div class="drop-indicator" id="dropIndicator"></div>
+          <div class="editor-canvas-empty" id="canvasEmpty">
+            <i data-lucide="layout"></i>
+            <h3>Start building your site</h3>
+            <p>Drag blocks from the left panel or choose a template to get started</p>
+            <button class="btn-toolbar btn-toolbar-primary" onclick="openTemplateModal()">
+              <i data-lucide="layout-template" style="width:16px;height:16px;"></i>
+              Choose a Template
+            </button>
+          </div>
+          <div id="canvasBlocks" style="display: none;">
+            <!-- Rendered blocks will appear here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoom Controls -->
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+          <i data-lucide="minus" style="width:16px;height:16px;"></i>
+        </button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+          <i data-lucide="plus" style="width:16px;height:16px;"></i>
+        </button>
+        <button class="zoom-btn" onclick="zoomFit()" title="Fit to Screen">
+          <i data-lucide="maximize-2" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Panel - Properties -->
+    <aside class="editor-sidebar-right" id="propertiesPanel">
+      <div class="properties-header">
+        <div class="properties-title">Properties</div>
+      </div>
+      <div class="properties-content" id="propertiesContent">
+        <div class="properties-empty">
+          <i data-lucide="mouse-pointer-click"></i>
+          <p>Select a block on the canvas to edit its properties</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Template Modal -->
+  <div class="modal-overlay" id="templateModal" style="display: none;">
+    <div class="modal" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h2>Choose a Template</h2>
+        <button class="modal-close" onclick="closeTemplateModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="template-categories">
+          <button class="template-category-btn active" onclick="filterTemplates('all')">All</button>
+          <button class="template-category-btn" onclick="filterTemplates('starter')">Starter</button>
+          <button class="template-category-btn" onclick="filterTemplates('business')">Business</button>
+          <button class="template-category-btn" onclick="filterTemplates('creative')">Creative</button>
+          <button class="template-category-btn" onclick="filterTemplates('music')">Music</button>
+        </div>
+        <div class="template-grid" id="templateGrid">
+          <!-- Templates will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Styles Modal - STYLE-001 -->
+  <div class="modal-overlay" id="stylesModal" style="display: none;">
+    <div class="modal" style="max-width: 600px; width: 95%;">
+      <div class="modal-header">
+        <h2>Site Styles</h2>
+        <button class="modal-close" onclick="closeStylesModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="styles-tabs">
+          <button class="styles-tab active" data-tab="colors" onclick="switchStylesTab('colors')">Colors</button>
+          <button class="styles-tab" data-tab="fonts" onclick="switchStylesTab('fonts')">Fonts</button>
+          <button class="styles-tab" data-tab="spacing" onclick="switchStylesTab('spacing')">Spacing</button>
+        </div>
+
+        <!-- Colors Tab -->
+        <div class="styles-tab-content active" id="stylesColorsTab">
+          <!-- STYLE-002: Color Palette -->
+          <div class="style-field">
+            <label>Color Palette (click to copy)</label>
+            <div class="color-palette" id="colorPalette">
+              <div class="color-swatch" style="background:#dc2626" data-color="#dc2626" onclick="copyPaletteColor('#dc2626')"></div>
+              <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b" onclick="copyPaletteColor('#f59e0b')"></div>
+              <div class="color-swatch" style="background:#10b981" data-color="#10b981" onclick="copyPaletteColor('#10b981')"></div>
+              <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6" onclick="copyPaletteColor('#3b82f6')"></div>
+              <div class="color-swatch" style="background:#8b5cf6" data-color="#8b5cf6" onclick="copyPaletteColor('#8b5cf6')"></div>
+              <div class="color-swatch" style="background:#ec4899" data-color="#ec4899" onclick="copyPaletteColor('#ec4899')"></div>
+              <div class="color-swatch" style="background:#1f2937" data-color="#1f2937" onclick="copyPaletteColor('#1f2937')"></div>
+              <div class="color-swatch" style="background:#6b7280" data-color="#6b7280" onclick="copyPaletteColor('#6b7280')"></div>
+              <div class="color-swatch" style="background:#f3f4f6" data-color="#f3f4f6" onclick="copyPaletteColor('#f3f4f6')"></div>
+              <div class="color-swatch" style="background:#ffffff;border:1px solid #e5e7eb" data-color="#ffffff" onclick="copyPaletteColor('#ffffff')"></div>
+            </div>
+          </div>
+          <div class="style-field">
+            <label>Recent Colors</label>
+            <div class="color-palette" id="recentColors">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;">
+          <div class="style-field">
+            <label>Primary Color</label>
+            <div class="color-input-group">
+              <input type="color" id="stylePrimaryColor" value="#dc2626" onchange="updateSiteStyle('primaryColor', this.value)">
+              <input type="text" id="stylePrimaryColorHex" value="#dc2626" onchange="updateSiteStyle('primaryColor', this.value)">
+            </div>
+          </div>
+          <div class="style-field">
+            <label>Secondary Color</label>
+            <div class="color-input-group">
+              <input type="color" id="styleSecondaryColor" value="#1f2937" onchange="updateSiteStyle('secondaryColor', this.value)">
+              <input type="text" id="styleSecondaryColorHex" value="#1f2937" onchange="updateSiteStyle('secondaryColor', this.value)">
+            </div>
+          </div>
+          <div class="style-field">
+            <label>Background Color</label>
+            <div class="color-input-group">
+              <input type="color" id="styleBackgroundColor" value="#ffffff" onchange="updateSiteStyle('backgroundColor', this.value)">
+              <input type="text" id="styleBackgroundColorHex" value="#ffffff" onchange="updateSiteStyle('backgroundColor', this.value)">
+            </div>
+          </div>
+          <div class="style-field">
+            <label>Text Color</label>
+            <div class="color-input-group">
+              <input type="color" id="styleTextColor" value="#1f2937" onchange="updateSiteStyle('textColor', this.value)">
+              <input type="text" id="styleTextColorHex" value="#1f2937" onchange="updateSiteStyle('textColor', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Fonts Tab -->
+        <div class="styles-tab-content" id="stylesFontsTab">
+          <div class="style-field">
+            <label>Heading Font</label>
+            <select id="styleHeadingFont" onchange="updateSiteStyle('headingFont', this.value)">
+              <option value="system-ui, -apple-system, sans-serif">System Default</option>
+              <option value="'Inter', sans-serif">Inter</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+              <option value="'Open Sans', sans-serif">Open Sans</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="'Playfair Display', serif">Playfair Display</option>
+              <option value="'Georgia', serif">Georgia</option>
+            </select>
+          </div>
+          <div class="style-field">
+            <label>Body Font</label>
+            <select id="styleBodyFont" onchange="updateSiteStyle('bodyFont', this.value)">
+              <option value="system-ui, -apple-system, sans-serif">System Default</option>
+              <option value="'Inter', sans-serif">Inter</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+              <option value="'Open Sans', sans-serif">Open Sans</option>
+              <option value="'Lato', sans-serif">Lato</option>
+              <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
+              <option value="'Georgia', serif">Georgia</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Spacing Tab -->
+        <div class="styles-tab-content" id="stylesSpacingTab">
+          <div class="style-field">
+            <label>Global Padding Multiplier</label>
+            <div class="number-input-group">
+              <input type="range" min="0.5" max="2" step="0.1" value="1" id="styleGlobalPadding" oninput="updateSiteStyle('globalPadding', this.value); document.getElementById('styleGlobalPaddingNum').value = this.value">
+              <input type="number" id="styleGlobalPaddingNum" value="1" min="0.5" max="2" step="0.1" onchange="updateSiteStyle('globalPadding', this.value); document.getElementById('styleGlobalPadding').value = this.value">
+              <span class="unit">x</span>
+            </div>
+          </div>
+          <div class="style-field">
+            <label>Global Margin Multiplier</label>
+            <div class="number-input-group">
+              <input type="range" min="0.5" max="2" step="0.1" value="1" id="styleGlobalMargin" oninput="updateSiteStyle('globalMargin', this.value); document.getElementById('styleGlobalMarginNum').value = this.value">
+              <input type="number" id="styleGlobalMarginNum" value="1" min="0.5" max="2" step="0.1" onchange="updateSiteStyle('globalMargin', this.value); document.getElementById('styleGlobalMargin').value = this.value">
+              <span class="unit">x</span>
+            </div>
+          </div>
+          <div class="style-field">
+            <label>Content Max Width</label>
+            <div class="number-input-group">
+              <input type="range" min="800" max="1400" step="50" value="1200" id="styleMaxWidth" oninput="updateSiteStyle('maxWidth', this.value); document.getElementById('styleMaxWidthNum').value = this.value">
+              <input type="number" id="styleMaxWidthNum" value="1200" min="800" max="1400" step="50" onchange="updateSiteStyle('maxWidth', this.value); document.getElementById('styleMaxWidth').value = this.value">
+              <span class="unit">px</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-toolbar btn-toolbar-secondary" onclick="closeStylesModal()">Cancel</button>
+        <button class="btn-toolbar btn-toolbar-primary" onclick="applyAndCloseSiteStyles()">Apply Styles</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/editor-storage.js"></script>
+  <script src="assets/js/block-types.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Editor state
+    let currentZoom = 100;
+    let currentDevice = 'desktop';
+    let editorBlocks = [];
+    let selectedBlockId = null;
+    let selectedBlockIds = []; // DRAG-009: Multi-select support
+
+    // ============================================
+    // HISTORY-001: Undo/Redo System
+    // ============================================
+    const MAX_HISTORY = 50;
+    let historyStack = [];
+    let historyIndex = -1;
+    let isUndoRedo = false;
+
+    function saveHistoryState() {
+      if (isUndoRedo) return;
+
+      // Remove any future states if we're not at the end
+      if (historyIndex < historyStack.length - 1) {
+        historyStack = historyStack.slice(0, historyIndex + 1);
+      }
+
+      // Clone current state
+      const state = JSON.stringify(editorBlocks);
+
+      // Don't save if state hasn't changed
+      if (historyStack.length > 0 && historyStack[historyStack.length - 1] === state) {
+        return;
+      }
+
+      historyStack.push(state);
+
+      // Limit history size
+      if (historyStack.length > MAX_HISTORY) {
+        historyStack.shift();
+      }
+
+      historyIndex = historyStack.length - 1;
+      updateUndoRedoButtons();
+    }
+
+    function undo() {
+      if (historyIndex <= 0) return;
+
+      isUndoRedo = true;
+      historyIndex--;
+      editorBlocks = JSON.parse(historyStack[historyIndex]);
+      renderCanvas();
+      deselectAllBlocks();
+      markChanged();
+      isUndoRedo = false;
+      updateUndoRedoButtons();
+      showToast('Undo', 'info');
+    }
+
+    function redo() {
+      if (historyIndex >= historyStack.length - 1) return;
+
+      isUndoRedo = true;
+      historyIndex++;
+      editorBlocks = JSON.parse(historyStack[historyIndex]);
+      renderCanvas();
+      deselectAllBlocks();
+      markChanged();
+      isUndoRedo = false;
+      updateUndoRedoButtons();
+      showToast('Redo', 'info');
+    }
+
+    function updateUndoRedoButtons() {
+      const undoBtn = document.getElementById('undoBtn');
+      const redoBtn = document.getElementById('redoBtn');
+      if (undoBtn) undoBtn.disabled = historyIndex <= 0;
+      if (redoBtn) redoBtn.disabled = historyIndex >= historyStack.length - 1;
+    }
+
+    // Device preview
+    function setDevicePreview(device) {
+      currentDevice = device;
+      const canvas = document.getElementById('editorCanvas');
+      const buttons = document.querySelectorAll('.device-btn');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.closest('.device-btn').classList.add('active');
+
+      canvas.classList.remove('mobile', 'tablet');
+      if (device === 'mobile') canvas.classList.add('mobile');
+      if (device === 'tablet') canvas.classList.add('tablet');
+    }
+
+    // Zoom controls
+    function zoomIn() {
+      if (currentZoom < 150) {
+        currentZoom += 25;
+        updateZoom();
+      }
+    }
+
+    function zoomOut() {
+      if (currentZoom > 50) {
+        currentZoom -= 25;
+        updateZoom();
+      }
+    }
+
+    function zoomFit() {
+      currentZoom = 100;
+      updateZoom();
+    }
+
+    function updateZoom() {
+      document.getElementById('zoomLevel').textContent = currentZoom + '%';
+      document.getElementById('editorCanvas').style.transform = `scale(${currentZoom / 100})`;
+      document.getElementById('editorCanvas').style.transformOrigin = 'top center';
+      localStorage.setItem('editorZoom', currentZoom);
+    }
+
+    // Block category toggle
+    function toggleCategory(header) {
+      const category = header.parentElement;
+      category.classList.toggle('collapsed');
+    }
+
+    // Block search filter
+    function filterBlocks(query) {
+      const blocks = document.querySelectorAll('.block-item');
+      const q = query.toLowerCase();
+
+      blocks.forEach(block => {
+        const name = block.querySelector('span').textContent.toLowerCase();
+        const type = block.dataset.blockType.toLowerCase();
+        const matches = name.includes(q) || type.includes(q);
+        block.style.display = matches ? 'flex' : 'none';
+      });
+
+      // Show all categories when searching
+      document.querySelectorAll('.block-category').forEach(cat => {
+        if (q) {
+          cat.classList.remove('collapsed');
+        }
+      });
+    }
+
+    // Render block library from block-types.js
+    function renderBlockLibrary() {
+      const container = document.getElementById('blockList');
+      if (!container || !window.CATEGORY_INFO) return;
+
+      const blocksByCategory = window.getBlocksByCategory ? window.getBlocksByCategory() : {};
+
+      const categoryOrder = ['content', 'media', 'layout', 'interactive', 'advanced'];
+
+      let html = '';
+      categoryOrder.forEach(categoryId => {
+        const info = window.CATEGORY_INFO[categoryId];
+        const blocks = blocksByCategory[categoryId] || [];
+
+        if (blocks.length === 0) return;
+
+        html += `
+          <div class="block-category">
+            <div class="block-category-header" onclick="toggleCategory(this)">
+              <span>${info ? info.name : categoryId}</span>
+              <i data-lucide="chevron-down"></i>
+            </div>
+            <div class="block-list">
+              ${blocks.map(block => `
+                <div class="block-item" draggable="true" data-block-type="${block.id}" title="${block.description || ''}">
+                  <i data-lucide="${block.icon}"></i>
+                  <span>${block.name}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+
+      // Set up drag events for blocks
+      setupBlockDragEvents();
+    }
+
+    // Set up drag events for block items
+    function setupBlockDragEvents() {
+      const blockItems = document.querySelectorAll('.block-item');
+
+      blockItems.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          const blockType = item.dataset.blockType;
+          e.dataTransfer.setData('text/plain', blockType);
+          e.dataTransfer.effectAllowed = 'copy';
+          item.classList.add('dragging');
+
+          // Create custom drag image
+          const dragImage = document.createElement('div');
+          dragImage.className = 'drag-ghost';
+          dragImage.innerHTML = `<i data-lucide="${item.querySelector('i')?.getAttribute('data-lucide') || 'square'}"></i><span>${item.querySelector('span')?.textContent || blockType}</span>`;
+          dragImage.style.cssText = `
+            position: absolute;
+            top: -1000px;
+            left: -1000px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #dc2626;
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+          `;
+          document.body.appendChild(dragImage);
+          lucide.createIcons();
+          e.dataTransfer.setDragImage(dragImage, 20, 20);
+
+          // Remove ghost after drag
+          setTimeout(() => dragImage.remove(), 0);
+        });
+
+        item.addEventListener('dragend', (e) => {
+          item.classList.remove('dragging');
+        });
+      });
+    }
+
+    // Templates data (inline for now, will be loaded from templates.js)
+    const templates = [
+      {
+        id: 'minimal',
+        name: 'Minimal',
+        description: 'Clean and simple design with lots of whitespace',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23f9fafb" width="300" height="200"/%3E%3Crect fill="%23e5e7eb" x="100" y="40" width="100" height="20"/%3E%3Crect fill="%23d1d5db" x="80" y="80" width="140" height="8"/%3E%3Crect fill="%23d1d5db" x="60" y="100" width="180" height="8"/%3E%3Crect fill="%23dc2626" x="115" y="140" width="70" height="24" rx="4"/%3E%3C/svg%3E',
+        category: 'starter',
+        blocks: [
+          { id: 'b1', type: 'heading', props: { text: 'Welcome to My Site', level: 'h1', align: 'center', fontSize: 48, fontWeight: 700, color: '#1f2937' }},
+          { id: 'b2', type: 'text', props: { text: 'I create beats that move people. Explore my catalog and find the perfect sound.', align: 'center', fontSize: 18, color: '#6b7280' }},
+          { id: 'b3', type: 'spacer', props: { height: 40 }},
+          { id: 'b4', type: 'button', props: { text: 'Browse Beats', url: '#beats', backgroundColor: '#dc2626', textColor: '#ffffff', borderRadius: 8, padding: 'large', align: 'center' }}
+        ]
+      },
+      {
+        id: 'professional',
+        name: 'Professional',
+        description: 'Business-ready design with features section',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%231e3a5f" width="300" height="80"/%3E%3Crect fill="%23ffffff" y="80" width="300" height="120"/%3E%3Crect fill="%23ffffff" x="100" y="30" width="100" height="20"/%3E%3Crect fill="%23e5e7eb" x="30" y="100" width="70" height="50"/%3E%3Crect fill="%23e5e7eb" x="115" y="100" width="70" height="50"/%3E%3Crect fill="%23e5e7eb" x="200" y="100" width="70" height="50"/%3E%3C/svg%3E',
+        category: 'business',
+        blocks: []
+      },
+      {
+        id: 'bold',
+        name: 'Bold',
+        description: 'High contrast design with vibrant colors',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23000000" width="300" height="200"/%3E%3Crect fill="%23dc2626" x="20" y="40" width="260" height="6"/%3E%3Crect fill="%23ffffff" x="60" y="70" width="180" height="30"/%3E%3Crect fill="%2322c55e" x="100" y="130" width="100" height="30"/%3E%3C/svg%3E',
+        category: 'creative',
+        blocks: []
+      },
+      {
+        id: 'portfolio',
+        name: 'Portfolio',
+        description: 'Gallery-focused design to showcase your work',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23f9fafb" width="300" height="200"/%3E%3Crect fill="%23e5e7eb" x="20" y="40" width="80" height="60"/%3E%3Crect fill="%23e5e7eb" x="110" y="40" width="80" height="60"/%3E%3Crect fill="%23e5e7eb" x="200" y="40" width="80" height="60"/%3E%3Crect fill="%23e5e7eb" x="20" y="110" width="80" height="60"/%3E%3Crect fill="%23e5e7eb" x="110" y="110" width="80" height="60"/%3E%3Crect fill="%23e5e7eb" x="200" y="110" width="80" height="60"/%3E%3C/svg%3E',
+        category: 'creative',
+        blocks: []
+      },
+      {
+        id: 'music',
+        name: 'Music',
+        description: 'Audio-focused design for beat sellers',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23111827" width="300" height="200"/%3E%3Crect fill="%23374151" x="40" y="80" width="20" height="40" rx="2"/%3E%3Crect fill="%23374151" x="70" y="60" width="20" height="80" rx="2"/%3E%3Crect fill="%23dc2626" x="100" y="50" width="20" height="100" rx="2"/%3E%3Crect fill="%23374151" x="130" y="70" width="20" height="60" rx="2"/%3E%3Crect fill="%23374151" x="160" y="55" width="20" height="90" rx="2"/%3E%3Crect fill="%23374151" x="190" y="75" width="20" height="50" rx="2"/%3E%3Crect fill="%23374151" x="220" y="65" width="20" height="70" rx="2"/%3E%3C/svg%3E',
+        category: 'music',
+        blocks: []
+      },
+      {
+        id: 'landing',
+        name: 'Landing Page',
+        description: 'Conversion-optimized single page design',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23dc2626" width="300" height="70"/%3E%3Crect fill="%23ffffff" y="70" width="300" height="130"/%3E%3Crect fill="%23ffffff" x="100" y="25" width="100" height="20"/%3E%3Ccircle fill="%23e5e7eb" cx="70" cy="120" r="25"/%3E%3Ccircle fill="%23e5e7eb" cx="150" cy="120" r="25"/%3E%3Ccircle fill="%23e5e7eb" cx="230" cy="120" r="25"/%3E%3Crect fill="%23dc2626" x="115" y="165" width="70" height="20" rx="4"/%3E%3C/svg%3E',
+        category: 'business',
+        blocks: []
+      },
+      {
+        id: 'dark',
+        name: 'Dark Mode',
+        description: 'Modern dark theme with neon accents',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23111827" width="300" height="200"/%3E%3Crect fill="%2300ff88" x="100" y="40" width="100" height="4"/%3E%3Crect fill="%23ffffff" x="80" y="70" width="140" height="20"/%3E%3Crect fill="%236b7280" x="60" y="110" width="180" height="8"/%3E%3Crect fill="%2300ff88" x="115" y="150" width="70" height="24" rx="4"/%3E%3C/svg%3E',
+        category: 'creative',
+        blocks: []
+      },
+      {
+        id: 'one-page',
+        name: 'One Page',
+        description: 'Single scroll page with all sections',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23f9fafb" width="300" height="200"/%3E%3Crect fill="%23dc2626" y="0" width="300" height="50"/%3E%3Crect fill="%23e5e7eb" y="55" width="300" height="45"/%3E%3Crect fill="%23f3f4f6" y="105" width="300" height="45"/%3E%3Crect fill="%23e5e7eb" y="155" width="300" height="45"/%3E%3C/svg%3E',
+        category: 'starter',
+        blocks: []
+      },
+      {
+        id: 'bio-link',
+        name: 'Bio Link',
+        description: 'Linktree-style page for social bios',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23f3f4f6" width="300" height="200"/%3E%3Ccircle fill="%23e5e7eb" cx="150" cy="50" r="30"/%3E%3Crect fill="%23dc2626" x="75" y="100" width="150" height="24" rx="12"/%3E%3Crect fill="%23374151" x="75" y="130" width="150" height="24" rx="12"/%3E%3Crect fill="%23374151" x="75" y="160" width="150" height="24" rx="12"/%3E%3C/svg%3E',
+        category: 'starter',
+        blocks: []
+      },
+      {
+        id: 'blank',
+        name: 'Blank',
+        description: 'Start from scratch with an empty canvas',
+        thumbnail: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect fill="%23ffffff" width="300" height="200"/%3E%3Crect fill="none" stroke="%23e5e7eb" stroke-width="2" stroke-dasharray="8,4" x="20" y="20" width="260" height="160"/%3E%3Ctext x="150" y="105" text-anchor="middle" fill="%239ca3af" font-size="14" font-family="sans-serif">Start Fresh</text%3E%3C/svg%3E',
+        category: 'starter',
+        blocks: []
+      }
+    ];
+
+    let currentTemplateFilter = 'all';
+
+    // Render templates in grid
+    function renderTemplates(category = 'all') {
+      const grid = document.getElementById('templateGrid');
+      const filtered = category === 'all' ? templates : templates.filter(t => t.category === category);
+
+      grid.innerHTML = filtered.map(template => `
+        <div class="template-card" onclick="selectTemplate('${template.id}')">
+          <img src="${template.thumbnail}" alt="${template.name}" class="template-thumbnail">
+          <div class="template-overlay">
+            <button class="template-overlay-btn">Use Template</button>
+          </div>
+          <div class="template-info">
+            <div class="template-name">${template.name}</div>
+            <div class="template-description">${template.description}</div>
+            <span class="template-category-tag">${template.category}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Filter templates by category
+    function filterTemplates(category) {
+      currentTemplateFilter = category;
+
+      // Update active button
+      document.querySelectorAll('.template-category-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase() === category);
+      });
+
+      renderTemplates(category);
+    }
+
+    // Select and apply template
+    function selectTemplate(templateId) {
+      const template = templates.find(t => t.id === templateId);
+      if (!template) return;
+
+      // Clone blocks with new IDs
+      editorBlocks = template.blocks.map(block => ({
+        ...block,
+        id: 'block_' + Math.random().toString(36).substring(2, 11),
+        props: { ...block.props }
+      }));
+
+      // Update canvas
+      renderCanvas();
+      closeTemplateModal();
+
+      // Show success message
+      showToast(`Template "${template.name}" applied!`, 'success');
+    }
+
+    // Render canvas with blocks
+    function renderCanvas() {
+      const canvasEmpty = document.getElementById('canvasEmpty');
+      const canvasBlocks = document.getElementById('canvasBlocks');
+
+      if (editorBlocks.length === 0) {
+        canvasEmpty.style.display = 'flex';
+        canvasBlocks.style.display = 'none';
+      } else {
+        canvasEmpty.style.display = 'none';
+        canvasBlocks.style.display = 'block';
+        canvasBlocks.innerHTML = editorBlocks.map(block => renderBlock(block)).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    // Render a single block with wrapper and toolbar
+    function renderBlock(block) {
+      const { type, props, id } = block;
+      const blockContent = renderBlockContent(type, props, id);
+
+      // Wrap block with .canvas-block container and toolbar
+      return `
+        <div class="canvas-block" data-block-id="${id}" draggable="true" onclick="selectBlock('${id}', event)" ondragstart="handleBlockDragStart(event, '${id}')" ondragend="handleBlockDragEnd(event)">
+          <div class="block-toolbar">
+            <button class="drag-handle" title="Drag to reorder"><i data-lucide="grip-vertical" style="width:14px;height:14px;"></i></button>
+            <button onclick="moveBlockUp('${id}')" title="Move Up"><i data-lucide="chevron-up" style="width:14px;height:14px;"></i></button>
+            <button onclick="moveBlockDown('${id}')" title="Move Down"><i data-lucide="chevron-down" style="width:14px;height:14px;"></i></button>
+            <button onclick="duplicateBlock('${id}')" title="Duplicate"><i data-lucide="copy" style="width:14px;height:14px;"></i></button>
+            <button class="delete" onclick="deleteBlock('${id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+          </div>
+          ${blockContent}
+        </div>
+      `;
+    }
+
+    // Render inner block content
+    function renderBlockContent(type, props, id) {
+      switch (type) {
+        case 'heading':
+          const level = props.level || 'h1';
+          return `<${level} contenteditable="true" onblur="updateBlockText('${id}', this.innerText)" style="text-align: ${props.align || 'left'}; font-size: ${props.fontSize || 32}px; font-weight: ${props.fontWeight || 600}; color: ${props.color || '#1f2937'}; margin: 0; padding: 16px; outline: none;">${props.text || 'Heading'}</${level}>`;
+
+        case 'text':
+          return `<p contenteditable="true" onblur="updateBlockText('${id}', this.innerText)" style="text-align: ${props.align || 'left'}; font-size: ${props.fontSize || 16}px; color: ${props.color || '#374151'}; line-height: ${props.lineHeight || 1.6}; margin: 0; padding: 16px; outline: none;">${props.text || 'Text block'}</p>`;
+
+        case 'button':
+          const btnPadding = props.padding === 'large' ? '14px 28px' : props.padding === 'small' ? '8px 16px' : '10px 20px';
+          return `<div style="text-align: ${props.align || 'left'}; padding: 16px;"><a href="javascript:void(0)" style="display: inline-block; background: ${props.backgroundColor || '#dc2626'}; color: ${props.textColor || '#fff'}; padding: ${btnPadding}; border-radius: ${props.borderRadius || 6}px; text-decoration: none; font-weight: ${props.fontWeight || 600};">${props.text || 'Button'}</a></div>`;
+
+        case 'spacer':
+          return `<div style="height: ${props.height || 40}px; background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.03) 5px, rgba(0,0,0,0.03) 10px);"></div>`;
+
+        case 'divider':
+          return `<div style="padding: ${props.margin || 24}px 0; text-align: center;"><hr style="border: none; border-top: ${props.thickness || 1}px ${props.style || 'solid'} ${props.color || '#e5e7eb'}; margin: 0 auto; width: ${props.width || 100}%;"></div>`;
+
+        case 'image':
+          const imgSrc = props.src || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="200"%3E%3Crect fill="%23f3f4f6" width="400" height="200"/%3E%3Ctext x="200" y="105" text-anchor="middle" fill="%239ca3af" font-size="14" font-family="sans-serif">Click to add image</text%3E%3C/svg%3E';
+          return `<div style="text-align: ${props.align || 'center'}; padding: 16px;"><img src="${imgSrc}" alt="${props.alt || ''}" style="max-width: ${props.maxWidth || 100}%; border-radius: ${props.borderRadius || 0}px; object-fit: ${props.objectFit || 'cover'};"></div>`;
+
+        case 'video':
+          return `<div style="padding: 16px;"><div style="background: #111827; aspect-ratio: ${props.aspectRatio === '4:3' ? '4/3' : props.aspectRatio === '1:1' ? '1/1' : '16/9'}; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="play-circle" style="width: 48px; height: 48px; color: #6b7280;"></i></div><p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 8px;">Add video URL in properties</p></div>`;
+
+        case 'audio':
+          return `<div style="padding: 16px; background: #f9fafb; border-radius: 8px; display: flex; align-items: center; gap: 12px;"><button style="width: 40px; height: 40px; border-radius: 50%; background: ${props.color || '#dc2626'}; border: none; display: flex; align-items: center; justify-content: center;"><i data-lucide="play" style="width: 16px; height: 16px; color: white;"></i></button><div style="flex: 1;"><div style="font-weight: 500; color: #374151;">${props.title || 'Audio Track'}</div><div style="height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 8px;"></div></div></div>`;
+
+        case 'section':
+          return `<div style="background: ${props.backgroundColor || '#ffffff'}; padding: ${props.padding || 40}px; border-radius: ${props.borderRadius || 0}px; min-height: 100px; border: 2px dashed #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af;">Section Container</div>`;
+
+        case 'link':
+          return `<div style="text-align: ${props.align || 'left'}; padding: 16px;"><a href="javascript:void(0)" style="color: ${props.color || '#dc2626'}; font-size: ${props.fontSize || 16}px; text-decoration: ${props.underline ? 'underline' : 'none'};">${props.text || 'Click here'}</a></div>`;
+
+        case 'social-icons':
+          const platforms = ['instagram', 'twitter', 'youtube', 'facebook', 'tiktok', 'spotify'];
+          const iconItems = (props.icons || []).map(icon =>
+            `<a href="javascript:void(0)" style="color: ${props.color || '#1f2937'}; transition: color 0.2s;"><i data-lucide="${icon.platform}" style="width: ${props.size || 24}px; height: ${props.size || 24}px;"></i></a>`
+          ).join('');
+          return `<div style="text-align: ${props.align || 'center'}; padding: 16px; display: flex; gap: ${props.spacing || 16}px; justify-content: ${props.align === 'left' ? 'flex-start' : props.align === 'right' ? 'flex-end' : 'center'};">${iconItems || '<span style="color: #9ca3af;">Add social links</span>'}</div>`;
+
+        case 'beat-player':
+          return `<div style="padding: 16px; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); border-radius: 12px; color: white;"><div style="display: flex; align-items: center; gap: 16px;"><button style="width: 48px; height: 48px; border-radius: 50%; background: #dc2626; border: none; display: flex; align-items: center; justify-content: center;"><i data-lucide="play" style="width: 20px; height: 20px; color: white;"></i></button><div style="flex: 1;"><div style="font-weight: 600;">Beat Player</div><div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Configure in properties</div></div><div style="font-weight: 600;">$29.99</div></div></div>`;
+
+        case 'pricing-table':
+          return `<div style="padding: 16px;"><div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 24px; text-align: center;"><div style="font-weight: 700; font-size: 24px; color: #1f2937;">Basic License</div><div style="font-size: 32px; font-weight: 700; color: #dc2626; margin: 16px 0;">$29.99</div><ul style="list-style: none; padding: 0; margin: 0 0 16px 0; color: #6b7280; font-size: 14px;"><li style="padding: 8px 0;">MP3 + WAV files</li><li style="padding: 8px 0;">5000 streams</li><li style="padding: 8px 0;">Non-exclusive</li></ul><button style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">Buy Now</button></div></div>`;
+
+        case 'testimonial':
+          return `<div style="padding: 24px; background: #f9fafb; border-radius: 12px; text-align: center;"><div style="font-size: 48px; color: #e5e7eb; line-height: 1;">"</div><p style="font-style: italic; color: #374151; font-size: 16px; margin: 0 0 16px 0;">${props.quote || 'Add your testimonial quote here'}</p><div style="font-weight: 600; color: #1f2937;">${props.author || 'Customer Name'}</div><div style="color: #9ca3af; font-size: 14px;">${props.role || 'Role / Company'}</div></div>`;
+
+        case 'html':
+          return `<div style="padding: 16px; background: #1f2937; border-radius: 8px; color: #10b981; font-family: monospace; font-size: 12px;"><div style="margin-bottom: 8px; color: #9ca3af;">Custom HTML Block</div><code>&lt;div&gt;Your HTML here&lt;/div&gt;</code></div>`;
+
+        default:
+          return `<div style="padding: 16px; background: #f3f4f6; text-align: center; color: #6b7280;">[${type} block]</div>`;
+      }
+    }
+
+    // Select a block
+    function selectBlock(blockId, event) {
+      // Don't select if clicking on contenteditable content
+      if (event && event.target.hasAttribute('contenteditable')) {
+        return;
+      }
+
+      // DRAG-009: Multi-select with Cmd/Ctrl+Click
+      const isMultiSelect = event && (event.metaKey || event.ctrlKey);
+
+      if (isMultiSelect) {
+        // Toggle selection on clicked block
+        const alreadySelected = selectedBlockIds.includes(blockId);
+        if (alreadySelected) {
+          selectedBlockIds = selectedBlockIds.filter(id => id !== blockId);
+          const blockEl = document.querySelector(`.canvas-block[data-block-id="${blockId}"]`);
+          if (blockEl) blockEl.classList.remove('selected');
+        } else {
+          selectedBlockIds.push(blockId);
+          const blockEl = document.querySelector(`.canvas-block[data-block-id="${blockId}"]`);
+          if (blockEl) blockEl.classList.add('selected');
+        }
+        // Update primary selected block to first in array
+        selectedBlockId = selectedBlockIds.length > 0 ? selectedBlockIds[0] : null;
+        // Show properties for last selected or clear
+        if (selectedBlockIds.length === 1) {
+          updatePropertiesPanel(selectedBlockIds[0]);
+        } else if (selectedBlockIds.length > 1) {
+          showMultiSelectInfo();
+        } else {
+          clearPropertiesPanel();
+        }
+      } else {
+        // Single select - deselect all previous
+        document.querySelectorAll('.canvas-block.selected').forEach(el => {
+          el.classList.remove('selected');
+        });
+        selectedBlockIds = [blockId];
+        selectedBlockId = blockId;
+
+        const blockEl = document.querySelector(`.canvas-block[data-block-id="${blockId}"]`);
+        if (blockEl) {
+          blockEl.classList.add('selected');
+          updatePropertiesPanel(blockId);
+        }
+      }
+    }
+
+    // DRAG-009: Show info for multi-selected blocks
+    function showMultiSelectInfo() {
+      const propertiesContent = document.querySelector('.properties-content');
+      if (!propertiesContent) return;
+
+      propertiesContent.innerHTML = `
+        <div class="properties-empty">
+          <i data-lucide="layers"></i>
+          <p><strong>${selectedBlockIds.length} blocks selected</strong></p>
+          <p style="margin-top: 8px; font-size: 12px;">
+            Delete: Press Delete key<br>
+            Duplicate: Cmd/Ctrl + D<br>
+            Deselect: Click canvas or ESC
+          </p>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // Deselect all blocks (click on canvas background)
+    function deselectAllBlocks() {
+      document.querySelectorAll('.canvas-block.selected').forEach(el => {
+        el.classList.remove('selected');
+      });
+      selectedBlockId = null;
+      selectedBlockIds = []; // DRAG-009: Clear multi-select
+      clearPropertiesPanel();
+    }
+
+    // Update block text from inline editing
+    function updateBlockText(blockId, newText) {
+      const block = editorBlocks.find(b => b.id === blockId);
+      if (block && block.props) {
+        block.props.text = newText;
+        markChanged();
+      }
+    }
+
+    // Move block up in the list
+    function moveBlockUp(blockId) {
+      event.stopPropagation();
+      const index = editorBlocks.findIndex(b => b.id === blockId);
+      if (index > 0) {
+        const block = editorBlocks[index];
+        editorBlocks.splice(index, 1);
+        editorBlocks.splice(index - 1, 0, block);
+        renderCanvas();
+        selectBlock(blockId);
+        markChanged();
+      }
+    }
+
+    // Move block down in the list
+    function moveBlockDown(blockId) {
+      event.stopPropagation();
+      const index = editorBlocks.findIndex(b => b.id === blockId);
+      if (index < editorBlocks.length - 1) {
+        const block = editorBlocks[index];
+        editorBlocks.splice(index, 1);
+        editorBlocks.splice(index + 1, 0, block);
+        renderCanvas();
+        selectBlock(blockId);
+        markChanged();
+      }
+    }
+
+    // Duplicate a block
+    function duplicateBlock(blockId) {
+      if (event) event.stopPropagation();
+
+      // DRAG-009: Handle multi-select duplicate
+      const idsToDuplicate = selectedBlockIds.length > 1 ? [...selectedBlockIds] : [blockId];
+      const newBlockIds = [];
+
+      // Sort by their position in editorBlocks to maintain order
+      const sortedIds = idsToDuplicate.sort((a, b) => {
+        return editorBlocks.findIndex(bl => bl.id === a) - editorBlocks.findIndex(bl => bl.id === b);
+      });
+
+      // Insert duplicates after the last selected block
+      const lastIndex = Math.max(...sortedIds.map(id => editorBlocks.findIndex(b => b.id === id)));
+
+      sortedIds.forEach((id, i) => {
+        const original = editorBlocks.find(b => b.id === id);
+        if (original) {
+          const duplicate = {
+            ...original,
+            id: 'block_' + Math.random().toString(36).substring(2, 11),
+            props: { ...original.props }
+          };
+          editorBlocks.splice(lastIndex + 1 + i, 0, duplicate);
+          newBlockIds.push(duplicate.id);
+        }
+      });
+
+      renderCanvas();
+      // Select all new blocks
+      selectedBlockIds = newBlockIds;
+      selectedBlockId = newBlockIds[0];
+      newBlockIds.forEach(id => {
+        const blockEl = document.querySelector(`.canvas-block[data-block-id="${id}"]`);
+        if (blockEl) blockEl.classList.add('selected');
+      });
+      if (newBlockIds.length === 1) {
+        updatePropertiesPanel(newBlockIds[0]);
+      } else {
+        showMultiSelectInfo();
+      }
+      markChanged();
+      showToast(newBlockIds.length > 1 ? `${newBlockIds.length} blocks duplicated` : 'Block duplicated', 'success');
+    }
+
+    // Delete a block
+    function deleteBlock(blockId) {
+      if (event) event.stopPropagation();
+
+      // DRAG-009: Handle multi-select delete
+      const idsToDelete = selectedBlockIds.length > 1 ? [...selectedBlockIds] : [blockId];
+
+      idsToDelete.forEach(id => {
+        const index = editorBlocks.findIndex(b => b.id === id);
+        if (index !== -1) {
+          editorBlocks.splice(index, 1);
+        }
+      });
+
+      selectedBlockId = null;
+      selectedBlockIds = [];
+      renderCanvas();
+      clearPropertiesPanel();
+      markChanged();
+      showToast(idsToDelete.length > 1 ? `${idsToDelete.length} blocks deleted` : 'Block deleted', 'success');
+    }
+
+    // ============================================
+    // PROPS-001: Properties Panel Framework
+    // ============================================
+
+    // Property categories for organization
+    const PROP_CATEGORIES = {
+      text: 'Content',
+      textarea: 'Content',
+      image: 'Content',
+      audio: 'Content',
+      number: 'Style',
+      select: 'Style',
+      color: 'Style',
+      toggle: 'Advanced',
+      'social-list': 'Advanced'
+    };
+
+    // Update properties panel for selected block
+    function updatePropertiesPanel(blockId) {
+      const block = editorBlocks.find(b => b.id === blockId);
+      if (!block) return;
+
+      const panel = document.getElementById('propertiesContent');
+      const blockType = window.getBlockTypeById ? window.getBlockTypeById(block.type) : null;
+
+      if (!blockType) {
+        panel.innerHTML = `<div style="color: #9ca3af; text-align: center; padding: 20px;">Properties not available for this block type</div>`;
+        return;
+      }
+
+      // Build properties by section
+      const sections = { Content: [], Style: [], Advanced: [] };
+
+      if (blockType.propTypes) {
+        for (const [propName, propDef] of Object.entries(blockType.propTypes)) {
+          const category = PROP_CATEGORIES[propDef.type] || 'Style';
+          sections[category].push({ name: propName, def: propDef, value: block.props[propName] });
+        }
+      }
+
+      // Build HTML
+      let html = `
+        <div class="props-header">
+          <i data-lucide="${blockType.icon}" style="width: 20px; height: 20px; color: #dc2626;"></i>
+          <span>${blockType.name}</span>
+        </div>
+      `;
+
+      // Render each section
+      for (const [sectionName, props] of Object.entries(sections)) {
+        if (props.length === 0) continue;
+
+        html += `
+          <div class="props-section" data-section="${sectionName}">
+            <div class="props-section-header" onclick="togglePropsSection(this)">
+              <span>${sectionName}</span>
+              <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
+            </div>
+            <div class="props-section-content">
+              ${props.map(p => renderPropertyField(blockId, p.name, p.def, p.value)).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      panel.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // Toggle section collapse
+    function togglePropsSection(header) {
+      const section = header.parentElement;
+      section.classList.toggle('collapsed');
+    }
+
+    // Render a single property field
+    function renderPropertyField(blockId, propName, propDef, value) {
+      const label = propDef.label || propName;
+      const unit = propDef.unit || '';
+
+      let inputHtml = '';
+
+      switch (propDef.type) {
+        case 'text':
+          inputHtml = `<input type="text" value="${escapeHtml(value || '')}" onchange="updateBlockProp('${blockId}', '${propName}', this.value)" placeholder="${propDef.placeholder || ''}">`;
+          break;
+
+        case 'textarea':
+          inputHtml = `<textarea rows="3" onchange="updateBlockProp('${blockId}', '${propName}', this.value)" placeholder="${propDef.placeholder || ''}">${escapeHtml(value || '')}</textarea>`;
+          break;
+
+        case 'number':
+          const min = propDef.min ?? 0;
+          const max = propDef.max ?? 100;
+          const step = propDef.step ?? 1;
+          inputHtml = `
+            <div class="number-input-group">
+              <input type="range" min="${min}" max="${max}" step="${step}" value="${value || min}" oninput="this.nextElementSibling.value = this.value; updateBlockProp('${blockId}', '${propName}', parseFloat(this.value))">
+              <input type="number" min="${min}" max="${max}" step="${step}" value="${value || min}" onchange="this.previousElementSibling.value = this.value; updateBlockProp('${blockId}', '${propName}', parseFloat(this.value))">
+              ${unit ? `<span class="unit">${unit}</span>` : ''}
+            </div>
+          `;
+          break;
+
+        case 'select':
+          const options = propDef.options || [];
+          inputHtml = `<select onchange="updateBlockProp('${blockId}', '${propName}', this.value)">
+            ${options.map(opt => {
+              const optValue = typeof opt === 'object' ? opt.value : opt;
+              const optLabel = typeof opt === 'object' ? opt.label : opt;
+              const selected = optValue == value ? 'selected' : '';
+              return `<option value="${optValue}" ${selected}>${optLabel}</option>`;
+            }).join('')}
+          </select>`;
+          break;
+
+        case 'color':
+          inputHtml = `
+            <div class="color-input-group">
+              <input type="color" value="${value || '#000000'}" onchange="updateBlockProp('${blockId}', '${propName}', this.value)">
+              <input type="text" value="${value || '#000000'}" onchange="updateBlockProp('${blockId}', '${propName}', this.value)" pattern="^#[0-9A-Fa-f]{6}$">
+            </div>
+          `;
+          break;
+
+        case 'toggle':
+          inputHtml = `
+            <label class="toggle-switch">
+              <input type="checkbox" ${value ? 'checked' : ''} onchange="updateBlockProp('${blockId}', '${propName}', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          `;
+          break;
+
+        case 'image':
+        case 'audio':
+          inputHtml = `
+            <div class="file-input-group">
+              <input type="text" value="${escapeHtml(value || '')}" onchange="updateBlockProp('${blockId}', '${propName}', this.value)" placeholder="Paste URL or upload">
+              <button onclick="showToast('Upload coming soon', 'info')" class="btn-upload"><i data-lucide="upload" style="width:14px;height:14px;"></i></button>
+            </div>
+          `;
+          break;
+
+        default:
+          inputHtml = `<input type="text" value="${escapeHtml(String(value || ''))}" onchange="updateBlockProp('${blockId}', '${propName}', this.value)">`;
+      }
+
+      return `
+        <div class="prop-field">
+          <label>${label}</label>
+          ${inputHtml}
+        </div>
+      `;
+    }
+
+    // Update a block property
+    function updateBlockProp(blockId, propName, value) {
+      const block = editorBlocks.find(b => b.id === blockId);
+      if (block && block.props) {
+        block.props[propName] = value;
+        renderCanvas();
+        // Re-select to maintain selection
+        setTimeout(() => selectBlock(blockId), 0);
+        markChanged();
+      }
+    }
+
+    // Escape HTML for safe display
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Clear properties panel
+    function clearPropertiesPanel() {
+      const panel = document.getElementById('propertiesContent');
+      panel.innerHTML = `
+        <div class="properties-empty">
+          <i data-lucide="mouse-pointer-click" style="width: 32px; height: 32px; color: #9ca3af;"></i>
+          <p>Select a block to edit its properties</p>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // ============================================
+    // DRAG-006: Block Reordering via Drag
+    // ============================================
+
+    let draggingBlockId = null;
+
+    // Handle block drag start
+    function handleBlockDragStart(e, blockId) {
+      draggingBlockId = blockId;
+      e.dataTransfer.setData('application/block-reorder', blockId);
+      e.dataTransfer.effectAllowed = 'move';
+
+      // Add dragging class
+      e.currentTarget.classList.add('dragging');
+
+      // Create drag image
+      const dragImage = document.createElement('div');
+      dragImage.style.cssText = `
+        position: absolute;
+        top: -1000px;
+        left: -1000px;
+        padding: 10px 16px;
+        background: #1f2937;
+        color: white;
+        border-radius: 6px;
+        font-size: 13px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      `;
+      const block = editorBlocks.find(b => b.id === blockId);
+      dragImage.textContent = block ? `Moving ${block.type} block` : 'Moving block';
+      document.body.appendChild(dragImage);
+      e.dataTransfer.setDragImage(dragImage, 10, 10);
+      setTimeout(() => dragImage.remove(), 0);
+    }
+
+    // Handle block drag end
+    function handleBlockDragEnd(e) {
+      draggingBlockId = null;
+      e.currentTarget.classList.remove('dragging');
+
+      // Remove all drop indicators
+      document.querySelectorAll('.canvas-block.drag-over-above, .canvas-block.drag-over-below').forEach(el => {
+        el.classList.remove('drag-over-above', 'drag-over-below');
+      });
+    }
+
+    // Simple toast notification
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#1f2937'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Template modal
+    function openTemplateModal() {
+      renderTemplates(currentTemplateFilter);
+      document.getElementById('templateModal').style.display = 'flex';
+    }
+
+    function closeTemplateModal() {
+      document.getElementById('templateModal').style.display = 'none';
+    }
+
+    // ============================================
+    // STYLE-001: Site Styles Modal
+    // ============================================
+
+    // Default site styles
+    let siteStyles = {
+      primaryColor: '#dc2626',
+      secondaryColor: '#1f2937',
+      backgroundColor: '#ffffff',
+      textColor: '#1f2937',
+      headingFont: 'system-ui, -apple-system, sans-serif',
+      bodyFont: 'system-ui, -apple-system, sans-serif',
+      globalPadding: 1,
+      globalMargin: 1,
+      maxWidth: 1200
+    };
+
+    function openStylesModal() {
+      document.getElementById('stylesModal').style.display = 'flex';
+      lucide.createIcons();
+      loadSiteStyles();
+    }
+
+    function closeStylesModal() {
+      document.getElementById('stylesModal').style.display = 'none';
+    }
+
+    function switchStylesTab(tab) {
+      // Update tab buttons
+      document.querySelectorAll('.styles-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+
+      // Update tab content
+      document.getElementById('stylesColorsTab').classList.toggle('active', tab === 'colors');
+      document.getElementById('stylesFontsTab').classList.toggle('active', tab === 'fonts');
+      document.getElementById('stylesSpacingTab').classList.toggle('active', tab === 'spacing');
+    }
+
+    function loadSiteStyles() {
+      // Load from siteStyles object to form
+      document.getElementById('stylePrimaryColor').value = siteStyles.primaryColor;
+      document.getElementById('stylePrimaryColorHex').value = siteStyles.primaryColor;
+      document.getElementById('styleSecondaryColor').value = siteStyles.secondaryColor;
+      document.getElementById('styleSecondaryColorHex').value = siteStyles.secondaryColor;
+      document.getElementById('styleBackgroundColor').value = siteStyles.backgroundColor;
+      document.getElementById('styleBackgroundColorHex').value = siteStyles.backgroundColor;
+      document.getElementById('styleTextColor').value = siteStyles.textColor;
+      document.getElementById('styleTextColorHex').value = siteStyles.textColor;
+      document.getElementById('styleHeadingFont').value = siteStyles.headingFont;
+      document.getElementById('styleBodyFont').value = siteStyles.bodyFont;
+      document.getElementById('styleGlobalPadding').value = siteStyles.globalPadding;
+      document.getElementById('styleGlobalPaddingNum').value = siteStyles.globalPadding;
+      document.getElementById('styleGlobalMargin').value = siteStyles.globalMargin;
+      document.getElementById('styleGlobalMarginNum').value = siteStyles.globalMargin;
+      document.getElementById('styleMaxWidth').value = siteStyles.maxWidth;
+      document.getElementById('styleMaxWidthNum').value = siteStyles.maxWidth;
+      // STYLE-002: Load recent colors
+      renderRecentColors();
+    }
+
+    function updateSiteStyle(property, value) {
+      siteStyles[property] = value;
+
+      // Sync color inputs
+      if (property === 'primaryColor') {
+        document.getElementById('stylePrimaryColor').value = value;
+        document.getElementById('stylePrimaryColorHex').value = value;
+      } else if (property === 'secondaryColor') {
+        document.getElementById('styleSecondaryColor').value = value;
+        document.getElementById('styleSecondaryColorHex').value = value;
+      } else if (property === 'backgroundColor') {
+        document.getElementById('styleBackgroundColor').value = value;
+        document.getElementById('styleBackgroundColorHex').value = value;
+      } else if (property === 'textColor') {
+        document.getElementById('styleTextColor').value = value;
+        document.getElementById('styleTextColorHex').value = value;
+      }
+
+      // Apply preview of styles to canvas
+      applySiteStylesToCanvas();
+    }
+
+    function applySiteStylesToCanvas() {
+      const canvas = document.getElementById('editorCanvas');
+      canvas.style.backgroundColor = siteStyles.backgroundColor;
+      canvas.style.maxWidth = siteStyles.maxWidth + 'px';
+    }
+
+    async function applyAndCloseSiteStyles() {
+      // Apply styles
+      applySiteStylesToCanvas();
+      markChanged();
+      closeStylesModal();
+      showToast('Site styles applied', 'success');
+
+      // Save to Supabase via editorStorage
+      if (currentUserId) {
+        try {
+          await editorStorage.saveTheme(currentUserId, siteStyles);
+        } catch (err) {
+          console.error('Failed to save theme:', err);
+        }
+      }
+    }
+
+    // STYLE-002: Color Palette Functions
+    let recentColors = JSON.parse(localStorage.getItem('redpine_recent_colors') || '[]');
+
+    function copyPaletteColor(color) {
+      navigator.clipboard.writeText(color).then(() => {
+        showToast(`Copied ${color}`, 'success');
+        addToRecentColors(color);
+      });
+    }
+
+    function addToRecentColors(color) {
+      recentColors = recentColors.filter(c => c !== color);
+      recentColors.unshift(color);
+      recentColors = recentColors.slice(0, 10);
+      localStorage.setItem('redpine_recent_colors', JSON.stringify(recentColors));
+      renderRecentColors();
+    }
+
+    function renderRecentColors() {
+      const container = document.getElementById('recentColors');
+      if (!container) return;
+      if (recentColors.length === 0) {
+        container.innerHTML = '<span style="color:#9ca3af;font-size:12px;">No recent colors</span>';
+        return;
+      }
+      container.innerHTML = recentColors.map(color => {
+        const border = color === '#ffffff' ? 'border:1px solid #e5e7eb;' : '';
+        return `<div class="color-swatch" style="background:${color};${border}" onclick="copyPaletteColor('${color}')"></div>`;
+      }).join('');
+    }
+
+    // Close styles modal on overlay click
+    document.getElementById('stylesModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'stylesModal') {
+        closeStylesModal();
+      }
+    });
+
+    // Preview
+    function openPreview() {
+      // PREVIEW-001: Pass current design to preview via sessionStorage
+      const previewData = { blocks: editorBlocks, styles: siteStyles };
+      sessionStorage.setItem('redpine_preview_data', JSON.stringify(previewData));
+      window.open('preview.html', '_blank');
+    }
+
+    // Publish
+    // ============================================
+    // PUBLISH-001: Publish Workflow
+    // ============================================
+
+    async function publishSite() {
+      if (!currentUserId) {
+        showToast('Please log in to publish', 'error');
+        return;
+      }
+
+      // Show confirmation modal
+      const confirmed = confirm('Are you sure you want to publish your site? It will be visible at:\n\n' +
+        window.location.origin + '/site/' + (currentUser?.producer?.subdomain || currentUserId));
+
+      if (!confirmed) return;
+
+      // First save current design
+      const saveResult = await saveCurrentDesign();
+      if (!saveResult) {
+        showToast('Failed to save before publishing', 'error');
+        return;
+      }
+
+      // Publish via editorStorage
+      const { success, error } = await editorStorage.publishSite(currentUserId, true);
+
+      if (success) {
+        const publicUrl = window.location.origin + '/site/' + (currentUser?.producer?.subdomain || currentUserId);
+        showToast('Site published!', 'success');
+
+        // Show success modal
+        setTimeout(() => {
+          const viewSite = confirm('Your site is now live!\n\nURL: ' + publicUrl + '\n\nOpen in new tab?');
+          if (viewSite) {
+            window.open(publicUrl, '_blank');
+          }
+        }, 500);
+      } else {
+        showToast(error || 'Failed to publish', 'error');
+      }
+    }
+
+    async function unpublishSite() {
+      if (!currentUserId) return;
+
+      const confirmed = confirm('Are you sure you want to unpublish your site? It will no longer be visible to visitors.');
+      if (!confirmed) return;
+
+      const { success, error } = await editorStorage.publishSite(currentUserId, false);
+
+      if (success) {
+        showToast('Site unpublished', 'success');
+      } else {
+        showToast(error || 'Failed to unpublish', 'error');
+      }
+    }
+
+    // Load saved zoom level
+    const savedZoom = localStorage.getItem('editorZoom');
+    if (savedZoom) {
+      currentZoom = parseInt(savedZoom);
+      updateZoom();
+    }
+
+    // Close modal on overlay click
+    document.getElementById('templateModal').addEventListener('click', (e) => {
+      if (e.target.id === 'templateModal') {
+        closeTemplateModal();
+      }
+    });
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeTemplateModal();
+      }
+    });
+
+    // Keyboard shortcuts for zoom
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+        e.preventDefault();
+        zoomIn();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === '-') {
+        e.preventDefault();
+        zoomOut();
+      }
+    });
+
+    // Current user state
+    let currentUser = null;
+    let currentUserId = null;
+
+    // Initialize editor
+    async function initEditor() {
+      try {
+        // Get current user
+        const { userId, user } = await editorStorage.getCurrentUser();
+
+        if (!userId) {
+          // Not logged in - redirect to login
+          window.location.href = 'login.html';
+          return;
+        }
+
+        currentUser = user;
+        currentUserId = userId;
+
+        // Load saved design
+        const { success, data, error } = await editorStorage.loadDesign(userId);
+
+        if (!success) {
+          showToast(error || 'Failed to load design', 'error');
+          return;
+        }
+
+        // If design exists, load it
+        if (data && data.design && data.design.blocks) {
+          editorBlocks = data.design.blocks;
+          renderCanvas();
+          showToast('Design loaded', 'success');
+        }
+
+        // Update save status with last updated time
+        if (data && data.updatedAt) {
+          updateSaveStatus('saved', data.updatedAt);
+        }
+
+      } catch (error) {
+        console.error('Editor initialization error:', error);
+        showToast('Failed to initialize editor', 'error');
+      }
+    }
+
+    // Update save status display
+    function updateSaveStatus(status, timestamp = null) {
+      const statusEl = document.getElementById('saveStatus');
+
+      if (status === 'saving') {
+        statusEl.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>Saving...</span>';
+        statusEl.className = 'save-status saving';
+      } else if (status === 'saved') {
+        const timeStr = timestamp ? `Saved at ${new Date(timestamp).toLocaleTimeString()}` : 'All changes saved';
+        statusEl.innerHTML = `<i data-lucide="check-circle"></i><span>${timeStr}</span>`;
+        statusEl.className = 'save-status saved';
+      } else if (status === 'error') {
+        statusEl.innerHTML = '<i data-lucide="alert-circle"></i><span>Save failed</span>';
+        statusEl.className = 'save-status error';
+      }
+
+      lucide.createIcons();
+    }
+
+    // Auto-save configuration
+    const AUTOSAVE_INTERVAL = 30000; // 30 seconds
+    const DEBOUNCE_DELAY = 500; // 500ms debounce
+    let lastSavedState = null;
+    let autoSaveTimer = null;
+    let debounceTimer = null;
+    let hasUnsavedChanges = false;
+
+    // Save current design
+    async function saveCurrentDesign(silent = false) {
+      if (!currentUserId) return false;
+
+      // Check if there are actual changes
+      const currentState = JSON.stringify(editorBlocks);
+      if (currentState === lastSavedState) {
+        return true; // No changes to save
+      }
+
+      if (!silent) {
+        updateSaveStatus('saving');
+      }
+
+      const designData = {
+        blocks: editorBlocks,
+        version: 1,
+        updatedAt: new Date().toISOString()
+      };
+
+      const { success, error } = await editorStorage.saveDesign(currentUserId, designData);
+
+      if (success) {
+        lastSavedState = currentState;
+        hasUnsavedChanges = false;
+        updateSaveStatus('saved', new Date().toISOString());
+      } else {
+        updateSaveStatus('error');
+        if (!silent) {
+          showToast(error || 'Failed to save', 'error');
+        }
+      }
+
+      return success;
+    }
+
+    // Mark design as changed (triggers debounced save)
+    function markChanged() {
+      hasUnsavedChanges = true;
+      updateSaveStatus('unsaved');
+
+      // HISTORY-001: Save history state
+      saveHistoryState();
+
+      // Debounce: clear existing timer and set new one
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+
+      debounceTimer = setTimeout(() => {
+        saveCurrentDesign(true);
+      }, DEBOUNCE_DELAY);
+    }
+
+    // Start auto-save interval
+    function startAutoSave() {
+      if (autoSaveTimer) {
+        clearInterval(autoSaveTimer);
+      }
+
+      autoSaveTimer = setInterval(() => {
+        if (hasUnsavedChanges) {
+          saveCurrentDesign(true);
+        }
+      }, AUTOSAVE_INTERVAL);
+    }
+
+    // Stop auto-save
+    function stopAutoSave() {
+      if (autoSaveTimer) {
+        clearInterval(autoSaveTimer);
+        autoSaveTimer = null;
+      }
+    }
+
+    // Save on blur (when user clicks away from window)
+    window.addEventListener('blur', () => {
+      if (hasUnsavedChanges) {
+        saveCurrentDesign(true);
+      }
+    });
+
+    // Save before page unload
+    window.addEventListener('beforeunload', (e) => {
+      if (hasUnsavedChanges) {
+        // Trigger save
+        saveCurrentDesign(true);
+
+        // Show warning
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    });
+
+    // Update save status display (extended for unsaved state)
+    const originalUpdateSaveStatus = updateSaveStatus;
+    updateSaveStatus = function(status, timestamp = null) {
+      const statusEl = document.getElementById('saveStatus');
+
+      if (status === 'unsaved') {
+        statusEl.innerHTML = '<i data-lucide="circle-dot"></i><span>Unsaved changes</span>';
+        statusEl.className = 'save-status unsaved';
+        statusEl.style.color = '#f59e0b';
+      } else if (status === 'saving') {
+        statusEl.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>Saving...</span>';
+        statusEl.className = 'save-status saving';
+        statusEl.style.color = '#6b7280';
+      } else if (status === 'saved') {
+        const timeStr = timestamp ? `Saved at ${new Date(timestamp).toLocaleTimeString()}` : 'All changes saved';
+        statusEl.innerHTML = `<i data-lucide="check-circle"></i><span>${timeStr}</span>`;
+        statusEl.className = 'save-status saved';
+        statusEl.style.color = '#10b981';
+      } else if (status === 'error') {
+        statusEl.innerHTML = '<i data-lucide="alert-circle"></i><span>Save failed</span>';
+        statusEl.className = 'save-status error';
+        statusEl.style.color = '#ef4444';
+      }
+
+      lucide.createIcons();
+    }
+
+    // Override selectTemplate to mark changes
+    const originalSelectTemplate = selectTemplate;
+    selectTemplate = function(templateId) {
+      originalSelectTemplate(templateId);
+      markChanged();
+    };
+
+    // Keyboard shortcut: Cmd/Ctrl + S to save
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        saveCurrentDesign();
+      }
+    });
+
+    // HISTORY-001: Keyboard shortcuts for Undo/Redo
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        if (e.target.hasAttribute('contenteditable')) return;
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    });
+
+    // Keyboard shortcut: Delete/Backspace to remove selected block
+    document.addEventListener('keydown', (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedBlockId) {
+        // Don't delete if user is editing text content
+        if (e.target.hasAttribute('contenteditable')) return;
+        e.preventDefault();
+        deleteBlock(selectedBlockId);
+      }
+    });
+
+    // Keyboard shortcut: Cmd/Ctrl + D to duplicate block
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'd' && selectedBlockId) {
+        if (e.target.hasAttribute('contenteditable')) return;
+        e.preventDefault();
+        duplicateBlock(selectedBlockId);
+      }
+    });
+
+    // ============================================
+    // DRAG-008: Copy and Paste Blocks
+    // ============================================
+
+    const CLIPBOARD_KEY = 'redpine_block_clipboard';
+
+    // Keyboard shortcut: Cmd/Ctrl + C to copy block
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c' && selectedBlockId) {
+        if (e.target.hasAttribute('contenteditable')) return;
+        const block = editorBlocks.find(b => b.id === selectedBlockId);
+        if (block) {
+          localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(block));
+          showToast('Block copied', 'success');
+        }
+      }
+    });
+
+    // Keyboard shortcut: Cmd/Ctrl + V to paste block
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+        if (e.target.hasAttribute('contenteditable')) return;
+        const clipboardData = localStorage.getItem(CLIPBOARD_KEY);
+        if (clipboardData) {
+          try {
+            const block = JSON.parse(clipboardData);
+            const newBlock = {
+              ...block,
+              id: 'block_' + Math.random().toString(36).substring(2, 11),
+              props: { ...block.props }
+            };
+
+            // Insert after selected block, or at end
+            const insertIndex = selectedBlockId
+              ? editorBlocks.findIndex(b => b.id === selectedBlockId) + 1
+              : editorBlocks.length;
+
+            editorBlocks.splice(insertIndex, 0, newBlock);
+            renderCanvas();
+            selectBlock(newBlock.id);
+            markChanged();
+            showToast('Block pasted', 'success');
+          } catch (err) {
+            console.error('Paste error:', err);
+          }
+        }
+      }
+    });
+
+    // ============================================
+    // DRAG-010: Keyboard Navigation
+    // ============================================
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.hasAttribute('contenteditable')) return;
+
+      // ESC to deselect
+      if (e.key === 'Escape' && selectedBlockId) {
+        deselectAllBlocks();
+        return;
+      }
+
+      // Arrow keys to move selected block
+      if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && selectedBlockId) {
+        e.preventDefault();
+        if (e.key === 'ArrowUp') {
+          moveBlockUp(selectedBlockId);
+        } else {
+          moveBlockDown(selectedBlockId);
+        }
+        return;
+      }
+
+      // Tab to cycle through blocks
+      if (e.key === 'Tab' && editorBlocks.length > 0) {
+        e.preventDefault();
+        const currentIndex = selectedBlockId
+          ? editorBlocks.findIndex(b => b.id === selectedBlockId)
+          : -1;
+
+        let nextIndex;
+        if (e.shiftKey) {
+          // Shift+Tab goes backward
+          nextIndex = currentIndex <= 0 ? editorBlocks.length - 1 : currentIndex - 1;
+        } else {
+          // Tab goes forward
+          nextIndex = currentIndex >= editorBlocks.length - 1 ? 0 : currentIndex + 1;
+        }
+
+        selectBlock(editorBlocks[nextIndex].id);
+        return;
+      }
+
+      // Enter to focus contenteditable (for text blocks)
+      if (e.key === 'Enter' && selectedBlockId) {
+        const blockEl = document.querySelector(`.canvas-block[data-block-id="${selectedBlockId}"]`);
+        const editable = blockEl?.querySelector('[contenteditable]');
+        if (editable) {
+          e.preventDefault();
+          editable.focus();
+        }
+      }
+    });
+
+    // ============================================
+    // DRAG-002: Canvas Drop Zone Handlers
+    // ============================================
+
+    let dropTargetIndex = 0;
+
+    // Set up canvas as drop zone
+    function setupCanvasDropZone() {
+      const canvas = document.getElementById('editorCanvas');
+      const dropIndicator = document.getElementById('dropIndicator');
+      const canvasBlocks = document.getElementById('canvasBlocks');
+
+      // Prevent default to allow drop
+      canvas.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+
+        canvas.classList.add('drag-over');
+
+        // Calculate drop position
+        const dropPosition = calculateDropPosition(e.clientY, canvasBlocks);
+        dropTargetIndex = dropPosition.index;
+
+        // Position the drop indicator
+        dropIndicator.style.top = dropPosition.y + 'px';
+        dropIndicator.style.display = 'block';
+      });
+
+      // Hide indicator when leaving
+      canvas.addEventListener('dragleave', (e) => {
+        // Only remove if actually leaving the canvas
+        if (!canvas.contains(e.relatedTarget)) {
+          canvas.classList.remove('drag-over');
+          dropIndicator.style.display = 'none';
+        }
+      });
+
+      // Handle drop
+      canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        canvas.classList.remove('drag-over');
+        dropIndicator.style.display = 'none';
+
+        // Check if this is a block reorder operation
+        const reorderBlockId = e.dataTransfer.getData('application/block-reorder');
+        if (reorderBlockId) {
+          // Reorder existing block
+          const currentIndex = editorBlocks.findIndex(b => b.id === reorderBlockId);
+          if (currentIndex === -1) return;
+
+          // Calculate actual target index (accounting for removal)
+          let targetIndex = dropTargetIndex;
+          if (currentIndex < targetIndex) {
+            targetIndex--; // Adjust because we're removing the block first
+          }
+
+          // Only reorder if position actually changed
+          if (currentIndex !== targetIndex) {
+            const block = editorBlocks[currentIndex];
+            editorBlocks.splice(currentIndex, 1);
+            editorBlocks.splice(targetIndex, 0, block);
+            renderCanvas();
+            selectBlock(reorderBlockId);
+            markChanged();
+            showToast('Block moved', 'success');
+          }
+          return;
+        }
+
+        // Handle new block drop from library
+        const blockType = e.dataTransfer.getData('text/plain');
+        if (!blockType) return;
+
+        // Create new block instance
+        const newBlock = createBlockFromType(blockType);
+        if (!newBlock) {
+          showToast(`Unknown block type: ${blockType}`, 'error');
+          return;
+        }
+
+        // Insert at the calculated position
+        editorBlocks.splice(dropTargetIndex, 0, newBlock);
+
+        // Re-render canvas
+        renderCanvas();
+
+        // Mark as changed for auto-save
+        markChanged();
+
+        // Show success toast
+        showToast(`Added ${newBlock.type} block`, 'success');
+      });
+
+      // Click on canvas background deselects all blocks
+      canvas.addEventListener('click', (e) => {
+        // Only deselect if clicking directly on canvas or canvasBlocks, not on a block
+        if (e.target === canvas || e.target === canvasBlocks || e.target.id === 'canvasEmpty') {
+          deselectAllBlocks();
+        }
+      });
+    }
+
+    // Calculate where to insert the block based on mouse Y position
+    function calculateDropPosition(mouseY, canvasBlocks) {
+      const blocks = canvasBlocks.querySelectorAll('[data-block-id]');
+      const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+      const relativeY = mouseY - canvasRect.top;
+
+      if (blocks.length === 0) {
+        // Empty canvas - drop at top
+        return { index: 0, y: 16 };
+      }
+
+      // Find the position between blocks
+      let insertIndex = blocks.length;
+      let indicatorY = canvasRect.height - 16;
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        const rect = block.getBoundingClientRect();
+        const blockTop = rect.top - canvasRect.top;
+        const blockMiddle = blockTop + (rect.height / 2);
+
+        if (relativeY < blockMiddle) {
+          insertIndex = i;
+          indicatorY = blockTop;
+          break;
+        } else if (i === blocks.length - 1) {
+          // After last block
+          insertIndex = blocks.length;
+          indicatorY = blockTop + rect.height;
+        }
+      }
+
+      return { index: insertIndex, y: indicatorY };
+    }
+
+    // Create a new block instance from a block type
+    function createBlockFromType(blockType) {
+      // Get block definition from block-types.js
+      const blockDef = window.getBlockTypeById ? window.getBlockTypeById(blockType) : null;
+
+      if (!blockDef) {
+        // Fallback for unknown types
+        return {
+          id: 'block_' + Math.random().toString(36).substring(2, 11),
+          type: blockType,
+          props: {}
+        };
+      }
+
+      // Create instance with default props
+      return {
+        id: 'block_' + Math.random().toString(36).substring(2, 11),
+        type: blockType,
+        props: { ...blockDef.defaultProps }
+      };
+    }
+
+    // Initialize editor on page load
+    async function initEditorWithAutoSave() {
+      // Render block library from block-types.js
+      renderBlockLibrary();
+
+      // Set up canvas drop zone
+      setupCanvasDropZone();
+
+      await initEditor();
+
+      // Store initial state
+      lastSavedState = JSON.stringify(editorBlocks);
+
+      // Start auto-save
+      startAutoSave();
+    }
+
+    initEditorWithAutoSave();
+  </script>
+</body>
+</html>

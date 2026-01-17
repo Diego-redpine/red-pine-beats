@@ -203,13 +203,13 @@
         <div style="flex: 1; min-width: 200px;">
           <input type="text" class="form-input" id="beatSearchInput" placeholder="Search beats..." oninput="filterBeats()">
         </div>
-        <select class="form-select" id="beatSortSelect" style="width: auto;" onchange="filterBeats()">
+        <select class="form-select" id="beatSortSelect" style="width: auto;" onchange="filterBeats()" data-custom-dropdown>
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
           <option value="sales">Most Sales</option>
           <option value="title">Title A-Z</option>
         </select>
-        <select class="form-select" id="beatGenreFilter" style="width: auto;" onchange="filterBeats()">
+        <select class="form-select" id="beatGenreFilter" style="width: auto;" onchange="filterBeats()" data-custom-dropdown data-searchable="true">
           <option value="">All Genres</option>
         </select>
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -258,11 +258,30 @@
   <script src="assets/js/config.js"></script>
   <script src="assets/js/branding.js"></script>
   <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/custom-dropdown.js"></script>
   <script>lucide.createIcons();</script>
   <script>
     // BP-006: Store wavesurfer instances
     const wavesurfers = {};
     let currentlyPlaying = null;
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.cssText = `
+        position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
+        background: ${type === 'error' ? '#EF4444' : type === 'info' ? '#3B82F6' : '#10B981'};
+        color: white; border-radius: 8px; font-size: 14px; z-index: 9999;
+        animation: slideIn 0.3s ease;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
 
     async function loadBeats() {
       const user = await checkAuth();
@@ -427,7 +446,7 @@
           <div class="modal-body">
             <div style="display: flex; gap: 24px; margin-bottom: 24px;">
               <div style="flex-shrink: 0;">
-                <img src="${beat.cover_art_url || 'https://via.placeholder.com/160'}"
+                <img src="${beat.cover_art_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="160"%3E%3Crect fill="%23e5e7eb" width="160" height="160"/%3E%3Cpath d="M80 50v40M70 75v15M90 75v15M60 80v10M100 80v10" stroke="%239ca3af" stroke-width="4" stroke-linecap="round"/%3E%3C/svg%3E'}"
                      alt="${beat.title}"
                      style="width: 160px; height: 160px; border-radius: 12px; object-fit: cover;">
                 <button class="btn btn-secondary btn-small" style="width: 100%; margin-top: 8px;" onclick="document.getElementById('editCoverArt').click()">
@@ -447,7 +466,7 @@
                   </div>
                   <div class="form-group">
                     <label class="form-label">Key</label>
-                    <select class="form-select" id="editBeatKey">
+                    <select class="form-select" id="editBeatKey" data-custom-dropdown>
                       <option value="">Select key...</option>
                       ${['C Major', 'C Minor', 'D Major', 'D Minor', 'E Major', 'E Minor', 'F Major', 'F Minor', 'G Major', 'G Minor', 'A Major', 'A Minor', 'B Major', 'B Minor'].map(k =>
                         `<option value="${k}" ${beat.key === k ? 'selected' : ''}>${k}</option>`
@@ -561,6 +580,12 @@
       document.body.appendChild(modal);
       lucide.createIcons();
 
+      // Initialize custom dropdown for Key select
+      const keySelect = document.getElementById('editBeatKey');
+      if (keySelect && typeof CustomDropdown !== 'undefined') {
+        new CustomDropdown(keySelect);
+      }
+
       // BEAT-024: Populate related beats dropdown
       const relatedSelect = document.getElementById('editRelatedBeats');
       const otherBeats = allBeats.filter(b => b.id !== beatId);
@@ -591,7 +616,7 @@
         const beat = allBeats.find(b => b.id === opt.value);
         return beat ? `
           <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--gray-light); border-radius: 6px; font-size: 12px;">
-            <img src="${beat.cover_art_url || 'https://via.placeholder.com/20'}" style="width: 20px; height: 20px; border-radius: 4px;">
+            <img src="${beat.cover_art_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20"%3E%3Crect fill="%23e5e7eb" width="20" height="20"/%3E%3C/svg%3E'}" style="width: 20px; height: 20px; border-radius: 4px;">
             ${beat.title}
           </div>
         ` : '';
@@ -853,7 +878,7 @@
       if (beats.length > 0) {
         listBody.innerHTML = beats.map(beat => `
           <div class="beat-row" data-beat-id="${beat.id}">
-            <img src="${beat.cover_art_url || 'https://via.placeholder.com/80'}"
+            <img src="${beat.cover_art_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23e5e7eb" width="80" height="80"/%3E%3Cpath d="M40 25v20M35 35v10M45 35v10M30 38v6M50 38v6" stroke="%239ca3af" stroke-width="2" stroke-linecap="round"/%3E%3C/svg%3E'}"
                  alt="${beat.title}"
                  class="beat-cover-large">
             <div class="beat-info">
@@ -1135,7 +1160,7 @@
 
         grid.innerHTML = beats.map(beat => `
           <div class="beat-select-item" data-beat-id="${beat.id}" onclick="toggleBeatSelection('${beat.id}')" style="display:flex;align-items:center;gap:8px;padding:8px;background:white;border-radius:6px;cursor:pointer;border:2px solid ${preSelectedBeatId === beat.id ? 'var(--red)' : 'transparent'};transition:all 0.2s;">
-            <img src="${beat.cover_art_url || 'https://via.placeholder.com/40'}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">
+            <img src="${beat.cover_art_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Crect fill="%23e5e7eb" width="40" height="40"/%3E%3Cpath d="M20 12v10M17 18v5M23 18v5M14 19v3M26 19v3" stroke="%239ca3af" stroke-width="1.5" stroke-linecap="round"/%3E%3C/svg%3E'}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">
             <span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${beat.title}</span>
             <div class="beat-select-check" style="width:20px;height:20px;border-radius:50%;background:${preSelectedBeatId === beat.id ? 'var(--red)' : 'var(--gray-medium)'};display:flex;align-items:center;justify-content:center;">
               ${preSelectedBeatId === beat.id ? '<i data-lucide="check" style="width:12px;height:12px;color:white;"></i>' : ''}
@@ -1609,8 +1634,8 @@
         currentProducerId = producer.id;
 
         const { data, error } = await supabaseClient
-          .from('collections')
-          .select('*, collection_beats(beat_id)')
+          .from('beat_collections')
+          .select('*, beat_collection_items(beat_id)')
           .eq('producer_id', producer.id)
           .order('created_at', { ascending: false });
 
@@ -1627,7 +1652,7 @@
       if (!collections.length) {
         grid.innerHTML = `
           <div style="padding: 32px; text-align: center; color: #6B7280; grid-column: 1/-1;">
-            <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
+            <div style="margin-bottom: 8px;"><i data-lucide="folder-open" style="width:32px;height:32px;"></i></div>
             <div>No collections yet</div>
             <button class="btn btn-secondary" style="margin-top: 12px;" onclick="openCollectionModal()">Create Collection</button>
           </div>
@@ -1638,11 +1663,11 @@
       grid.innerHTML = collections.map(col => `
         <div class="collection-card" style="background: white; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; cursor: pointer;" onclick="openCollectionDetail('${col.id}')">
           <div style="height: 120px; background: ${col.cover_url ? 'url(' + col.cover_url + ') center/cover' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; display: flex; align-items: center; justify-content: center;">
-            ${!col.cover_url ? '<span style="font-size: 32px;">🎵</span>' : ''}
+            ${!col.cover_url ? '<i data-lucide="music" style="width:32px;height:32px;color:white;"></i>' : ''}
           </div>
           <div style="padding: 12px;">
             <div style="font-weight: 600; margin-bottom: 4px;">${col.name}</div>
-            <div style="font-size: 12px; color: #6B7280;">${col.collection_beats?.length || 0} beats</div>
+            <div style="font-size: 12px; color: #6B7280;">${col.beat_collection_items?.length || 0} beats</div>
             ${col.bundle_price ? `<div style="font-size: 13px; color: var(--red); margin-top: 4px;">Bundle: $${col.bundle_price}</div>` : ''}
           </div>
         </div>
@@ -1675,7 +1700,7 @@
               <div class="file-upload" style="height: 120px;" onclick="document.getElementById('collectionCover').click()">
                 <input type="file" id="collectionCover" accept="image/*" style="display: none;">
                 <div id="collectionCoverPreview" style="${collection?.cover_url ? '' : 'display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;'}">
-                  ${collection?.cover_url ? `<img src="${collection.cover_url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;">` : '<div>📁 Click to upload</div>'}
+                  ${collection?.cover_url ? `<img src="${collection.cover_url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;">` : '<div style="display:flex;align-items:center;gap:6px;"><i data-lucide="image" style="width:20px;height:20px;"></i> Click to upload</div>'}
                 </div>
               </div>
             </div>
@@ -1750,12 +1775,12 @@
 
         if (collectionId) {
           await supabaseClient
-            .from('collections')
+            .from('beat_collections')
             .update(collectionData)
             .eq('id', collectionId);
         } else {
           await supabaseClient
-            .from('collections')
+            .from('beat_collections')
             .insert([collectionData]);
         }
 
@@ -1773,7 +1798,7 @@
 
       // Fetch beats in collection
       const { data: collectionBeats } = await supabaseClient
-        .from('collection_beats')
+        .from('beat_collection_items')
         .select('beat_id, position, beats(*)')
         .eq('collection_id', collectionId)
         .order('position');
@@ -1845,7 +1870,7 @@
     async function addBeatToCollection(collectionId, beatId) {
       try {
         const { data: existing } = await supabaseClient
-          .from('collection_beats')
+          .from('beat_collection_items')
           .select('position')
           .eq('collection_id', collectionId)
           .order('position', { ascending: false })
@@ -1854,7 +1879,7 @@
         const nextPosition = (existing?.[0]?.position || 0) + 1;
 
         await supabaseClient
-          .from('collection_beats')
+          .from('beat_collection_items')
           .insert([{ collection_id: collectionId, beat_id: beatId, position: nextPosition }]);
 
         closeCollectionDetailModal();
@@ -1868,7 +1893,7 @@
     async function removeBeatFromCollection(collectionId, beatId) {
       try {
         await supabaseClient
-          .from('collection_beats')
+          .from('beat_collection_items')
           .delete()
           .eq('collection_id', collectionId)
           .eq('beat_id', beatId);
@@ -1886,12 +1911,12 @@
 
       try {
         await supabaseClient
-          .from('collection_beats')
+          .from('beat_collection_items')
           .delete()
           .eq('collection_id', collectionId);
 
         await supabaseClient
-          .from('collections')
+          .from('beat_collections')
           .delete()
           .eq('id', collectionId);
 

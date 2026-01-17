@@ -46,6 +46,7 @@
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 24px;
       margin-bottom: 24px;
+      align-items: start; /* ANALYTICS-002: Prevent cards from stretching to match sibling height */
     }
 
     .analytics-card {
@@ -447,7 +448,19 @@
 
     async function loadAnalytics() {
       const user = await checkAuth();
-      if (!user) return;
+      if (!user) {
+        // Show login message for unauthenticated users
+        document.querySelector('.main-content').innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; padding: 24px;">
+            <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--gray-dark); margin-bottom: 16px;"></i>
+            <h2 style="margin-bottom: 8px; color: var(--text);">Please Log In</h2>
+            <p style="color: var(--gray-dark); margin-bottom: 24px;">You need to be logged in to view analytics.</p>
+            <a href="login.html" class="btn btn-primary">Log In</a>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
 
       try {
         const { data: producer } = await supabaseClient
@@ -1236,8 +1249,15 @@
       document.getElementById('beatCompareResults').style.display = 'block';
     }
 
-    loadAnalytics();
-    startActiveVisitorPolling(); // ANALYTICS-009: Start real-time visitor polling
+    // Initialize analytics - only start polling after successful load
+    loadAnalytics().then(() => {
+      // Only start polling if producer data loaded successfully
+      if (analyticsData.producer && analyticsData.producer.id) {
+        startActiveVisitorPolling();
+      }
+    }).catch(err => {
+      console.error('Error initializing analytics:', err);
+    });
   </script>
 </body>
 </html>

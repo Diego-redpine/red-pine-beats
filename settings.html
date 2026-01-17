@@ -193,22 +193,27 @@
         </div>
       </div>
 
-      <!-- Change Password -->
+      <!-- Connected Accounts (Stripe only) -->
       <div class="table-container" style="margin-bottom: 24px;">
         <div class="table-header">
-          <h2>Change Password</h2>
+          <h2>Connected Accounts</h2>
         </div>
         <div style="padding: 24px;">
-          <div class="form-group">
-            <label class="form-label">New Password</label>
-            <input type="password" class="form-input" id="newPassword" placeholder="Enter new password" minlength="6">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; background: #635BFF; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>
+              </div>
+              <div>
+                <div style="font-weight: 600;">Stripe</div>
+                <div id="stripeConnectionStatus" style="font-size: 12px; color: var(--gray-dark);">Checking...</div>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-small" id="stripeActionBtn" onclick="showStripeModal()">Connect</button>
           </div>
-          <div class="form-group">
-            <label class="form-label">Confirm New Password</label>
-            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password">
-          </div>
-          <div id="passwordError"></div>
-          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+          <p style="font-size: 12px; color: var(--gray-dark); margin-top: 12px;">
+            Connect your Stripe account to receive payments directly from customers.
+          </p>
         </div>
       </div>
 
@@ -253,12 +258,13 @@
         <div style="padding: 24px;">
           <h4 style="margin-bottom: 16px; font-size: 14px;">Active Sessions</h4>
           <div id="sessionsList" style="margin-bottom: 16px;">
+            <!-- FEATURE-001: Current session populated dynamically -->
             <div style="padding: 16px; background: var(--gray-light); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="monitor" style="width: 24px; height: 24px; color: var(--gray-dark);"></i>
+                <i data-lucide="monitor" id="sessionDeviceIcon" style="width: 24px; height: 24px; color: var(--gray-dark);"></i>
                 <div>
-                  <div style="font-weight: 500;">Current Session</div>
-                  <div style="font-size: 12px; color: var(--gray-dark);">This device</div>
+                  <div style="font-weight: 500;" id="sessionDevice">Detecting device...</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);" id="sessionBrowser">Loading browser info...</div>
                 </div>
               </div>
               <span style="background: #10B981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px;">Active</span>
@@ -348,6 +354,25 @@
         </div>
       </div>
 
+      <!-- Change Password -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Change Password</h2>
+        </div>
+        <div style="padding: 24px;">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-input" id="newPassword" placeholder="Enter new password" minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password">
+          </div>
+          <div id="passwordError"></div>
+          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+
       <!-- Activity Log -->
       <div class="table-container" style="margin-bottom: 24px;">
         <div class="table-header">
@@ -426,14 +451,11 @@
         document.getElementById('subscriptionStatus').textContent = 
           producer.subscription_status || 'unknown';
         
-        // Check Stripe connection status
-        const stripeStatus = document.getElementById('stripeStatus');
+        // Check Stripe connection status (Connected Accounts section only)
         const stripeConnectionStatus = document.getElementById('stripeConnectionStatus');
         const stripeActionBtn = document.getElementById('stripeActionBtn');
 
         if (producer.stripe_account_id) {
-          stripeStatus.innerHTML = '<div class="alert alert-success"><strong>Connected</strong> - Your Stripe account is linked</div>';
-          document.getElementById('stripeConnectBtn').textContent = 'Reconnect Stripe';
           // Update connected accounts section
           if (stripeConnectionStatus) {
             stripeConnectionStatus.style.color = '#10B981';
@@ -441,7 +463,6 @@
           }
           if (stripeActionBtn) stripeActionBtn.textContent = 'Manage';
         } else {
-          stripeStatus.innerHTML = '<div class="alert alert-error"><strong>Not Connected</strong> - You won\'t receive payments until you connect</div>';
           // Update connected accounts section
           if (stripeConnectionStatus) {
             stripeConnectionStatus.style.color = '#EF4444';
@@ -670,18 +691,52 @@
       }
     }
     
+    // SETTINGS-007: Real-time color updates throughout dashboard
+    function applyPrimaryColor(color) {
+      // Update CSS custom property for real-time theme change
+      document.documentElement.style.setProperty('--red', color);
+      document.documentElement.style.setProperty('--primary', color);
+
+      // Update any inline styles that use the primary color
+      document.querySelectorAll('.btn-primary').forEach(btn => {
+        btn.style.backgroundColor = color;
+      });
+
+      // Update checkbox checked state color
+      const style = document.createElement('style');
+      style.id = 'dynamic-primary-color';
+      style.textContent = `
+        input[type="checkbox"]:checked { background: ${color} !important; border-color: ${color} !important; }
+        input[type="checkbox"]:focus { box-shadow: 0 0 0 3px ${color}33 !important; }
+        .sidebar-nav a.active { border-left-color: ${color}; color: ${color}; }
+        .btn-primary { background: ${color}; }
+        .btn-primary:hover { background: ${color}dd; }
+      `;
+
+      // Remove old dynamic style if exists
+      const oldStyle = document.getElementById('dynamic-primary-color');
+      if (oldStyle) oldStyle.remove();
+
+      document.head.appendChild(style);
+    }
+
     // Branding functionality
     document.getElementById('primaryColor')?.addEventListener('input', (e) => {
       document.getElementById('primaryColorHex').value = e.target.value;
+      // SETTINGS-007: Apply color change in real-time
+      applyPrimaryColor(e.target.value);
     });
 
     document.getElementById('primaryColorHex')?.addEventListener('input', (e) => {
       const hex = e.target.value;
       if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
         document.getElementById('primaryColor').value = hex;
+        // SETTINGS-007: Apply color change in real-time
+        applyPrimaryColor(hex);
       }
     });
 
+    // SETTINGS-008: Real-time logo updates
     document.getElementById('logoUpload')?.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -691,7 +746,14 @@
         }
         const reader = new FileReader();
         reader.onload = (event) => {
-          document.getElementById('logoPreview').src = event.target.result;
+          const logoUrl = event.target.result;
+          // Update preview in settings
+          document.getElementById('logoPreview').src = logoUrl;
+          // SETTINGS-008: Update sidebar logo in real-time
+          const sidebarLogo = document.getElementById('brandLogo');
+          if (sidebarLogo) {
+            sidebarLogo.src = logoUrl;
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -1422,6 +1484,61 @@
     }
 
     check2FAStatus();
+
+    // FEATURE-001: Detect current session device and browser
+    function detectCurrentSession() {
+      const ua = navigator.userAgent;
+      let device = 'Desktop';
+      let deviceIcon = 'monitor';
+      let browser = 'Unknown Browser';
+
+      // Detect device type
+      if (/Mobile|Android|iPhone|iPad|iPod/i.test(ua)) {
+        if (/iPad|Tablet/i.test(ua)) {
+          device = 'Tablet';
+          deviceIcon = 'tablet';
+        } else {
+          device = 'Mobile';
+          deviceIcon = 'smartphone';
+        }
+      } else if (/Macintosh|Mac OS/i.test(ua)) {
+        device = 'Mac';
+        deviceIcon = 'laptop';
+      } else if (/Windows/i.test(ua)) {
+        device = 'Windows PC';
+        deviceIcon = 'monitor';
+      } else if (/Linux/i.test(ua)) {
+        device = 'Linux';
+        deviceIcon = 'monitor';
+      }
+
+      // Detect browser
+      if (/Chrome/i.test(ua) && !/Edge|Edg/i.test(ua)) {
+        browser = 'Chrome';
+      } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+        browser = 'Safari';
+      } else if (/Firefox/i.test(ua)) {
+        browser = 'Firefox';
+      } else if (/Edge|Edg/i.test(ua)) {
+        browser = 'Edge';
+      } else if (/Opera|OPR/i.test(ua)) {
+        browser = 'Opera';
+      }
+
+      // Update UI
+      document.getElementById('sessionDevice').textContent = device;
+      document.getElementById('sessionBrowser').textContent = `${browser} - Last active: Just now`;
+
+      // Update icon
+      const iconEl = document.getElementById('sessionDeviceIcon');
+      if (iconEl) {
+        iconEl.setAttribute('data-lucide', deviceIcon);
+        lucide.createIcons();
+      }
+    }
+
+    // Run session detection on load
+    detectCurrentSession();
 
     loadSettings();
   </script>

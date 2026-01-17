@@ -11,17 +11,27 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-# Main domain defaults to login page
+# Root path redirects to login page
 [[redirects]]
-  from = "/*"
+  from = "/"
   to = "/login.html"
   status = 200
-  force = false
-  conditions = {Host = ["beats.redpinemarketing.com", "beats.redpine.systems"]}
+
+# Public site pages
+[[redirects]]
+  from = "/site/*"
+  to = "/public-website.html"
+  status = 200
+
+# 404 fallback page
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
 
 [functions]
   node_bundler = "esbuild"
-  
+
 [dev]
   functions = "netlify/functions"
 

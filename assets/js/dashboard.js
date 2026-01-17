@@ -545,7 +545,7 @@ function openUploadModal() {
         <div class="upload-step" id="upload-content-6">
           <h4 style="text-align: center; margin-bottom: 20px;">Review & Upload</h4>
           <div style="display: flex; gap: 20px; align-items: flex-start;">
-            <img id="reviewCover" src="https://via.placeholder.com/120" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover;">
+            <img id="reviewCover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='%23667eea'/%3E%3Ctext x='60' y='68' text-anchor='middle' font-family='system-ui' font-size='36' fill='white'%3E♪%3C/text%3E%3C/svg%3E" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover;">
             <div style="flex: 1;">
               <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;" id="reviewTitle">--</div>
               <div style="color: var(--gray-dark); margin-bottom: 4px;" id="reviewGenre">Genre: --</div>
@@ -1351,7 +1351,7 @@ function openBulkUploadModal() {
               <label style="font-size: 12px; color: #6B7280;">Genre</label>
               <select class="form-input" id="bulkGenre" style="font-size: 13px;">
                 <option value="">Select...</option>
-                <option value="Hip-Hop">Hip-Hop</option>
+                <option value="Hip Hop">Hip Hop</option>
                 <option value="Trap">Trap</option>
                 <option value="R&B">R&B</option>
                 <option value="Pop">Pop</option>
@@ -1506,7 +1506,7 @@ function renderBulkFilesGrid() {
       <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">
         <select class="form-input" style="font-size: 12px; padding: 6px 4px;" onchange="bulkUploadFiles[${index}].genre = this.value">
           <option value="">...</option>
-          <option value="Hip-Hop" ${item.genre === 'Hip-Hop' ? 'selected' : ''}>Hip-Hop</option>
+          <option value="Hip Hop" ${item.genre === 'Hip Hop' ? 'selected' : ''}>Hip Hop</option>
           <option value="Trap" ${item.genre === 'Trap' ? 'selected' : ''}>Trap</option>
           <option value="R&B" ${item.genre === 'R&B' ? 'selected' : ''}>R&B</option>
           <option value="Pop" ${item.genre === 'Pop' ? 'selected' : ''}>Pop</option>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome to Red Pine!</title>
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <div class="auth-container">
@@ -21,14 +22,14 @@
       </div>
 
       <div id="successState" style="display: none;">
-        <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+        <div style="margin-bottom: 16px;"><i data-lucide="party-popper" style="width:64px;height:64px;color:var(--red, #dc2626);"></i></div>
         <h1 style="margin-bottom: 8px;">Welcome to Red Pine!</h1>
         <p style="color: #6B7280; margin-bottom: 24px;">Your account has been created successfully.</p>
         <a href="onboarding.html" class="btn btn-primary" style="width: 100%;">Get Started</a>
       </div>
 
       <div id="errorState" style="display: none;">
-        <div style="font-size: 64px; margin-bottom: 16px;">😕</div>
+        <div style="margin-bottom: 16px;"><i data-lucide="alert-circle" style="width:64px;height:64px;color:#DC2626;"></i></div>
         <h1 style="margin-bottom: 8px;">Something went wrong</h1>
         <p id="errorMessage" style="color: #DC2626; margin-bottom: 24px;">Unable to verify your payment.</p>
         <a href="signup.html" class="btn btn-secondary" style="width: 100%;">Try Again</a>
@@ -87,12 +88,14 @@
     function showSuccess() {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('successState').style.display = 'block';
+      lucide.createIcons();
     }
 
     function showError(message) {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('errorMessage').textContent = message;
       document.getElementById('errorState').style.display = 'block';
+      lucide.createIcons();
     }
 
     handleSignupSuccess();

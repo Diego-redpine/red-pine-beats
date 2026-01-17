@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview - Red Pine</title>
+  <meta name="theme-color" content="#CE0707">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+    }
+
+    /* Preview toolbar */
+    .preview-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+      color: white;
+    }
+
+    .preview-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-label {
+      font-size: 14px;
+      font-weight: 500;
+      background: #dc2626;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+
+    .preview-info {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .preview-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .device-buttons {
+      display: flex;
+      gap: 4px;
+    }
+
+    .device-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .device-btn:hover, .device-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    .btn-close {
+      padding: 8px 16px;
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-close:hover {
+      background: #b91c1c;
+    }
+
+    /* Preview content */
+    .preview-container {
+      margin-top: 48px;
+      min-height: calc(100vh - 48px);
+      display: flex;
+      justify-content: center;
+      background: #f3f4f6;
+      padding: 20px;
+    }
+
+    .preview-frame {
+      background: white;
+      width: 100%;
+      max-width: 1200px;
+      min-height: calc(100vh - 88px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: max-width 0.3s ease;
+    }
+
+    .preview-frame.mobile {
+      max-width: 375px;
+    }
+
+    .preview-frame.tablet {
+      max-width: 768px;
+    }
+
+    /* Loading state */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      color: #9ca3af;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Error state */
+    .error-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      color: #6b7280;
+      text-align: center;
+      padding: 40px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Preview Toolbar -->
+  <div class="preview-toolbar">
+    <div class="preview-toolbar-left">
+      <span class="preview-label">Preview Mode</span>
+      <span class="preview-info">This is a preview of your unpublished changes</span>
+    </div>
+    <div class="preview-toolbar-right">
+      <div class="device-buttons">
+        <button class="device-btn" onclick="setDevice('mobile')" title="Mobile">
+          <i data-lucide="smartphone" style="width:18px;height:18px;"></i>
+        </button>
+        <button class="device-btn" onclick="setDevice('tablet')" title="Tablet">
+          <i data-lucide="tablet" style="width:18px;height:18px;"></i>
+        </button>
+        <button class="device-btn active" onclick="setDevice('desktop')" title="Desktop">
+          <i data-lucide="monitor" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
+      <button class="btn-close" onclick="window.close()">Close Preview</button>
+    </div>
+  </div>
+
+  <!-- Preview Content -->
+  <div class="preview-container">
+    <div class="preview-frame" id="previewFrame">
+      <div class="loading-container" id="loadingState">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 16px;">Loading preview...</p>
+      </div>
+      <div class="error-container" id="errorState">
+        <p>No preview data available. Please open preview from the editor.</p>
+      </div>
+      <div id="previewContent"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    function setDevice(device) {
+      const frame = document.getElementById('previewFrame');
+      const buttons = document.querySelectorAll('.device-btn');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.closest('.device-btn').classList.add('active');
+
+      frame.classList.remove('mobile', 'tablet');
+      if (device === 'mobile') frame.classList.add('mobile');
+      if (device === 'tablet') frame.classList.add('tablet');
+    }
+
+    // Render a block (same as public-website.html)
+    function renderBlock(block) {
+      const { type, props } = block;
+
+      switch (type) {
+        case 'heading':
+          const level = props.level || 'h1';
+          return `<${level} style="text-align: ${props.align || 'left'}; font-size: ${props.fontSize || 32}px; font-weight: ${props.fontWeight || 600}; color: ${props.color || '#1f2937'}; margin: 0; padding: 16px 24px; line-height: ${props.lineHeight || 1.2};">${props.text || ''}</${level}>`;
+
+        case 'text':
+          return `<p style="text-align: ${props.align || 'left'}; font-size: ${props.fontSize || 16}px; color: ${props.color || '#374151'}; line-height: ${props.lineHeight || 1.6}; margin: 0; padding: 16px 24px;">${props.text || ''}</p>`;
+
+        case 'button':
+          const btnPadding = props.padding === 'large' ? '14px 28px' : props.padding === 'small' ? '8px 16px' : '10px 20px';
+          const btnTarget = props.target === '_blank' ? ' target="_blank" rel="noopener"' : '';
+          return `<div style="text-align: ${props.align || 'left'}; padding: 16px 24px;"><a href="${props.url || '#'}"${btnTarget} style="display: inline-block; background: ${props.backgroundColor || '#dc2626'}; color: ${props.textColor || '#fff'}; padding: ${btnPadding}; border-radius: ${props.borderRadius || 6}px; text-decoration: none; font-weight: ${props.fontWeight || 600};">${props.text || 'Button'}</a></div>`;
+
+        case 'spacer':
+          return `<div style="height: ${props.height || 40}px;"></div>`;
+
+        case 'divider':
+          return `<div style="padding: ${props.margin || 24}px 24px; text-align: center;"><hr style="border: none; border-top: ${props.thickness || 1}px ${props.style || 'solid'} ${props.color || '#e5e7eb'}; margin: 0 auto; width: ${props.width || 100}%;"></div>`;
+
+        case 'image':
+          if (!props.src) return '';
+          return `<div style="text-align: ${props.align || 'center'}; padding: 16px 24px;"><img src="${props.src}" alt="${props.alt || ''}" style="max-width: ${props.maxWidth || 100}%; border-radius: ${props.borderRadius || 0}px; object-fit: ${props.objectFit || 'cover'};"></div>`;
+
+        case 'video':
+          if (!props.url) return '';
+          let embedUrl = '';
+          if (props.url.includes('youtube.com') || props.url.includes('youtu.be')) {
+            const videoId = props.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/)?.[1];
+            if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
+          } else if (props.url.includes('vimeo.com')) {
+            const videoId = props.url.match(/vimeo\.com\/(\d+)/)?.[1];
+            if (videoId) embedUrl = `https://player.vimeo.com/video/${videoId}`;
+          }
+          if (!embedUrl) return '';
+          const aspectRatio = props.aspectRatio === '4:3' ? '4/3' : props.aspectRatio === '1:1' ? '1/1' : '16/9';
+          return `<div style="padding: 16px 24px;"><div style="aspect-ratio: ${aspectRatio}; position: relative;"><iframe src="${embedUrl}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 8px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>`;
+
+        case 'link':
+          const linkTarget = props.target === '_blank' ? ' target="_blank" rel="noopener"' : '';
+          return `<div style="text-align: ${props.align || 'left'}; padding: 16px 24px;"><a href="${props.url || '#'}"${linkTarget} style="color: ${props.color || '#dc2626'}; font-size: ${props.fontSize || 16}px; text-decoration: ${props.underline ? 'underline' : 'none'};">${props.text || ''}</a></div>`;
+
+        case 'social-icons':
+          const iconItems = (props.icons || []).map(icon => {
+            if (!icon.url) return '';
+            return `<a href="${icon.url}" target="_blank" rel="noopener" style="color: ${props.color || '#1f2937'};"><i data-lucide="${icon.platform}" style="width: ${props.size || 24}px; height: ${props.size || 24}px;"></i></a>`;
+          }).join('');
+          if (!iconItems) return '';
+          return `<div style="text-align: ${props.align || 'center'}; padding: 16px 24px; display: flex; gap: ${props.spacing || 16}px; justify-content: ${props.align === 'left' ? 'flex-start' : props.align === 'right' ? 'flex-end' : 'center'};">${iconItems}</div>`;
+
+        default:
+          return '';
+      }
+    }
+
+    // Load preview data from sessionStorage or localStorage
+    async function loadPreview() {
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      const previewContent = document.getElementById('previewContent');
+
+      // Try to get preview data from sessionStorage (set by editor)
+      const previewData = sessionStorage.getItem('redpine_preview_data');
+
+      if (previewData) {
+        try {
+          const design = JSON.parse(previewData);
+          if (design.blocks && design.blocks.length > 0) {
+            const html = design.blocks.map(block => renderBlock(block)).join('');
+            previewContent.innerHTML = html;
+            loadingState.style.display = 'none';
+            lucide.createIcons();
+            return;
+          }
+        } catch (e) {
+          console.error('Parse error:', e);
+        }
+      }
+
+      // Fallback: Try to load from Supabase
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+          const { data } = await supabaseClient
+            .from('site_customizations')
+            .select('website_json')
+            .eq('producer_id', user.id)
+            .single();
+
+          if (data && data.website_json) {
+            const design = JSON.parse(data.website_json);
+            if (design.blocks && design.blocks.length > 0) {
+              const html = design.blocks.map(block => renderBlock(block)).join('');
+              previewContent.innerHTML = html;
+              loadingState.style.display = 'none';
+              lucide.createIcons();
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Load error:', e);
+      }
+
+      // Show error state
+      loadingState.style.display = 'none';
+      errorState.style.display = 'flex';
+    }
+
+    loadPreview();
+  </script>
+</body>
+</html>
