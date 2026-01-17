@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Successful - Red Pine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .success-container {
+      background: #111;
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+
+    .order-details {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .order-details h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .beat-info {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #333;
+    }
+
+    .beat-cover {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #333;
+    }
+
+    .beat-details h4 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .beat-details p {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .license-badge {
+      display: inline-block;
+      background: #CE0707;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .order-row:last-child {
+      border-bottom: none;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .order-row span:first-child {
+      color: #888;
+    }
+
+    .download-section {
+      margin-bottom: 32px;
+    }
+
+    .download-section h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #CE0707;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .download-btn:hover {
+      background: #a00505;
+      transform: translateY(-2px);
+    }
+
+    .download-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .info-box {
+      background: rgba(206, 7, 7, 0.1);
+      border: 1px solid rgba(206, 7, 7, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .info-box p {
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .back-link {
+      color: #888;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: white;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #CE0707;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .error-icon {
+      width: 60px;
+      height: 60px;
+      background: #EF4444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container" id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p style="color: #888;">Loading your purchase...</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://mkhlmcrrsrnkdaxllqxa.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1raGxtY3Jyc3Jua2RheGxscXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYwMTQ0NzcsImV4cCI6MjA1MTU5MDQ3N30.t7vcwqV3Q-Ey7tY3XE7WYZTOkxj4LwcPWY8DSkFgI6Y';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadPurchase() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      const beatId = params.get('beat');
+
+      if (!beatId) {
+        showError('Invalid purchase link');
+        return;
+      }
+
+      try {
+        // Get beat details
+        const { data: beat, error: beatError } = await supabase
+          .from('beats')
+          .select('*, producer:producers(name, subdomain)')
+          .eq('id', beatId)
+          .single();
+
+        if (beatError || !beat) {
+          showError('Beat not found');
+          return;
+        }
+
+        // Get sale details (most recent for this beat)
+        const { data: sale } = await supabase
+          .from('sales')
+          .select('*')
+          .eq('beat_id', beatId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        renderSuccess(beat, sale);
+
+      } catch (error) {
+        console.error('Error loading purchase:', error);
+        showError('Failed to load purchase details');
+      }
+    }
+
+    function renderSuccess(beat, sale) {
+      const licenseNames = {
+        basic: 'Basic Lease',
+        premium: 'Premium Lease',
+        exclusive: 'Exclusive Rights'
+      };
+
+      const licenseType = sale?.license_type || 'basic';
+      const amount = sale?.amount ? (sale.amount / 100).toFixed(2) : (beat.price_basic / 100).toFixed(2);
+
+      // Generate download links based on license type
+      let downloadFiles = [];
+      if (beat.audio_url) {
+        downloadFiles.push({ name: 'MP3 File', url: beat.audio_url, format: 'MP3' });
+      }
+      if ((licenseType === 'premium' || licenseType === 'exclusive') && beat.wav_url) {
+        downloadFiles.push({ name: 'WAV File', url: beat.wav_url, format: 'WAV' });
+      }
+      if (licenseType === 'exclusive' && beat.stems_url) {
+        downloadFiles.push({ name: 'Stems (ZIP)', url: beat.stems_url, format: 'ZIP' });
+      }
+
+      document.getElementById('content').innerHTML = `
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <h1>Purchase Successful!</h1>
+        <p class="subtitle">Thank you for your purchase. Your files are ready.</p>
+
+        <div class="order-details">
+          <h3>Order Details</h3>
+
+          <div class="beat-info">
+            <img src="${beat.cover_art_url || 'https://via.placeholder.com/80x80/333/666?text=Beat'}" class="beat-cover" alt="${beat.title}">
+            <div class="beat-details">
+              <h4>${beat.title}</h4>
+              <p>${beat.bpm} BPM • ${beat.key || 'N/A'} • ${beat.genre || 'Beat'}</p>
+              <span class="license-badge">${licenseNames[licenseType]}</span>
+            </div>
+          </div>
+
+          <div class="order-row">
+            <span>Producer</span>
+            <span>${beat.producer.name}</span>
+          </div>
+          <div class="order-row">
+            <span>License Type</span>
+            <span>${licenseNames[licenseType]}</span>
+          </div>
+          <div class="order-row">
+            <span>Total Paid</span>
+            <span>$${amount}</span>
+          </div>
+        </div>
+
+        ${downloadFiles.length > 0 ? `
+          <div class="download-section">
+            <h3>Download Your Files</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              ${downloadFiles.map(file => `
+                <a href="${file.url}" download class="download-btn" style="width: 100%; justify-content: center;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  ${file.name} (${file.format})
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        ` : `
+          <div class="info-box">
+            <p><strong>Files Coming Soon</strong></p>
+            <p>The producer has been notified of your purchase and will send the untagged files to your email within 24 hours.</p>
+          </div>
+        `}
+
+        <div class="info-box">
+          <p><strong>What's Next?</strong></p>
+          <p>A confirmation email with your license agreement has been sent to your email address. These download links will expire in 7 days.</p>
+        </div>
+
+        <a href="/" class="back-link">← Back to Beat Store</a>
+      `;
+    }
+
+    function showError(message) {
+      document.getElementById('content').innerHTML = `
+        <div class="error-state">
+          <div class="error-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </div>
+          <h2 style="margin-bottom: 12px;">Something went wrong</h2>
+          <p style="color: #888; margin-bottom: 24px;">${message}</p>
+          <a href="/" class="download-btn" style="background: #333;">Return Home</a>
+        </div>
+      `;
+    }
+
+    // Load purchase on page load
+    loadPurchase();
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "name": "red-pine",
+  "version": "1.0.0",
+  "description": "Red Pine - Beat Store Platform for Music Producers",
+  "scripts": {
+    "dev": "npx serve -l 3000",
+    "start": "npx serve -l 3000",
+    "deploy:functions": "supabase functions deploy",
+    "db:migrate": "supabase db push",
+    "db:reset": "supabase db reset",
+    "setup": "npm run db:migrate && npm run deploy:functions"
+  },
+  "dependencies": {
+    "stripe": "^14.0.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "@sendgrid/mail": "^8.1.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "beats",
+    "music",
+    "producer",
+    "store",
+    "ecommerce"
+  ],
+  "author": "Red Pine",
+  "license": "MIT"
+}

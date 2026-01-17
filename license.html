@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beat License Agreement - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .license-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .license-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .license-header img {
+      height: 48px;
+      margin-bottom: 16px;
+    }
+    .license-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--gray-medium);
+      padding-bottom: 16px;
+    }
+    .license-tab {
+      padding: 12px 24px;
+      border: none;
+      background: var(--gray-light);
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .license-tab:hover {
+      background: var(--gray-medium);
+    }
+    .license-tab.active {
+      background: var(--red);
+      color: white;
+    }
+    .license-content {
+      background: var(--white);
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .license-content h2 {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--red);
+    }
+    .license-section {
+      margin-bottom: 24px;
+    }
+    .license-section h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--red);
+    }
+    .license-section ul {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+    .license-section li {
+      margin-bottom: 8px;
+    }
+    .allowed {
+      color: #10B981;
+    }
+    .not-allowed {
+      color: #EF4444;
+    }
+    .license-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-medium);
+    }
+    @media print {
+      .license-tabs, .license-actions, .license-header a {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="license-container">
+    <div class="license-header">
+      <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+      <h1>Beat License Agreement</h1>
+      <p style="color: var(--gray-dark);">Please read these terms carefully before purchasing</p>
+      <a href="index.html" style="color: var(--red); font-size: 14px;">Back to Home</a>
+    </div>
+
+    <div class="license-tabs">
+      <button class="license-tab active" onclick="showLicense('basic')">Basic Lease</button>
+      <button class="license-tab" onclick="showLicense('premium')">Premium Lease</button>
+      <button class="license-tab" onclick="showLicense('exclusive')">Exclusive Rights</button>
+    </div>
+
+    <!-- Basic License -->
+    <div id="license-basic" class="license-content">
+      <h2>Basic Lease License Agreement</h2>
+
+      <div class="license-section">
+        <h3>What You Can Do</h3>
+        <ul>
+          <li class="allowed">Use the beat for non-commercial projects</li>
+          <li class="allowed">Upload to YouTube, Spotify, Apple Music (up to 100,000 streams)</li>
+          <li class="allowed">Perform the song at live shows</li>
+          <li class="allowed">Use in music videos (up to 100,000 views)</li>
+        </ul>
+      </div>
+
+      <div class="license-section">
+        <h3>What You Cannot Do</h3>
+        <ul>
+          <li class="not-allowed">Resell, lease, or transfer the beat</li>
+          <li class="not-allowed">Use for TV, radio, or film placement</li>
+          <li class="not-allowed">Claim ownership of the beat</li>
+          <li class="not-allowed">Exceed stream/view limits</li>
+        </ul>
+      </div>
+
+      <div class="license-section">
+        <h3>Terms</h3>
+        <ul>
+          <li>Maximum 100,000 audio streams</li>
+          <li>Maximum 100,000 video views</li>
+          <li>Non-exclusive (beat may be sold again)</li>
+          <li>Credit required: "Prod. by [Producer Name]"</li>
+          <li>License is perpetual (no expiration)</li>
+        </ul>
+      </div>
+
+      <div class="license-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print / Download PDF</button>
+      </div>
+    </div>
+
+    <!-- Premium License -->
+    <div id="license-premium" class="license-content" style="display: none;">
+      <h2>Premium Lease License Agreement</h2>
+
+      <div class="license-section">
+        <h3>What You Can Do</h3>
+        <ul>
+          <li class="allowed">Use the beat for commercial projects</li>
+          <li class="allowed">Upload to all streaming platforms (up to 500,000 streams)</li>
+          <li class="allowed">Perform the song at live shows (unlimited)</li>
+          <li class="allowed">Use in music videos (up to 500,000 views)</li>
+          <li class="allowed">Radio play (non-major stations)</li>
+          <li class="allowed">Receive WAV and trackout stems</li>
+        </ul>
+      </div>
+
+      <div class="license-section">
+        <h3>What You Cannot Do</h3>
+        <ul>
+          <li class="not-allowed">Resell, lease, or transfer the beat</li>
+          <li class="not-allowed">Use for major TV, radio, or film placement</li>
+          <li class="not-allowed">Claim ownership of the beat</li>
+          <li class="not-allowed">Exceed stream/view limits</li>
+        </ul>
+      </div>
+
+      <div class="license-section">
+        <h3>Terms</h3>
+        <ul>
+          <li>Maximum 500,000 audio streams</li>
+          <li>Maximum 500,000 video views</li>
+          <li>Non-exclusive (beat may be sold again)</li>
+          <li>Credit required: "Prod. by [Producer Name]"</li>
+          <li>License is perpetual (no expiration)</li>
+          <li>Includes WAV master file</li>
+          <li>Includes trackout stems</li>
+        </ul>
+      </div>
+
+      <div class="license-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print / Download PDF</button>
+      </div>
+    </div>
+
+    <!-- Exclusive License -->
+    <div id="license-exclusive" class="license-content" style="display: none;">
+      <h2>Exclusive Rights License Agreement</h2>
+
+      <div class="license-section">
+        <h3>What You Can Do</h3>
+        <ul>
+          <li class="allowed">Full ownership transfer of the beat</li>
+          <li class="allowed">Unlimited commercial use</li>
+          <li class="allowed">Unlimited streaming and downloads</li>
+          <li class="allowed">TV, radio, and film placements</li>
+          <li class="allowed">Major label releases</li>
+          <li class="allowed">All trackout stems and project files</li>
+          <li class="allowed">Credit optional</li>
+        </ul>
+      </div>
+
+      <div class="license-section">
+        <h3>What You Cannot Do</h3>
+        <ul>
+          <li class="not-allowed">Resell the beat as-is to another artist</li>
+        </ul>
+      </div>
+
+      <div class="license-section">
+        <h3>Terms</h3>
+        <ul>
+          <li>Unlimited streams and views</li>
+          <li>Exclusive ownership - beat is removed from store</li>
+          <li>Full commercial rights</li>
+          <li>Credit optional (but appreciated)</li>
+          <li>License is perpetual (no expiration)</li>
+          <li>Includes all files: MP3, WAV, stems, project file</li>
+          <li>Previous non-exclusive licenses remain valid</li>
+        </ul>
+      </div>
+
+      <div class="license-actions">
+        <button class="btn btn-secondary" onclick="window.print()">Print / Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showLicense(type) {
+      // Hide all licenses
+      document.querySelectorAll('.license-content').forEach(el => el.style.display = 'none');
+      // Remove active from all tabs
+      document.querySelectorAll('.license-tab').forEach(el => el.classList.remove('active'));
+
+      // Show selected license
+      document.getElementById('license-' + type).style.display = 'block';
+
+      // Highlight tab
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

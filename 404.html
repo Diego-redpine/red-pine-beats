@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .error-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-light);
+    }
+    .error-content {
+      text-align: center;
+      padding: 48px;
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+    }
+    .error-icon {
+      width: 80px;
+      height: 80px;
+      color: var(--red);
+      margin-bottom: 24px;
+    }
+    .error-code {
+      font-size: 72px;
+      font-weight: 700;
+      color: var(--red);
+      margin: 0;
+      line-height: 1;
+    }
+    .error-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 16px 0 8px;
+      color: var(--black);
+    }
+    .error-message {
+      color: var(--gray-dark);
+      margin-bottom: 32px;
+      font-size: 16px;
+    }
+    .error-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="error-content">
+      <i data-lucide="alert-circle" class="error-icon"></i>
+      <p class="error-code">404</p>
+      <h1 class="error-title">Page Not Found</h1>
+      <p class="error-message">
+        Sorry, the page you're looking for doesn't exist or has been moved.
+      </p>
+      <div class="error-actions">
+        <a href="dashboard.html" class="btn btn-primary">
+          <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+          Go to Dashboard
+        </a>
+        <a href="javascript:history.back()" class="btn btn-secondary">
+          <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+          Go Back
+        </a>
+      </div>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

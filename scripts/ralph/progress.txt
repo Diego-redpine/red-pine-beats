@@ -1,0 +1,42 @@
+# Ralph Progress Log
+Started: January 15, 2026
+
+## Codebase Patterns
+- HTML files in root directory
+- Assets in assets/ folder (css, js, images)
+- Supabase for database and auth
+- Netlify for hosting and serverless functions
+- Logo path: assets/images/red_pine_logo.png
+- Use Lucide icons, NO emojis anywhere
+- Custom dropdowns instead of native selects
+- Wavesurfer.js for audio waveforms
+
+## Database Tables
+- producers: User accounts with branding settings
+- beats: Beat uploads with pricing and files
+- site_customizations: Store editor data
+- customers: CRM data
+- sales: Purchase records
+- analytics_events: Tracking data
+- customer_tags: Tag management
+
+## Key Files
+- dashboard.html - Main dashboard with 6 stat cards
+- beats.html - Beat management and upload
+- store.html - Store editor (Profile or Site mode)
+- customers.html - CRM page (NEW)
+- analytics.html - Analytics page (NEW)
+- settings.html - Account settings
+- login.html - Login page
+- signup.html - Signup with payment
+
+## Styling Guidelines
+- Primary color stored in producers.primary_color
+- Dark shadows on hover (not red glow)
+- Smooth transitions: 0.3s ease
+- Mobile breakpoint: 768px
+- Custom dropdowns with brand styling
+
+---
+[2026-01-15 09:09:19] ✓ BP-001: White-label dashboard with producer's logo and color
+[2026-01-15 11:53:14] ✓ BP-001: White-label dashboard with producer's logo and color

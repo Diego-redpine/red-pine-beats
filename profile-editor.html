@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Editor - Red Pine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Oswald:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    body {
+      overflow: hidden;
+    }
+
+    .profile-editor-container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Panel - Editor */
+    .profile-editor-panel {
+      width: 400px;
+      min-width: 400px;
+      background: white;
+      border-right: 1px solid #E5E7EB;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .profile-editor-header {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .profile-editor-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #CE0707;
+    }
+
+    .profile-editor-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .profile-editor-section {
+      margin-bottom: 32px;
+    }
+
+    .profile-editor-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-photo-upload {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px dashed #E5E7EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 0 auto 16px;
+      overflow: hidden;
+      background: #F9FAFB;
+    }
+
+    .profile-photo-upload:hover {
+      border-color: #CE0707;
+      background: #FEF2F2;
+    }
+
+    .profile-photo-upload.has-image {
+      border-style: solid;
+      border-color: #CE0707;
+    }
+
+    .profile-photo-upload img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #CE0707;
+      box-shadow: 0 0 0 3px rgba(206, 7, 7, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .social-link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .social-link-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .social-link-icon svg {
+      width: 20px;
+      height: 20px;
+      color: #6B7280;
+    }
+
+    .social-link-input {
+      flex: 1;
+    }
+
+    /* Custom Links Section */
+    .custom-links-list {
+      margin-bottom: 16px;
+    }
+
+    .custom-link-item {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .custom-link-item .drag-handle {
+      cursor: grab;
+      color: #9CA3AF;
+    }
+
+    .custom-link-item .link-details {
+      flex: 1;
+    }
+
+    .custom-link-item .link-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #111;
+    }
+
+    .custom-link-item .link-url {
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .custom-link-item .delete-btn {
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .custom-link-item .delete-btn:hover {
+      color: #EF4444;
+    }
+
+    .add-link-btn {
+      width: 100%;
+      padding: 12px;
+      border: 2px dashed #E5E7EB;
+      border-radius: 8px;
+      background: transparent;
+      color: #6B7280;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .add-link-btn:hover {
+      border-color: #CE0707;
+      color: #CE0707;
+      background: #FEF2F2;
+    }
+
+    /* Color Picker */
+    .color-picker-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatch.selected {
+      border-color: #111;
+    }
+
+    .custom-color-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Editor Footer */
+    .profile-editor-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #E5E7EB;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: #CE0707;
+      color: white;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background: #A00606;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #374151;
+      border: 1px solid #D1D5DB;
+    }
+
+    .btn-secondary:hover {
+      background: #F9FAFB;
+    }
+
+    /* Right Panel - Preview */
+    .profile-preview-panel {
+      flex: 1;
+      background: #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .profile-preview-frame {
+      width: 100%;
+      max-width: 400px;
+      min-height: 700px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .profile-preview {
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .profile-preview-photo {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      background: #E5E7EB;
+      overflow: hidden;
+    }
+
+    .profile-preview-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-preview-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+
+    .profile-preview-bio {
+      font-size: 14px;
+      color: #6B7280;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .profile-preview-socials {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .profile-preview-social {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #374151;
+      transition: all 0.2s;
+    }
+
+    .profile-preview-social:hover {
+      transform: scale(1.1);
+    }
+
+    .profile-preview-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .profile-preview-link {
+      display: block;
+      padding: 16px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+
+    .profile-preview-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .profile-preview-beats {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .profile-preview-beats-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .profile-preview-beat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #F9FAFB;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .beat-item-cover {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .beat-item-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    .beat-item-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #111;
+    }
+
+    .beat-item-meta {
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .beat-item-price {
+      font-weight: 700;
+      color: #CE0707;
+    }
+
+    .profile-preview-footer {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #E5E7EB;
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+
+    .profile-preview-footer a {
+      color: #CE0707;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Add Link Modal */
+    .add-link-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .add-link-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .add-link-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      width: 90%;
+      max-width: 400px;
+      transform: scale(0.9);
+      transition: all 0.3s;
+    }
+
+    .add-link-modal-overlay.active .add-link-modal {
+      transform: scale(1);
+    }
+
+    .add-link-modal h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .profile-editor-container {
+        flex-direction: column;
+      }
+
+      .profile-editor-panel {
+        width: 100%;
+        min-width: 100%;
+        max-height: 50vh;
+      }
+
+      .profile-preview-panel {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Add Link Modal -->
+  <div class="add-link-modal-overlay" id="addLinkModal">
+    <div class="add-link-modal">
+      <h3>Add Custom Link</h3>
+      <div class="form-group">
+        <label class="form-label">Link Title</label>
+        <input type="text" class="form-input" id="newLinkTitle" placeholder="e.g., My Beat Store">
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL</label>
+        <input type="url" class="form-input" id="newLinkUrl" placeholder="https://...">
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-secondary" onclick="closeAddLinkModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addCustomLink()">Add Link</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-editor-container">
+    <!-- Left Panel - Editor -->
+    <aside class="profile-editor-panel">
+      <div class="profile-editor-header">
+        <h2>Profile Editor</h2>
+        <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'" style="padding: 8px 16px; font-size: 13px;">
+          <i data-lucide="arrow-left" style="width: 16px; height: 16px; margin-right: 4px;"></i> Exit
+        </button>
+      </div>
+
+      <div class="profile-editor-body">
+        <!-- Profile Photo -->
+        <div class="profile-editor-section">
+          <h3>Profile Photo</h3>
+          <div class="profile-photo-upload" id="photoUpload" onclick="document.getElementById('photoInput').click()">
+            <i data-lucide="camera" style="width: 32px; height: 32px; color: #9CA3AF;"></i>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="uploadPhoto(event)">
+          <p style="text-align: center; font-size: 12px; color: #6B7280;">Click to upload</p>
+        </div>
+
+        <!-- Basic Info -->
+        <div class="profile-editor-section">
+          <h3>Basic Info</h3>
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input type="text" class="form-input" id="displayName" placeholder="Your producer name" oninput="updatePreview()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bio</label>
+            <textarea class="form-input form-textarea" id="profileBio" placeholder="Tell people about yourself..." oninput="updatePreview()"></textarea>
+          </div>
+        </div>
+
+        <!-- Social Links -->
+        <div class="profile-editor-section">
+          <h3>Social Links</h3>
+          <div class="social-link-item">
+            <div class="social-link-icon">
+              <i data-lucide="instagram"></i>
+            </div>
+            <input type="url" class="form-input social-link-input" id="socialInstagram" placeholder="Instagram URL" oninput="updatePreview()">
+          </div>
+          <div class="social-link-item">
+            <div class="social-link-icon">
+              <i data-lucide="twitter"></i>
+            </div>
+            <input type="url" class="form-input social-link-input" id="socialTwitter" placeholder="Twitter/X URL" oninput="updatePreview()">
+          </div>
+          <div class="social-link-item">
+            <div class="social-link-icon">
+              <i data-lucide="youtube"></i>
+            </div>
+            <input type="url" class="form-input social-link-input" id="socialYoutube" placeholder="YouTube URL" oninput="updatePreview()">
+          </div>
+          <div class="social-link-item">
+            <div class="social-link-icon">
+              <i data-lucide="music"></i>
+            </div>
+            <input type="url" class="form-input social-link-input" id="socialSpotify" placeholder="Spotify URL" oninput="updatePreview()">
+          </div>
+        </div>
+
+        <!-- Custom Links -->
+        <div class="profile-editor-section">
+          <h3>Custom Links</h3>
+          <div class="custom-links-list" id="customLinksList">
+            <!-- Dynamic links added here -->
+          </div>
+          <button class="add-link-btn" onclick="openAddLinkModal()">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+            Add Custom Link
+          </button>
+        </div>
+
+        <!-- Theme -->
+        <div class="profile-editor-section">
+          <h3>Theme Color</h3>
+          <div class="color-picker-group">
+            <div class="color-swatch selected" style="background: #CE0707;" onclick="selectColor('#CE0707')"></div>
+            <div class="color-swatch" style="background: #000000;" onclick="selectColor('#000000')"></div>
+            <div class="color-swatch" style="background: #667eea;" onclick="selectColor('#667eea')"></div>
+            <div class="color-swatch" style="background: #10B981;" onclick="selectColor('#10B981')"></div>
+            <div class="color-swatch" style="background: #F59E0B;" onclick="selectColor('#F59E0B')"></div>
+            <div class="color-swatch" style="background: #EC4899;" onclick="selectColor('#EC4899')"></div>
+          </div>
+          <div class="custom-color-input" style="margin-top: 12px;">
+            <input type="color" id="customColorPicker" value="#CE0707" onchange="selectColor(this.value)" style="width: 40px; height: 40px; border: none; cursor: pointer;">
+            <span style="font-size: 12px; color: #6B7280;">Custom color</span>
+          </div>
+        </div>
+
+        <!-- Featured Beats -->
+        <div class="profile-editor-section">
+          <h3>Featured Beats</h3>
+          <p style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">Show your top beats on your profile</p>
+          <div id="featuredBeatsList">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-editor-footer">
+        <button class="btn btn-secondary" onclick="previewProfile()">Preview</button>
+        <button class="btn btn-primary" onclick="publishProfile()">Publish Profile</button>
+      </div>
+    </aside>
+
+    <!-- Right Panel - Preview -->
+    <main class="profile-preview-panel">
+      <div class="profile-preview-frame">
+        <div class="profile-preview" id="profilePreview">
+          <!-- Dynamic preview content -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/branding.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>
+    lucide.createIcons();
+
+    let profileData = {
+      photo_url: null,
+      display_name: '',
+      bio: '',
+      social_instagram: '',
+      social_twitter: '',
+      social_youtube: '',
+      social_spotify: '',
+      custom_links: [],
+      theme_color: '#CE0707',
+      featured_beats: []
+    };
+
+    let producerId = null;
+    let producerBeats = [];
+
+    async function init() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      // Get producer
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+
+      if (!producer) {
+        alert('Producer not found');
+        return;
+      }
+
+      producerId = producer.id;
+
+      // Load existing profile customization
+      const { data: customization } = await supabaseClient
+        .from('site_customizations')
+        .select('*')
+        .eq('producer_id', producer.id)
+        .single();
+
+      if (customization) {
+        profileData = {
+          ...profileData,
+          photo_url: customization.profile_photo_url || producer.logo_url,
+          display_name: customization.profile_display_name || producer.name,
+          bio: customization.profile_bio || '',
+          social_instagram: customization.social_instagram || '',
+          social_twitter: customization.social_twitter || '',
+          social_youtube: customization.social_youtube || '',
+          social_spotify: customization.social_spotify || '',
+          custom_links: customization.profile_custom_links ? JSON.parse(customization.profile_custom_links) : [],
+          theme_color: customization.primary_color || '#CE0707',
+          featured_beats: customization.profile_featured_beats ? JSON.parse(customization.profile_featured_beats) : []
+        };
+      } else {
+        profileData.display_name = producer.name;
+      }
+
+      // Populate form fields
+      document.getElementById('displayName').value = profileData.display_name;
+      document.getElementById('profileBio').value = profileData.bio;
+      document.getElementById('socialInstagram').value = profileData.social_instagram;
+      document.getElementById('socialTwitter').value = profileData.social_twitter;
+      document.getElementById('socialYoutube').value = profileData.social_youtube;
+      document.getElementById('socialSpotify').value = profileData.social_spotify;
+
+      // Update photo upload
+      if (profileData.photo_url) {
+        const photoUpload = document.getElementById('photoUpload');
+        photoUpload.innerHTML = `<img src="${profileData.photo_url}" alt="Profile">`;
+        photoUpload.classList.add('has-image');
+      }
+
+      // Load producer's beats for featuring
+      const { data: beats } = await supabaseClient
+        .from('beats')
+        .select('*')
+        .eq('producer_id', producer.id)
+        .order('created_at', { ascending: false });
+
+      producerBeats = beats || [];
+      renderFeaturedBeatsSelector();
+      renderCustomLinks();
+      selectColor(profileData.theme_color);
+      updatePreview();
+    }
+
+    function renderFeaturedBeatsSelector() {
+      const container = document.getElementById('featuredBeatsList');
+      if (producerBeats.length === 0) {
+        container.innerHTML = '<p style="font-size: 13px; color: #9CA3AF;">No beats uploaded yet. <a href="beats.html" style="color: #CE0707;">Upload beats</a></p>';
+        return;
+      }
+
+      container.innerHTML = producerBeats.slice(0, 5).map(beat => `
+        <label style="display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; cursor: pointer; margin-bottom: 8px; background: ${profileData.featured_beats.includes(beat.id) ? '#FEF2F2' : '#F9FAFB'};">
+          <input type="checkbox" ${profileData.featured_beats.includes(beat.id) ? 'checked' : ''} onchange="toggleFeaturedBeat('${beat.id}')">
+          <div style="width: 40px; height: 40px; border-radius: 6px; background: ${beat.cover_art_url ? `url(${beat.cover_art_url}) center/cover` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}"></div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 13px;">${beat.title}</div>
+            <div style="font-size: 11px; color: #6B7280;">$${beat.price_basic}</div>
+          </div>
+        </label>
+      `).join('');
+    }
+
+    function toggleFeaturedBeat(beatId) {
+      const index = profileData.featured_beats.indexOf(beatId);
+      if (index > -1) {
+        profileData.featured_beats.splice(index, 1);
+      } else if (profileData.featured_beats.length < 3) {
+        profileData.featured_beats.push(beatId);
+      } else {
+        alert('You can feature up to 3 beats');
+        return;
+      }
+      renderFeaturedBeatsSelector();
+      updatePreview();
+    }
+
+    function renderCustomLinks() {
+      const container = document.getElementById('customLinksList');
+      container.innerHTML = profileData.custom_links.map((link, index) => `
+        <div class="custom-link-item">
+          <i data-lucide="grip-vertical" class="drag-handle" style="width: 16px; height: 16px;"></i>
+          <div class="link-details">
+            <div class="link-title">${link.title}</div>
+            <div class="link-url">${link.url}</div>
+          </div>
+          <button class="delete-btn" onclick="deleteCustomLink(${index})">
+            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function openAddLinkModal() {
+      document.getElementById('addLinkModal').classList.add('active');
+      document.getElementById('newLinkTitle').value = '';
+      document.getElementById('newLinkUrl').value = '';
+    }
+
+    function closeAddLinkModal() {
+      document.getElementById('addLinkModal').classList.remove('active');
+    }
+
+    function addCustomLink() {
+      const title = document.getElementById('newLinkTitle').value.trim();
+      const url = document.getElementById('newLinkUrl').value.trim();
+
+      if (!title || !url) {
+        alert('Please enter both title and URL');
+        return;
+      }
+
+      profileData.custom_links.push({ title, url });
+      renderCustomLinks();
+      closeAddLinkModal();
+      updatePreview();
+    }
+
+    function deleteCustomLink(index) {
+      profileData.custom_links.splice(index, 1);
+      renderCustomLinks();
+      updatePreview();
+    }
+
+    function selectColor(color) {
+      profileData.theme_color = color;
+      document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.classList.toggle('selected', swatch.style.background === color);
+      });
+      document.getElementById('customColorPicker').value = color;
+      updatePreview();
+    }
+
+    async function uploadPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const photoUpload = document.getElementById('photoUpload');
+      photoUpload.innerHTML = '<div style="color: #6B7280; font-size: 12px;">Uploading...</div>';
+
+      try {
+        const path = `${producerId}/profile-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('logos')
+          .upload(path, file);
+
+        if (error) throw error;
+
+        const { data } = supabaseClient.storage
+          .from('logos')
+          .getPublicUrl(path);
+
+        profileData.photo_url = data.publicUrl;
+        photoUpload.innerHTML = `<img src="${data.publicUrl}" alt="Profile">`;
+        photoUpload.classList.add('has-image');
+        updatePreview();
+      } catch (error) {
+        console.error('Upload error:', error);
+        photoUpload.innerHTML = '<i data-lucide="camera" style="width: 32px; height: 32px; color: #9CA3AF;"></i>';
+        lucide.createIcons();
+        alert('Error uploading photo. Please try again.');
+      }
+    }
+
+    function updatePreview() {
+      profileData.display_name = document.getElementById('displayName').value || 'Your Name';
+      profileData.bio = document.getElementById('profileBio').value;
+      profileData.social_instagram = document.getElementById('socialInstagram').value;
+      profileData.social_twitter = document.getElementById('socialTwitter').value;
+      profileData.social_youtube = document.getElementById('socialYoutube').value;
+      profileData.social_spotify = document.getElementById('socialSpotify').value;
+
+      const preview = document.getElementById('profilePreview');
+      const color = profileData.theme_color;
+
+      // Get featured beats data
+      const featuredBeatsHtml = profileData.featured_beats.map(beatId => {
+        const beat = producerBeats.find(b => b.id === beatId);
+        if (!beat) return '';
+        return `
+          <div class="profile-preview-beat-item">
+            <div class="beat-item-cover" style="${beat.cover_art_url ? `background: url(${beat.cover_art_url}) center/cover` : ''}"></div>
+            <div class="beat-item-info">
+              <div class="beat-item-title">${beat.title}</div>
+              <div class="beat-item-meta">${beat.bpm || '---'} BPM</div>
+            </div>
+            <div class="beat-item-price">$${beat.price_basic}</div>
+          </div>
+        `;
+      }).join('');
+
+      preview.innerHTML = `
+        <div class="profile-preview-photo" style="border: 3px solid ${color};">
+          ${profileData.photo_url ? `<img src="${profileData.photo_url}" alt="Profile">` : '<div style="width: 100%; height: 100%; background: #E5E7EB;"></div>'}
+        </div>
+
+        <h1 class="profile-preview-name">${profileData.display_name}</h1>
+
+        ${profileData.bio ? `<p class="profile-preview-bio">${profileData.bio}</p>` : ''}
+
+        <div class="profile-preview-socials">
+          ${profileData.social_instagram ? `<a href="${profileData.social_instagram}" class="profile-preview-social" style="background: ${color}15; color: ${color};" target="_blank"><i data-lucide="instagram" style="width: 20px; height: 20px;"></i></a>` : ''}
+          ${profileData.social_twitter ? `<a href="${profileData.social_twitter}" class="profile-preview-social" style="background: ${color}15; color: ${color};" target="_blank"><i data-lucide="twitter" style="width: 20px; height: 20px;"></i></a>` : ''}
+          ${profileData.social_youtube ? `<a href="${profileData.social_youtube}" class="profile-preview-social" style="background: ${color}15; color: ${color};" target="_blank"><i data-lucide="youtube" style="width: 20px; height: 20px;"></i></a>` : ''}
+          ${profileData.social_spotify ? `<a href="${profileData.social_spotify}" class="profile-preview-social" style="background: ${color}15; color: ${color};" target="_blank"><i data-lucide="music" style="width: 20px; height: 20px;"></i></a>` : ''}
+        </div>
+
+        <div class="profile-preview-links">
+          ${profileData.custom_links.map(link => `
+            <a href="${link.url}" class="profile-preview-link" style="background: ${color}; color: white;" target="_blank">
+              ${link.title}
+            </a>
+          `).join('')}
+        </div>
+
+        ${featuredBeatsHtml ? `
+          <div class="profile-preview-beats">
+            <div class="profile-preview-beats-title">Featured Beats</div>
+            ${featuredBeatsHtml}
+          </div>
+        ` : ''}
+
+        <div class="profile-preview-footer">
+          Powered by <a href="https://redpine.systems" target="_blank">Red Pine</a>
+        </div>
+      `;
+
+      lucide.createIcons();
+    }
+
+    function previewProfile() {
+      // Could open in new tab for full preview
+      alert('Preview would open your profile in a new tab at your subdomain');
+    }
+
+    async function publishProfile() {
+      if (!producerId) {
+        alert('Producer not found');
+        return;
+      }
+
+      try {
+        const nameValue = document.getElementById('displayName').value;
+        const bioValue = document.getElementById('profileBio').value;
+        const igValue = document.getElementById('socialInstagram').value;
+        const twValue = document.getElementById('socialTwitter').value;
+        const ytValue = document.getElementById('socialYoutube').value;
+
+        const { error } = await supabaseClient
+          .from('site_customizations')
+          .upsert({
+            producer_id: producerId,
+            profile_name: nameValue,
+            profile_bio: bioValue,
+            instagram: igValue,
+            twitter: twValue,
+            youtube: ytValue,
+            site_mode: 'profile',
+            profile_photo_url: profileData.photo_url,
+            profile_display_name: profileData.display_name,
+            social_instagram: profileData.social_instagram,
+            social_twitter: profileData.social_twitter,
+            social_youtube: profileData.social_youtube,
+            social_spotify: profileData.social_spotify,
+            profile_custom_links: JSON.stringify(profileData.custom_links),
+            primary_color: profileData.theme_color,
+            profile_featured_beats: JSON.stringify(profileData.featured_beats)
+          }, { onConflict: 'producer_id' });
+
+        if (error) throw error;
+
+        showToast('Profile published!', 'success');
+        window.location.href = 'store-published.html';
+
+      } catch (error) {
+        console.error('Publish error:', error);
+        alert('Error publishing profile: ' + error.message);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

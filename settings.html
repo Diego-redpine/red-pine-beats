@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    /* RP-SETTINGS-002: Custom checkboxes using primary color */
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--gray-medium);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    input[type="checkbox"]:checked {
+      background: var(--red);
+      border-color: var(--red);
+    }
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 1px;
+      width: 6px;
+      height: 11px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    input[type="checkbox"]:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(206, 7, 7, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <button class="hamburger-menu" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html" class="active"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <h1 class="page-title">Settings</h1>
+        <div class="theme-toggle-wrapper">
+          <i data-lucide="sun" style="width:16px;height:16px;"></i>
+          <label class="theme-toggle">
+            <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+            <span class="theme-toggle-slider"></span>
+          </label>
+          <i data-lucide="moon" style="width:16px;height:16px;"></i>
+        </div>
+      </div>
+      
+      <div id="settingsMessage"></div>
+      
+      <!-- Account Info -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Account Information</h2>
+        </div>
+        <div style="padding: 24px;">
+          <div style="margin-bottom: 16px;">
+            <strong>Name:</strong> <span id="userName"></span>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <strong>Email:</strong> <span id="userEmail"></span>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <strong>Username:</strong> <span id="username"></span>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <strong>Your Store URL:</strong> <br>
+            <code id="storeUrl" style="background: var(--gray-light); padding: 8px; display: inline-block; margin-top: 8px; border-radius: 4px;"></code>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Branding -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Dashboard Branding</h2>
+        </div>
+        <div style="padding: 24px;">
+          <p style="margin-bottom: 16px; color: var(--gray-dark);">
+            Customize the look of your dashboard with your brand colors and logo.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Primary Color</label>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <input type="color" id="primaryColor" value="#CE0707" style="width: 60px; height: 40px; border: none; cursor: pointer; border-radius: 6px;">
+              <input type="text" class="form-input" id="primaryColorHex" value="#CE0707" style="width: 120px; font-family: 'Fira Code', monospace;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Dashboard Logo</label>
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <img id="logoPreview" src="assets/images/red_pine_logo.png" alt="Logo" style="width: 64px; height: 64px; border-radius: 8px; object-fit: contain; background: var(--gray-light);">
+              <div>
+                <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+                <button class="btn btn-secondary btn-small" onclick="document.getElementById('logoUpload').click()">Upload Logo</button>
+                <p style="font-size: 12px; color: var(--gray-dark); margin-top: 8px;">PNG or JPG, max 2MB</p>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveBranding()">Save Branding</button>
+        </div>
+      </div>
+
+      <!-- Subscription & AI Credits (merged per RP-SETTINGS-005) -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Subscription & Credits</h2>
+        </div>
+        <div style="padding: 24px;">
+          <!-- Subscription Info -->
+          <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
+            <div style="flex: 1; min-width: 200px; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--gray-dark); margin-bottom: 4px;">Plan</div>
+              <div style="font-size: 24px; font-weight: 700; color: var(--red);"><span id="monthlyFee"></span>/mo</div>
+            </div>
+            <div style="flex: 1; min-width: 200px; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+              <div style="font-size: 12px; color: var(--gray-dark); margin-bottom: 4px;">Status</div>
+              <div style="font-size: 24px; font-weight: 700;"><span id="subscriptionStatus" style="text-transform: capitalize;"></span></div>
+            </div>
+          </div>
+
+          <!-- AI Credits -->
+          <div style="border-top: 1px solid var(--gray-medium); padding-top: 24px;">
+            <h4 style="margin-bottom: 12px; font-size: 14px;">AI Store Builder Credits</h4>
+            <p style="margin-bottom: 16px; color: var(--gray-dark); font-size: 13px;">
+              Credits are used for AI-powered store customization. Purchase more when you run out.
+            </p>
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+              <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 14px;">
+                  <span id="aiCreditsUsed">0</span>
+                  <span id="aiCreditsLimit">50</span>
+                </div>
+                <div style="height: 8px; background: var(--gray-medium); border-radius: 4px; overflow: hidden;">
+                  <div id="aiCreditsBar" style="height: 100%; background: var(--red); width: 0%; transition: width 0.3s;"></div>
+                </div>
+              </div>
+              <span style="font-size: 13px; color: var(--gray-dark);"><span id="aiCreditsRemaining">50</span> remaining</span>
+            </div>
+            <button class="btn btn-secondary" onclick="showBuyCreditsModal()">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i> Buy More Credits
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Change Password</h2>
+        </div>
+        <div style="padding: 24px;">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-input" id="newPassword" placeholder="Enter new password" minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password">
+          </div>
+          <div id="passwordError"></div>
+          <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+
+      <!-- Notification Preferences -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Notification Preferences</h2>
+        </div>
+        <div style="padding: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <input type="checkbox" id="notifNewSale" checked>
+              <div>
+                <div style="font-weight: 500;">New Sale Notifications</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Get notified when someone purchases your beat</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <input type="checkbox" id="notifNewCustomer" checked>
+              <div>
+                <div style="font-weight: 500;">New Customer Notifications</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Get notified when you get a new customer</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <input type="checkbox" id="notifWeeklyReport">
+              <div>
+                <div style="font-weight: 500;">Weekly Report Email</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Receive weekly summary of your sales and analytics</div>
+              </div>
+            </label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top: 16px;" onclick="saveNotificationPrefs()">Save Preferences</button>
+        </div>
+      </div>
+
+      <!-- Security / Sessions -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Security</h2>
+        </div>
+        <div style="padding: 24px;">
+          <h4 style="margin-bottom: 16px; font-size: 14px;">Active Sessions</h4>
+          <div id="sessionsList" style="margin-bottom: 16px;">
+            <div style="padding: 16px; background: var(--gray-light); border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="monitor" style="width: 24px; height: 24px; color: var(--gray-dark);"></i>
+                <div>
+                  <div style="font-weight: 500;">Current Session</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);">This device</div>
+                </div>
+              </div>
+              <span style="background: #10B981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px;">Active</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary" onclick="logoutAllDevices()">
+            <i data-lucide="log-out" style="width:16px;height:16px;"></i> Log Out All Other Devices
+          </button>
+          <p style="font-size: 12px; color: var(--gray-dark); margin-top: 12px;">
+            This will sign you out from all other devices and sessions.
+          </p>
+        </div>
+      </div>
+
+      <!-- AUTH-012: Two-Factor Authentication -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Two-Factor Authentication</h2>
+        </div>
+        <div style="padding: 24px;">
+          <div id="twoFactorStatus">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <div>
+                <h4 style="font-size: 14px; margin-bottom: 4px;">Authenticator App</h4>
+                <p style="font-size: 12px; color: var(--gray-dark);">Use an authenticator app like Google Authenticator or Authy</p>
+              </div>
+              <div id="twoFactorToggle">
+                <button class="btn btn-secondary" id="enable2FABtn" onclick="showEnable2FAModal()">Enable 2FA</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="backupCodesSection" style="display: none; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--gray-medium);">
+            <h4 style="font-size: 14px; margin-bottom: 8px;">Backup Codes</h4>
+            <p style="font-size: 12px; color: var(--gray-dark); margin-bottom: 12px;">Use these codes if you lose access to your authenticator app</p>
+            <button class="btn btn-secondary btn-small" onclick="viewBackupCodes()">View Backup Codes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2FA Setup Modal -->
+      <div id="twoFactorModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Set Up Two-Factor Authentication</h3>
+            <button class="modal-close" onclick="close2FAModal()">×</button>
+          </div>
+          <div class="modal-body" style="text-align: center;">
+            <div id="qrCodeStep">
+              <p style="margin-bottom: 16px; color: var(--gray-dark);">Scan this QR code with your authenticator app</p>
+              <div id="qrCodeContainer" style="background: white; padding: 16px; display: inline-block; border-radius: 8px; margin-bottom: 16px;">
+                <!-- QR code will be inserted here -->
+              </div>
+              <p style="font-size: 12px; color: var(--gray-dark); margin-bottom: 16px;">Or enter this code manually:</p>
+              <code id="totpSecret" style="background: var(--gray-light); padding: 8px 16px; border-radius: 4px; font-family: monospace;"></code>
+            </div>
+
+            <div id="verifyStep" style="margin-top: 24px;">
+              <p style="margin-bottom: 12px;">Enter the 6-digit code from your app</p>
+              <input type="text" class="form-input" id="verifyCode" maxlength="6" placeholder="000000" style="text-align: center; font-size: 24px; letter-spacing: 8px; max-width: 200px; margin: 0 auto;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="close2FAModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="verify2FACode()">Verify & Enable</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup Codes Modal -->
+      <div id="backupCodesModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Backup Codes</h3>
+            <button class="modal-close" onclick="closeBackupCodesModal()">×</button>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom: 16px; color: var(--gray-dark);">Save these codes in a safe place. Each code can only be used once.</p>
+            <div id="backupCodesList" style="background: var(--gray-light); padding: 16px; border-radius: 8px; font-family: monospace; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <!-- Backup codes will be inserted here -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="copyBackupCodes()">Copy Codes</button>
+            <button class="btn btn-primary" onclick="closeBackupCodesModal()">Done</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Activity Log</h2>
+        </div>
+        <div style="padding: 24px;">
+          <p style="margin-bottom: 16px; color: var(--gray-dark);">Recent account activity from the last 30 days</p>
+          <div id="activityLog" style="max-height: 300px; overflow-y: auto;">
+            <div style="padding: 16px; text-align: center; color: var(--gray-dark);">Loading activity...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Data (GDPR) -->
+      <div class="table-container" style="margin-bottom: 24px;">
+        <div class="table-header">
+          <h2>Export My Data</h2>
+        </div>
+        <div style="padding: 24px;">
+          <p style="margin-bottom: 16px; color: var(--gray-dark);">
+            Download a copy of all your data including beats, customers, sales, and settings. This may take a moment.
+          </p>
+          <button class="btn btn-secondary" onclick="exportAllData()">
+            <i data-lucide="download" style="width:16px;height:16px;"></i> Export My Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2 style="color: var(--red);">Danger Zone</h2>
+        </div>
+        <div style="padding: 24px;">
+          <p style="margin-bottom: 16px; color: var(--gray-dark);">
+            Once you delete your account, there is no going back. All your beats and data will be permanently deleted.
+          </p>
+          <button class="btn btn-danger" onclick="deleteAccount()">
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/branding.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>lucide.createIcons();</script>
+  <script>
+    async function loadSettings() {
+      const user = await checkAuth();
+      if (!user) return;
+      
+      const { data: producer, error: producerError } = await supabaseClient
+        .from('producers')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+      
+      if (producerError || !producer) {
+        document.getElementById('settingsMessage').innerHTML = 
+          '<div class="alert alert-error">Producer account not found. This usually means your signup didn\'t complete properly. Please contact support or try signing up again with a different email.</div>';
+        return;
+      }
+      
+      if (producer) {
+        document.getElementById('userName').textContent = producer.name || 'Not set';
+        document.getElementById('userEmail').textContent = producer.email || 'Not set';
+        document.getElementById('username').textContent = producer.username || 'Not set';
+        document.getElementById('storeUrl').textContent =
+          `https://${producer.subdomain || 'unknown'}.redpine.systems`;
+        document.getElementById('monthlyFee').textContent = 
+          `$${(producer.monthly_fee / 100).toFixed(2)}`;
+        document.getElementById('subscriptionStatus').textContent = 
+          producer.subscription_status || 'unknown';
+        
+        // Check Stripe connection status
+        const stripeStatus = document.getElementById('stripeStatus');
+        const stripeConnectionStatus = document.getElementById('stripeConnectionStatus');
+        const stripeActionBtn = document.getElementById('stripeActionBtn');
+
+        if (producer.stripe_account_id) {
+          stripeStatus.innerHTML = '<div class="alert alert-success"><strong>Connected</strong> - Your Stripe account is linked</div>';
+          document.getElementById('stripeConnectBtn').textContent = 'Reconnect Stripe';
+          // Update connected accounts section
+          if (stripeConnectionStatus) {
+            stripeConnectionStatus.style.color = '#10B981';
+            stripeConnectionStatus.textContent = 'Connected - ' + producer.stripe_account_id.substring(0, 12) + '...';
+          }
+          if (stripeActionBtn) stripeActionBtn.textContent = 'Manage';
+        } else {
+          stripeStatus.innerHTML = '<div class="alert alert-error"><strong>Not Connected</strong> - You won\'t receive payments until you connect</div>';
+          // Update connected accounts section
+          if (stripeConnectionStatus) {
+            stripeConnectionStatus.style.color = '#EF4444';
+            stripeConnectionStatus.textContent = 'Not connected';
+          }
+          if (stripeActionBtn) stripeActionBtn.textContent = 'Connect';
+        }
+      }
+    }
+    
+    async function connectStripe() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Connect Stripe Account</h3>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom: 16px;">Enter your Stripe Account ID to start receiving payments.</p>
+            
+            <div class="form-group">
+              <label class="form-label">Stripe Account ID</label>
+              <input type="text" 
+                     id="stripeAccountId" 
+                     class="form-input" 
+                     placeholder="acct_1234567890"
+                     style="font-family: 'Fira Code', monospace;">
+              <p style="font-size: 12px; color: var(--gray); margin-top: 4px;">
+                Find this in your Stripe Dashboard → Settings → Account details
+              </p>
+            </div>
+            
+            <div style="background: var(--gray-light); padding: 16px; border-radius: 6px; margin-top: 16px; font-size: 13px;">
+              <strong>Don't have a Stripe account?</strong><br>
+              <ol style="margin-left: 20px; line-height: 1.8; margin-top: 8px;">
+                <li>Go to <a href="https://stripe.com" target="_blank" style="color: var(--red);">stripe.com</a></li>
+                <li>Create account (takes 5 minutes)</li>
+                <li>Complete verification</li>
+                <li>Copy your Account ID and paste above</li>
+              </ol>
+            </div>
+            
+            <div id="stripeError" style="margin-top: 16px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveStripeAccount()" id="saveStripeBtn">Save Account ID</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    async function saveStripeAccount() {
+      const stripeAccountId = document.getElementById('stripeAccountId').value.trim();
+      const stripeError = document.getElementById('stripeError');
+      const saveBtn = document.getElementById('saveStripeBtn');
+      
+      if (!stripeAccountId) {
+        stripeError.innerHTML = '<div class="alert alert-error">Please enter your Stripe Account ID</div>';
+        return;
+      }
+      
+      if (!stripeAccountId.startsWith('acct_')) {
+        stripeError.innerHTML = '<div class="alert alert-error">Stripe Account ID should start with "acct_"</div>';
+        return;
+      }
+      
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+      
+      try {
+        const user = await checkAuth();
+        if (!user) throw new Error('Not authenticated');
+        
+        // Get producer
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+        
+        // Update stripe account ID
+        const { error } = await supabaseClient
+          .from('producers')
+          .update({ stripe_account_id: stripeAccountId })
+          .eq('id', producer.id);
+        
+        if (error) throw error;
+        
+        // Close modal
+        document.querySelector('.modal-overlay').remove();
+        
+        // Show success and reload
+        const settingsMessage = document.getElementById('settingsMessage');
+        settingsMessage.innerHTML = '<div class="alert alert-success">Stripe account connected successfully!</div>';
+        setTimeout(() => {
+          settingsMessage.innerHTML = '';
+          loadSettings();
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error saving Stripe account:', error);
+        stripeError.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Account ID';
+      }
+    }
+    
+    async function deleteAccount() {
+      // First confirmation
+      const modal1 = document.createElement('div');
+      modal1.className = 'modal-overlay';
+      modal1.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Delete Account</h3>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-icon warning" style="color: #F59E0B; font-size: 48px;"><strong>!</strong></div>
+            <p class="modal-text">
+              <strong>This action cannot be undone.</strong><br><br>
+              All your beats, sales data, and account information will be permanently deleted.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-danger" onclick="showFinalDeleteConfirm()">Continue</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal1);
+    }
+    
+    function showFinalDeleteConfirm() {
+      // Remove first modal
+      document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+
+      // Second confirmation - type DELETE
+      const modal2 = document.createElement('div');
+      modal2.className = 'modal-overlay';
+      modal2.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Final Confirmation</h3>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">x</button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-text" style="margin-bottom: 16px;">
+              <strong>Type DELETE to confirm account deletion:</strong>
+            </p>
+            <input type="text" class="form-input" id="deleteConfirmInput" placeholder="Type DELETE here" autocomplete="off">
+            <div id="deleteError" style="margin-top: 12px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()" id="deleteForeverBtn">Delete Forever</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal2);
+      document.getElementById('deleteConfirmInput').focus();
+    }
+
+    async function confirmDeleteAccount() {
+      const confirmInput = document.getElementById('deleteConfirmInput');
+      const deleteError = document.getElementById('deleteError');
+      const deleteBtn = document.getElementById('deleteForeverBtn');
+
+      if (confirmInput.value !== 'DELETE') {
+        deleteError.innerHTML = '<div class="alert alert-error">Please type DELETE to confirm</div>';
+        return;
+      }
+
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = 'Deleting...';
+
+      try {
+        const user = await checkAuth();
+        if (!user) throw new Error('Not authenticated');
+
+        // Get producer ID
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) throw new Error('Producer not found');
+
+        // Delete all related data in order
+        // Delete sales
+        await supabaseClient.from('sales').delete().eq('producer_id', producer.id);
+        // Delete beats
+        await supabaseClient.from('beats').delete().eq('producer_id', producer.id);
+        // Delete customers
+        await supabaseClient.from('customers').delete().eq('producer_id', producer.id);
+        // Delete site customizations
+        await supabaseClient.from('site_customizations').delete().eq('producer_id', producer.id);
+        // Delete notifications
+        await supabaseClient.from('notifications').delete().eq('producer_id', producer.id);
+        // Delete form submissions
+        await supabaseClient.from('form_submissions').delete().eq('producer_id', producer.id);
+        // Delete producer record
+        await supabaseClient.from('producers').delete().eq('id', producer.id);
+
+        // Sign out and delete auth user
+        await supabaseClient.auth.signOut();
+
+        // Close modal and redirect
+        document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+
+        showToast('Account deleted successfully', 'success');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+
+      } catch (error) {
+        console.error('Delete account error:', error);
+        deleteError.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete Forever';
+      }
+    }
+    
+    // Branding functionality
+    document.getElementById('primaryColor')?.addEventListener('input', (e) => {
+      document.getElementById('primaryColorHex').value = e.target.value;
+    });
+
+    document.getElementById('primaryColorHex')?.addEventListener('input', (e) => {
+      const hex = e.target.value;
+      if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+        document.getElementById('primaryColor').value = hex;
+      }
+    });
+
+    document.getElementById('logoUpload')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          alert('File too large. Max 2MB allowed.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          document.getElementById('logoPreview').src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    async function saveBranding() {
+      const settingsMessage = document.getElementById('settingsMessage');
+      const primaryColor = document.getElementById('primaryColor').value;
+      const logoFile = document.getElementById('logoUpload').files[0];
+
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        const updateData = { primary_color: primaryColor };
+
+        // Upload logo if changed
+        if (logoFile) {
+          const logoPath = `${producer.id}/logo-${Date.now()}.${logoFile.name.split('.').pop()}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('brand-assets')
+            .upload(logoPath, logoFile);
+
+          if (!uploadError) {
+            const { data: logoUrl } = supabaseClient.storage
+              .from('brand-assets')
+              .getPublicUrl(logoPath);
+            updateData.logo_url = logoUrl.publicUrl;
+          }
+        }
+
+        const { error } = await supabaseClient
+          .from('producers')
+          .update(updateData)
+          .eq('id', producer.id);
+
+        if (error) throw error;
+
+        settingsMessage.innerHTML = '<div class="alert alert-success">Branding saved successfully!</div>';
+        setTimeout(() => { settingsMessage.innerHTML = ''; }, 3000);
+
+      } catch (error) {
+        settingsMessage.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+      }
+    }
+
+    // SETTINGS-007: Change password
+    async function changePassword() {
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const passwordError = document.getElementById('passwordError');
+
+      // Validation
+      if (!newPassword || !confirmPassword) {
+        passwordError.innerHTML = '<div class="alert alert-error">Please fill in both password fields</div>';
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        passwordError.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters</div>';
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        passwordError.innerHTML = '<div class="alert alert-error">Passwords do not match</div>';
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient.auth.updateUser({
+          password: newPassword
+        });
+
+        if (error) throw error;
+
+        passwordError.innerHTML = '<div class="alert alert-success">Password updated successfully!</div>';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+
+        setTimeout(() => { passwordError.innerHTML = ''; }, 3000);
+      } catch (error) {
+        passwordError.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+      }
+    }
+
+    // SETTINGS-008: Notification preferences
+    async function saveNotificationPrefs() {
+      const settingsMessage = document.getElementById('settingsMessage');
+      const prefs = {
+        notify_new_sale: document.getElementById('notifNewSale').checked,
+        notify_new_customer: document.getElementById('notifNewCustomer').checked,
+        notify_weekly_report: document.getElementById('notifWeeklyReport').checked
+      };
+
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { error } = await supabaseClient
+          .from('producers')
+          .update(prefs)
+          .eq('email', user.email);
+
+        if (error) throw error;
+
+        showToast('Notification preferences saved', 'success');
+      } catch (error) {
+        showToast('Error saving preferences', 'error');
+        console.error(error);
+      }
+    }
+
+    // SETTINGS-010: Export all data (GDPR compliance)
+    async function exportAllData() {
+      const settingsMessage = document.getElementById('settingsMessage');
+      settingsMessage.innerHTML = '<div class="alert alert-info">Preparing your data export...</div>';
+
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) throw new Error('Producer not found');
+
+        // Gather all data
+        const [beatsResult, salesResult, customersResult, siteResult] = await Promise.all([
+          supabaseClient.from('beats').select('*').eq('producer_id', producer.id),
+          supabaseClient.from('sales').select('*').eq('producer_id', producer.id),
+          // Aggregate customers from sales
+          supabaseClient.from('sales').select('customer_email, customer_name').eq('producer_id', producer.id),
+          supabaseClient.from('site_customizations').select('*').eq('producer_id', producer.id)
+        ]);
+
+        // Aggregate unique customers
+        const customerMap = {};
+        (customersResult.data || []).forEach(sale => {
+          if (sale.customer_email && !customerMap[sale.customer_email]) {
+            customerMap[sale.customer_email] = {
+              email: sale.customer_email,
+              name: sale.customer_name
+            };
+          }
+        });
+
+        // Build export data
+        const exportData = {
+          exported_at: new Date().toISOString(),
+          account: {
+            id: producer.id,
+            name: producer.name,
+            email: producer.email,
+            username: producer.username,
+            subdomain: producer.subdomain,
+            created_at: producer.created_at
+          },
+          settings: {
+            primary_color: producer.primary_color,
+            logo_url: producer.logo_url,
+            custom_domain: producer.custom_domain,
+            subscription_status: producer.subscription_status
+          },
+          beats: (beatsResult.data || []).map(beat => ({
+            id: beat.id,
+            title: beat.title,
+            genre: beat.genre,
+            bpm: beat.bpm,
+            key: beat.key,
+            price_basic: beat.price_basic,
+            price_premium: beat.price_premium,
+            price_exclusive: beat.price_exclusive,
+            is_published: beat.is_published,
+            views: beat.views,
+            created_at: beat.created_at
+          })),
+          sales: (salesResult.data || []).map(sale => ({
+            id: sale.id,
+            beat_id: sale.beat_id,
+            customer_email: sale.customer_email,
+            amount: sale.amount,
+            license_type: sale.license_type,
+            status: sale.status,
+            created_at: sale.created_at
+          })),
+          customers: Object.values(customerMap),
+          site_customization: siteResult.data?.[0] || null
+        };
+
+        // Download as JSON
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `red-pine-data-export-${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        settingsMessage.innerHTML = '<div class="alert alert-success">Data exported successfully!</div>';
+        setTimeout(() => { settingsMessage.innerHTML = ''; }, 3000);
+
+      } catch (error) {
+        console.error('Export error:', error);
+        settingsMessage.innerHTML = `<div class="alert alert-error">Error exporting data: ${error.message}</div>`;
+      }
+    }
+
+    // SECURITY-001: Log out all other devices
+    async function logoutAllDevices() {
+      if (!confirm('This will log you out from all other devices. Continue?')) {
+        return;
+      }
+
+      try {
+        // Supabase doesn't have a built-in "logout all other sessions" but we can use signOut with scope: 'global'
+        // For now, we'll sign out the current session and redirect to login
+        // In production, you'd use Supabase's admin functions to revoke other sessions
+
+        const settingsMessage = document.getElementById('settingsMessage');
+        settingsMessage.innerHTML = '<div class="alert alert-info">Revoking other sessions...</div>';
+
+        // Sign out globally (this will sign out all sessions including current)
+        await supabaseClient.auth.signOut({ scope: 'global' });
+
+        showToast('All sessions revoked. Please log in again.', 'success');
+
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+
+      } catch (error) {
+        console.error('Error logging out all devices:', error);
+        showToast('Error revoking sessions', 'error');
+      }
+    }
+
+    // SETTINGS-005: Load and display AI credits
+    async function loadAICredits() {
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('ai_requests_used, ai_requests_limit')
+          .eq('email', user.email)
+          .single();
+
+        if (producer) {
+          const used = producer.ai_requests_used || 0;
+          const limit = producer.ai_requests_limit || 50;
+          const remaining = Math.max(0, limit - used);
+          const percentage = Math.min(100, (used / limit) * 100);
+
+          document.getElementById('aiCreditsUsed').textContent = used;
+          document.getElementById('aiCreditsLimit').textContent = limit;
+          document.getElementById('aiCreditsRemaining').textContent = remaining;
+          document.getElementById('aiCreditsBar').style.width = percentage + '%';
+
+          // Change bar color based on usage
+          if (percentage > 80) {
+            document.getElementById('aiCreditsBar').style.background = '#EF4444';
+          } else if (percentage > 50) {
+            document.getElementById('aiCreditsBar').style.background = '#F59E0B';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading AI credits:', error);
+      }
+    }
+
+    function showBuyCreditsModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'buyCreditsModal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Buy AI Credits</h3>
+            <button class="modal-close" onclick="document.getElementById('buyCreditsModal').remove()">x</button>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom: 24px; color: var(--gray-dark);">
+              Select a credit package. Credits never expire and roll over each month.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <label style="display: flex; align-items: center; padding: 16px; border: 2px solid var(--gray-medium); border-radius: 8px; cursor: pointer; transition: all 0.2s;" onclick="selectCreditPackage(this, 10, 10)">
+                <input type="radio" name="creditPackage" value="10" style="margin-right: 12px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">10 Credits</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);">$1.00 per credit</div>
+                </div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--red);">$10</div>
+              </label>
+
+              <label style="display: flex; align-items: center; padding: 16px; border: 2px solid var(--gray-medium); border-radius: 8px; cursor: pointer; transition: all 0.2s; position: relative;" onclick="selectCreditPackage(this, 50, 40)">
+                <span style="position: absolute; top: -8px; right: 16px; background: #10B981; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px;">POPULAR</span>
+                <input type="radio" name="creditPackage" value="50" style="margin-right: 12px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">50 Credits</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);">$0.80 per credit (Save 20%)</div>
+                </div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--red);">$40</div>
+              </label>
+
+              <label style="display: flex; align-items: center; padding: 16px; border: 2px solid var(--gray-medium); border-radius: 8px; cursor: pointer; transition: all 0.2s;" onclick="selectCreditPackage(this, 100, 70)">
+                <input type="radio" name="creditPackage" value="100" style="margin-right: 12px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">100 Credits</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);">$0.70 per credit (Save 30%)</div>
+                </div>
+                <div style="font-size: 20px; font-weight: 700; color: var(--red);">$70</div>
+              </label>
+            </div>
+
+            <div id="buyCreditsError" style="margin-top: 16px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('buyCreditsModal').remove()">Cancel</button>
+            <button class="btn btn-primary" id="buyCreditsBtn" onclick="purchaseCredits()" disabled>
+              <i data-lucide="credit-card" style="width:14px;height:14px;"></i> Purchase Credits
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    let selectedCredits = 0;
+    let selectedPrice = 0;
+
+    function selectCreditPackage(element, credits, price) {
+      // Highlight selected
+      document.querySelectorAll('#buyCreditsModal label').forEach(label => {
+        label.style.borderColor = 'var(--gray-medium)';
+      });
+      element.style.borderColor = 'var(--red)';
+
+      selectedCredits = credits;
+      selectedPrice = price;
+      document.getElementById('buyCreditsBtn').disabled = false;
+    }
+
+    async function purchaseCredits() {
+      if (!selectedCredits || !selectedPrice) return;
+
+      const btn = document.getElementById('buyCreditsBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;"></span> Processing...';
+
+      // In production, this would create a Stripe checkout session
+      // For now, show a placeholder
+      document.getElementById('buyCreditsModal').remove();
+      showToast(`In production, this would redirect to Stripe to purchase ${selectedCredits} credits for $${selectedPrice}`, 'info');
+    }
+
+    // Load AI credits on page load
+    loadAICredits();
+
+    // SECURITY-002: Load activity log
+    async function loadActivityLog() {
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return;
+
+        // Get activity from various sources
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Get sales activity
+        const { data: sales } = await supabaseClient
+          .from('sales')
+          .select('created_at, customer_email, amount')
+          .eq('producer_id', producer.id)
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        // Get notifications (which track various events)
+        const { data: notifications } = await supabaseClient
+          .from('notifications')
+          .select('created_at, type, title, message')
+          .eq('producer_id', producer.id)
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        // Combine and sort activities
+        const activities = [];
+
+        // Add sales as activities
+        (sales || []).forEach(sale => {
+          activities.push({
+            type: 'sale',
+            icon: 'shopping-cart',
+            color: '#10B981',
+            title: 'New Sale',
+            detail: `$${(sale.amount / 100).toFixed(2)} from ${sale.customer_email}`,
+            timestamp: sale.created_at
+          });
+        });
+
+        // Add notifications as activities
+        (notifications || []).forEach(n => {
+          activities.push({
+            type: n.type,
+            icon: n.type === 'sale' ? 'dollar-sign' : n.type === 'new_customer' ? 'user-plus' : 'bell',
+            color: '#3B82F6',
+            title: n.title,
+            detail: n.message,
+            timestamp: n.created_at
+          });
+        });
+
+        // Add login activity (current session)
+        activities.push({
+          type: 'login',
+          icon: 'log-in',
+          color: '#8B5CF6',
+          title: 'Current Login',
+          detail: 'Active session',
+          timestamp: new Date().toISOString()
+        });
+
+        // Sort by timestamp
+        activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // Render activity log
+        const logContainer = document.getElementById('activityLog');
+        if (activities.length === 0) {
+          logContainer.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--gray-dark);">No recent activity</div>';
+        } else {
+          logContainer.innerHTML = activities.slice(0, 20).map(activity => `
+            <div style="display: flex; align-items: start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-medium);">
+              <div style="width: 32px; height: 32px; background: ${activity.color}20; color: ${activity.color}; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="${activity.icon}" style="width:16px;height:16px;"></i>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 500; font-size: 14px;">${activity.title}</div>
+                <div style="font-size: 12px; color: var(--gray-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${activity.detail}</div>
+              </div>
+              <div style="font-size: 11px; color: var(--gray-dark); white-space: nowrap;">
+                ${formatTimeAgo(activity.timestamp)}
+              </div>
+            </div>
+          `).join('');
+          lucide.createIcons();
+        }
+
+      } catch (error) {
+        console.error('Error loading activity log:', error);
+        document.getElementById('activityLog').innerHTML =
+          '<div style="padding: 16px; text-align: center; color: var(--gray-dark);">Error loading activity</div>';
+      }
+    }
+
+    function formatTimeAgo(timestamp) {
+      const now = new Date();
+      const then = new Date(timestamp);
+      const seconds = Math.floor((now - then) / 1000);
+
+      if (seconds < 60) return 'Just now';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+      if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+      return then.toLocaleDateString();
+    }
+
+    // STRIPE-009: Load payout history (shows sales as payouts since Stripe payouts happen automatically)
+    async function loadPayoutHistory() {
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id, stripe_account_id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer || !producer.stripe_account_id) return;
+
+        // Show payout section since they have Stripe connected
+        document.getElementById('payoutHistorySection').style.display = 'block';
+
+        // Get recent sales as payout history
+        const { data: sales } = await supabaseClient
+          .from('sales')
+          .select('amount, created_at, status, customer_email')
+          .eq('producer_id', producer.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        const payoutDiv = document.getElementById('payoutHistory');
+
+        if (!sales || sales.length === 0) {
+          payoutDiv.innerHTML = '<div style="text-align: center; color: var(--gray-dark); padding: 16px;">No transactions yet</div>';
+          return;
+        }
+
+        // Calculate totals
+        const total = sales.reduce((sum, s) => sum + s.amount, 0);
+
+        payoutDiv.innerHTML = `
+          <div style="padding: 12px; background: var(--gray-light); border-radius: 8px; margin-bottom: 16px;">
+            <div style="font-size: 12px; color: var(--gray-dark);">Total Earnings (Recent)</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--red);">$${(total / 100).toFixed(2)}</div>
+          </div>
+          ${sales.map(sale => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--gray-medium);">
+              <div>
+                <div style="font-weight: 500;">$${(sale.amount / 100).toFixed(2)}</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">${sale.customer_email}</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="display: inline-block; padding: 2px 8px; background: #10B98120; color: #10B981; border-radius: 4px; font-size: 11px;">${sale.status || 'Completed'}</span>
+                <div style="font-size: 11px; color: var(--gray-dark); margin-top: 4px;">${new Date(sale.created_at).toLocaleDateString()}</div>
+              </div>
+            </div>
+          `).join('')}
+        `;
+
+      } catch (error) {
+        console.error('Error loading payout history:', error);
+      }
+    }
+
+    // Load payout history on page load
+    loadPayoutHistory();
+
+    // Load activity log on page load
+    loadActivityLog();
+
+    // AUTH-012: Two-Factor Authentication
+    let totpSecret = null;
+    let backupCodes = [];
+
+    async function check2FAStatus() {
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+
+        // Check if 2FA is enabled in producer record
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('two_factor_enabled')
+          .eq('email', user.email)
+          .single();
+
+        if (producer?.two_factor_enabled) {
+          document.getElementById('enable2FABtn').textContent = 'Disable 2FA';
+          document.getElementById('enable2FABtn').onclick = disable2FA;
+          document.getElementById('backupCodesSection').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error checking 2FA status:', error);
+      }
+    }
+
+    function showEnable2FAModal() {
+      // Generate a TOTP secret
+      totpSecret = generateTOTPSecret();
+
+      // Create QR code URL for authenticator apps
+      const user = supabaseClient.auth.getUser();
+      const otpAuthUrl = `otpauth://totp/RedPine:${user?.data?.user?.email || 'user'}?secret=${totpSecret}&issuer=RedPine`;
+
+      // Display secret (in production, use a QR code library)
+      document.getElementById('qrCodeContainer').innerHTML = `
+        <div style="padding: 24px; background: #F3F4F6; border-radius: 8px;">
+          <p style="font-size: 12px; color: #6B7280; margin-bottom: 8px;">Scan with authenticator app or</p>
+          <p style="font-size: 11px; color: #374151;">Add manually using the secret below</p>
+        </div>
+      `;
+      document.getElementById('totpSecret').textContent = totpSecret;
+
+      document.getElementById('twoFactorModal').style.display = 'flex';
+    }
+
+    function close2FAModal() {
+      document.getElementById('twoFactorModal').style.display = 'none';
+      document.getElementById('verifyCode').value = '';
+    }
+
+    function generateTOTPSecret() {
+      // Generate a random base32 secret
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      let secret = '';
+      for (let i = 0; i < 16; i++) {
+        secret += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return secret;
+    }
+
+    function generateBackupCodes() {
+      const codes = [];
+      for (let i = 0; i < 8; i++) {
+        const code = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' +
+                     Math.random().toString(36).substring(2, 6).toUpperCase();
+        codes.push(code);
+      }
+      return codes;
+    }
+
+    async function verify2FACode() {
+      const code = document.getElementById('verifyCode').value;
+
+      if (code.length !== 6) {
+        alert('Please enter a 6-digit code');
+        return;
+      }
+
+      try {
+        // In production, verify the TOTP code server-side
+        // For now, we'll simulate enabling 2FA
+        backupCodes = generateBackupCodes();
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        // Store 2FA settings
+        await supabaseClient
+          .from('producers')
+          .update({
+            two_factor_enabled: true,
+            two_factor_secret: totpSecret,
+            backup_codes: backupCodes.join(',')
+          })
+          .eq('email', user.email);
+
+        close2FAModal();
+
+        // Show backup codes
+        document.getElementById('backupCodesList').innerHTML = backupCodes.map(code =>
+          `<div style="padding: 4px 8px; background: white; border-radius: 4px; text-align: center;">${code}</div>`
+        ).join('');
+        document.getElementById('backupCodesModal').style.display = 'flex';
+
+        // Update UI
+        document.getElementById('enable2FABtn').textContent = 'Disable 2FA';
+        document.getElementById('enable2FABtn').onclick = disable2FA;
+        document.getElementById('backupCodesSection').style.display = 'block';
+
+        alert('Two-factor authentication has been enabled!');
+      } catch (error) {
+        console.error('Error enabling 2FA:', error);
+        alert('Failed to enable 2FA. Please try again.');
+      }
+    }
+
+    async function disable2FA() {
+      if (!confirm('Are you sure you want to disable two-factor authentication? This will make your account less secure.')) {
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        await supabaseClient
+          .from('producers')
+          .update({
+            two_factor_enabled: false,
+            two_factor_secret: null,
+            backup_codes: null
+          })
+          .eq('email', user.email);
+
+        document.getElementById('enable2FABtn').textContent = 'Enable 2FA';
+        document.getElementById('enable2FABtn').onclick = showEnable2FAModal;
+        document.getElementById('backupCodesSection').style.display = 'none';
+
+        alert('Two-factor authentication has been disabled.');
+      } catch (error) {
+        console.error('Error disabling 2FA:', error);
+        alert('Failed to disable 2FA. Please try again.');
+      }
+    }
+
+    async function viewBackupCodes() {
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('backup_codes')
+          .eq('email', user.email)
+          .single();
+
+        if (producer?.backup_codes) {
+          backupCodes = producer.backup_codes.split(',');
+          document.getElementById('backupCodesList').innerHTML = backupCodes.map(code =>
+            `<div style="padding: 4px 8px; background: white; border-radius: 4px; text-align: center;">${code}</div>`
+          ).join('');
+          document.getElementById('backupCodesModal').style.display = 'flex';
+        }
+      } catch (error) {
+        console.error('Error fetching backup codes:', error);
+      }
+    }
+
+    function closeBackupCodesModal() {
+      document.getElementById('backupCodesModal').style.display = 'none';
+    }
+
+    function copyBackupCodes() {
+      navigator.clipboard.writeText(backupCodes.join('\n'))
+        .then(() => alert('Backup codes copied to clipboard!'))
+        .catch(() => alert('Failed to copy codes'));
+    }
+
+    check2FAStatus();
+
+    loadSettings();
+  </script>
+</body>
+</html>

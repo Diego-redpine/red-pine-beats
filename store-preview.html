@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Preview - Red Pine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Oswald:wght@400;700&family=Poppins:wght@400;600;700&family=Bebas+Neue&family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <style>
+    :root {
+      --primary: #CE0707;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F9FAFB;
+      --text-primary: #111111;
+      --text-secondary: #6B7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    /* Store Header */
+    .store-header {
+      background: #111;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .store-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .store-logo {
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .store-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    .store-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .store-nav-link {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .store-nav-link:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .cart-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .cart-btn:hover {
+      transform: scale(1.02);
+    }
+
+    .cart-count {
+      background: white;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* Hero Section */
+    .store-hero {
+      padding: 100px 40px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .store-hero h1 {
+      font-size: 56px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    .store-hero p {
+      font-size: 20px;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Beat Catalog Section */
+    .catalog-section {
+      padding: 60px 40px;
+      background: var(--bg-secondary);
+    }
+
+    .catalog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .catalog-title {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .catalog-filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      padding: 10px 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .search-input {
+      padding: 10px 16px;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 14px;
+      width: 250px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Beat Grid */
+    .beat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .beat-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: all 0.3s;
+    }
+
+    .beat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    }
+
+    .beat-cover {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .beat-content {
+      padding: 20px;
+    }
+
+    .beat-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .beat-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .beat-waveform {
+      height: 48px;
+      margin-bottom: 16px;
+      background: #F3F4F6;
+      border-radius: 4px;
+    }
+
+    .beat-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .beat-price {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .beat-price small {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .beat-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: #F3F4F6;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .play-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .play-btn.playing {
+      background: var(--primary);
+      color: white;
+    }
+
+    .add-cart-btn {
+      padding: 12px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-cart-btn:hover {
+      transform: scale(1.02);
+    }
+
+    /* License Modal */
+    .license-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .license-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .license-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      transform: scale(0.9);
+      transition: all 0.3s;
+    }
+
+    .license-modal-overlay.active .license-modal {
+      transform: scale(1);
+    }
+
+    .license-modal h3 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .license-modal .beat-info {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .license-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .license-option {
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .license-option:hover {
+      border-color: var(--primary);
+    }
+
+    .license-option.selected {
+      border-color: var(--primary);
+      background: #FEF2F2;
+    }
+
+    .license-option-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .license-option-name {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .license-option-price {
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--primary);
+    }
+
+    .license-option-features {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cancel-btn {
+      background: white;
+      border: 1px solid #E5E7EB;
+      color: var(--text-primary);
+    }
+
+    .confirm-btn {
+      background: var(--primary);
+      border: none;
+      color: white;
+    }
+
+    /* Cart Sidebar */
+    .cart-sidebar {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100vh;
+      background: white;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s ease;
+    }
+
+    .cart-sidebar.open {
+      right: 0;
+    }
+
+    .cart-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 199;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .cart-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .cart-header {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cart-header h3 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .cart-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .cart-item-cover {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .cart-item-info {
+      flex: 1;
+    }
+
+    .cart-item-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .cart-item-license {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .cart-item-price {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .cart-item-remove {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .cart-item-remove:hover {
+      color: #EF4444;
+    }
+
+    .cart-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    .cart-footer {
+      padding: 20px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .checkout-btn:hover {
+      transform: scale(1.02);
+    }
+
+    /* Footer */
+    .store-footer {
+      background: #111;
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .footer-socials {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .footer-social {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .footer-social:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .footer-powered {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .footer-powered a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #10B981;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      transition: all 0.3s;
+      opacity: 0;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Preview Banner */
+    .preview-banner {
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 12px 20px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-banner a {
+      color: #92400E;
+      font-weight: 700;
+    }
+
+    .preview-banner.published {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+
+    .preview-banner.published a {
+      color: #065F46;
+    }
+
+    /* Published Success Modal */
+    .published-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .published-modal-overlay.hidden {
+      display: none;
+    }
+
+    .published-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 480px;
+      text-align: center;
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .published-modal-icon {
+      width: 64px;
+      height: 64px;
+      background: #D1FAE5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .published-modal h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .published-modal p {
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+
+    .store-url-box {
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .store-url-box input {
+      flex: 1;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: #6b7280;
+    }
+
+    .custom-domain-link {
+      display: block;
+      color: #CE0707;
+      font-size: 14px;
+      margin-bottom: 24px;
+      text-decoration: none;
+    }
+
+    .custom-domain-link:hover {
+      text-decoration: underline;
+    }
+
+    .published-modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .published-modal-actions .btn {
+      padding: 12px 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .store-header {
+        padding: 12px 20px;
+      }
+
+      .store-hero {
+        padding: 60px 20px;
+      }
+
+      .store-hero h1 {
+        font-size: 36px;
+      }
+
+      .catalog-section {
+        padding: 40px 20px;
+      }
+
+      .beat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cart-sidebar {
+        width: 100%;
+        right: -100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Preview Banner -->
+  <div class="preview-banner" id="previewBanner">
+    <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+    <span id="bannerText">Preview Mode - This is how your store will look to customers</span>
+    <a href="customize.html" id="bannerLink">Back to Editor</a>
+  </div>
+
+  <!-- Published Success Modal -->
+  <div class="published-modal-overlay hidden" id="publishedModal">
+    <div class="published-modal">
+      <div class="published-modal-icon">
+        <i data-lucide="check" style="width: 32px; height: 32px; color: #10B981;"></i>
+      </div>
+      <h2>Your Store is Live!</h2>
+      <p>Congratulations! Your beat store is now published and ready for customers.</p>
+      <div class="store-url-box">
+        <i data-lucide="link" style="width: 16px; height: 16px; color: #6b7280;"></i>
+        <input type="text" id="publishedStoreUrl" readonly value="Loading...">
+        <button class="copy-btn" onclick="copyStoreUrl()">
+          <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <a href="settings.html#custom-domain" class="custom-domain-link">
+        <i data-lucide="globe" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+        Set up a custom domain
+      </a>
+      <div class="published-modal-actions">
+        <button class="btn btn-secondary" onclick="closePublishedModal()">View Store</button>
+        <button class="btn btn-primary" onclick="window.location.href='customize.html'">Continue Editing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Overlay -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+  <!-- Cart Sidebar -->
+  <aside class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" onclick="toggleCart()">
+        <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+      </button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">
+        <i data-lucide="shopping-bag" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+        <p>Your cart is empty</p>
+      </div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display: none;">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotal">$0</span>
+      </div>
+      <button class="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>
+    </div>
+  </aside>
+
+  <!-- License Selection Modal -->
+  <div class="license-modal-overlay" id="licenseModal">
+    <div class="license-modal">
+      <h3 id="modalBeatTitle">Beat Title</h3>
+      <p class="beat-info" id="modalBeatInfo">140 BPM - F Minor</p>
+      <div class="license-options" id="licenseOptions">
+        <!-- Dynamic license options -->
+      </div>
+      <div class="modal-actions">
+        <button class="cancel-btn" onclick="closeLicenseModal()">Cancel</button>
+        <button class="confirm-btn" onclick="addToCart()">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">Added to cart!</div>
+
+  <!-- Store Header -->
+  <header class="store-header" id="storeHeader">
+    <div class="store-brand">
+      <img src="" alt="" class="store-logo" id="storeLogo" style="display: none;">
+      <span class="store-name" id="storeName">Loading...</span>
+    </div>
+    <nav class="store-nav">
+      <a href="#catalog" class="store-nav-link">Beats</a>
+      <a href="#" class="store-nav-link">Login</a>
+      <button class="cart-btn" onclick="toggleCart()">
+        <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+        Cart
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="store-hero" id="storeHero">
+    <h1 id="heroTitle">Welcome to My Store</h1>
+    <p id="heroSubtitle">Premium Beats & Instrumentals</p>
+  </section>
+
+  <!-- Beat Catalog -->
+  <section class="catalog-section" id="catalog">
+    <div class="catalog-header">
+      <h2 class="catalog-title">Beat Catalog</h2>
+      <div class="catalog-filters">
+        <input type="text" class="search-input" placeholder="Search beats..." id="searchInput" oninput="filterBeats()">
+        <select class="filter-select" id="genreFilter" onchange="filterBeats()">
+          <option value="">All Genres</option>
+          <option value="trap">Trap</option>
+          <option value="rnb">R&B</option>
+          <option value="hiphop">Hip Hop</option>
+          <option value="drill">Drill</option>
+          <option value="pop">Pop</option>
+        </select>
+        <select class="filter-select" id="sortFilter" onchange="filterBeats()">
+          <option value="newest">Newest</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="beat-grid" id="beatGrid">
+      <!-- Dynamic beat cards -->
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="store-footer" id="storeFooter">
+    <div class="footer-socials" id="footerSocials">
+      <!-- Dynamic social links -->
+    </div>
+    <p class="footer-powered">Powered by <a href="https://redpine.systems" target="_blank">Red Pine</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    let storeData = null;
+    let beats = [];
+    let filteredBeats = [];
+    let cart = [];
+    let currentBeat = null;
+    let selectedLicense = 'basic';
+    let wavesurfers = {};
+
+    let currentProducerSubdomain = null;
+
+    function showPublishedModal() {
+      document.getElementById('publishedModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closePublishedModal() {
+      document.getElementById('publishedModal').classList.add('hidden');
+    }
+
+    function copyStoreUrl() {
+      const urlInput = document.getElementById('publishedStoreUrl');
+      urlInput.select();
+      document.execCommand('copy');
+
+      // Show feedback
+      const btn = urlInput.parentElement.querySelector('.copy-btn');
+      btn.innerHTML = '<i data-lucide="check" style="width: 16px; height: 16px; color: #10B981;"></i>';
+      lucide.createIcons();
+      setTimeout(() => {
+        btn.innerHTML = '<i data-lucide="copy" style="width: 16px; height: 16px;"></i>';
+        lucide.createIcons();
+      }, 2000);
+    }
+
+    async function init() {
+      // Get subdomain from URL or use current user's store
+      const params = new URLSearchParams(window.location.search);
+      const subdomain = params.get('subdomain');
+      const published = params.get('published');
+
+      try {
+        // Get the current user (for preview mode)
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        let producerId;
+
+        if (subdomain) {
+          // Load store by subdomain - hide preview banner
+          document.getElementById('previewBanner').style.display = 'none';
+          const { data: producer } = await supabaseClient
+            .from('producers')
+            .select('id, subdomain')
+            .eq('subdomain', subdomain)
+            .single();
+          producerId = producer?.id;
+          currentProducerSubdomain = producer?.subdomain;
+        } else if (user) {
+          // Preview mode - use current user's store
+          const { data: producer } = await supabaseClient
+            .from('producers')
+            .select('id, subdomain')
+            .eq('email', user.email)
+            .single();
+          producerId = producer?.id;
+          currentProducerSubdomain = producer?.subdomain;
+
+          // Set store URL in published modal
+          const storeUrl = `${currentProducerSubdomain}.redpine.systems`;
+          document.getElementById('publishedStoreUrl').value = storeUrl;
+
+          // If coming from publish action, show the published modal
+          if (published === 'true') {
+            const banner = document.getElementById('previewBanner');
+            banner.classList.add('published');
+            document.getElementById('bannerText').textContent = 'Your store is now live!';
+            document.getElementById('bannerLink').textContent = 'Continue Editing';
+
+            // Show the published modal
+            setTimeout(() => showPublishedModal(), 500);
+          }
+        }
+
+        if (!producerId) {
+          document.body.innerHTML = '<div style="text-align: center; padding: 100px;"><h1>Store not found</h1></div>';
+          return;
+        }
+
+        // Load store customization
+        const { data: customization } = await supabaseClient
+          .from('site_customizations')
+          .select('*')
+          .eq('producer_id', producerId)
+          .single();
+
+        storeData = customization || {};
+        storeData.producer_id = producerId; // Store producer_id for checkout
+
+        // Load beats
+        const { data: beatsData } = await supabaseClient
+          .from('beats')
+          .select('*')
+          .eq('producer_id', producerId)
+          .order('created_at', { ascending: false });
+
+        beats = beatsData || [];
+        filteredBeats = [...beats];
+
+        // Apply customization
+        applyStoreCustomization();
+        renderBeats();
+
+      } catch (error) {
+        console.error('Error loading store:', error);
+      }
+    }
+
+    function applyStoreCustomization() {
+      // Set CSS variables
+      document.documentElement.style.setProperty('--primary', storeData.primary_color || '#CE0707');
+
+      // Header
+      const header = document.getElementById('storeHeader');
+      header.style.background = storeData.header_bg_color || '#111111';
+
+      // Logo
+      if (storeData.logo_url) {
+        const logo = document.getElementById('storeLogo');
+        logo.src = storeData.logo_url;
+        logo.style.display = 'block';
+      }
+
+      // Store name
+      document.getElementById('storeName').textContent = storeData.logo_text || 'Beat Store';
+      document.getElementById('storeName').style.fontFamily = `'${storeData.header_brandname_typography || 'Oswald'}', sans-serif`;
+
+      // Hero
+      const hero = document.getElementById('storeHero');
+      if (storeData.hero_background) {
+        hero.style.backgroundImage = `url('${storeData.hero_background}')`;
+        hero.style.backgroundSize = 'cover';
+        hero.style.backgroundPosition = 'center';
+      } else if (storeData.hero_bg_color) {
+        hero.style.background = storeData.hero_bg_color;
+      }
+
+      document.getElementById('heroTitle').textContent = storeData.hero_title || 'Welcome to My Store';
+      document.getElementById('heroTitle').style.color = storeData.hero_text_color || '#FFFFFF';
+      document.getElementById('heroTitle').style.fontFamily = `'${storeData.hero_typography || 'Oswald'}', sans-serif`;
+
+      document.getElementById('heroSubtitle').textContent = storeData.hero_subtitle || '';
+      document.getElementById('heroSubtitle').style.color = storeData.hero_text_color || '#FFFFFF';
+
+      // Footer
+      const footer = document.getElementById('storeFooter');
+      footer.style.background = storeData.footer_bg_color || '#111111';
+
+      // Social links
+      const socials = document.getElementById('footerSocials');
+      let socialsHtml = '';
+      if (storeData.social_instagram) {
+        socialsHtml += `<a href="${storeData.social_instagram}" class="footer-social" target="_blank"><i data-lucide="instagram" style="width: 20px; height: 20px;"></i></a>`;
+      }
+      if (storeData.social_twitter) {
+        socialsHtml += `<a href="${storeData.social_twitter}" class="footer-social" target="_blank"><i data-lucide="twitter" style="width: 20px; height: 20px;"></i></a>`;
+      }
+      if (storeData.social_youtube) {
+        socialsHtml += `<a href="${storeData.social_youtube}" class="footer-social" target="_blank"><i data-lucide="youtube" style="width: 20px; height: 20px;"></i></a>`;
+      }
+      socials.innerHTML = socialsHtml;
+      lucide.createIcons();
+    }
+
+    function renderBeats() {
+      const grid = document.getElementById('beatGrid');
+
+      if (filteredBeats.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #6B7280;">No beats found</div>';
+        return;
+      }
+
+      grid.innerHTML = filteredBeats.map(beat => `
+        <div class="beat-card" data-id="${beat.id}">
+          ${beat.cover_art_url ?
+            `<img src="${beat.cover_art_url}" alt="${beat.title}" class="beat-cover">` :
+            `<div class="beat-cover"></div>`
+          }
+          <div class="beat-content">
+            <h3 class="beat-title">${beat.title}</h3>
+            <div class="beat-meta">
+              <span>${beat.bpm || '---'} BPM</span>
+              <span>${beat.key || '---'}</span>
+              <span>${beat.genre || 'Beat'}</span>
+            </div>
+            <div class="beat-waveform" id="waveform-${beat.id}"></div>
+            <div class="beat-actions">
+              <div class="beat-price">
+                $${beat.price_basic || 30}
+                <small>Basic</small>
+              </div>
+              <div class="beat-buttons">
+                <button class="play-btn" id="play-btn-${beat.id}" onclick="togglePlay('${beat.id}')">
+                  <i data-lucide="play" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="add-cart-btn" onclick="openLicenseModal('${beat.id}')">Add to Cart</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+
+      // Initialize waveforms
+      filteredBeats.forEach(beat => {
+        if (beat.audio_url) {
+          initWaveform(beat.id, beat.audio_url);
+        }
+      });
+    }
+
+    function initWaveform(beatId, audioUrl) {
+      const container = document.getElementById(`waveform-${beatId}`);
+      if (!container) return;
+
+      wavesurfers[beatId] = WaveSurfer.create({
+        container: container,
+        waveColor: '#D1D5DB',
+        progressColor: storeData.primary_color || '#CE0707',
+        height: 48,
+        barWidth: 2,
+        barGap: 1,
+        cursorWidth: 0,
+      });
+
+      wavesurfers[beatId].load(audioUrl);
+    }
+
+    function togglePlay(beatId) {
+      const ws = wavesurfers[beatId];
+      if (!ws) return;
+
+      // Stop all other players
+      Object.keys(wavesurfers).forEach(id => {
+        if (id !== beatId && wavesurfers[id]) {
+          wavesurfers[id].pause();
+          const btn = document.getElementById(`play-btn-${id}`);
+          if (btn) {
+            btn.classList.remove('playing');
+            btn.innerHTML = '<i data-lucide="play" style="width: 18px; height: 18px;"></i>';
+          }
+        }
+      });
+
+      const btn = document.getElementById(`play-btn-${beatId}`);
+
+      if (ws.isPlaying()) {
+        ws.pause();
+        btn.classList.remove('playing');
+        btn.innerHTML = '<i data-lucide="play" style="width: 18px; height: 18px;"></i>';
+      } else {
+        ws.play();
+        btn.classList.add('playing');
+        btn.innerHTML = '<i data-lucide="pause" style="width: 18px; height: 18px;"></i>';
+      }
+
+      lucide.createIcons();
+    }
+
+    function filterBeats() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const genre = document.getElementById('genreFilter').value.toLowerCase();
+      const sort = document.getElementById('sortFilter').value;
+
+      filteredBeats = beats.filter(beat => {
+        const matchesSearch = beat.title.toLowerCase().includes(search);
+        const matchesGenre = !genre || (beat.genre && beat.genre.toLowerCase().includes(genre));
+        return matchesSearch && matchesGenre;
+      });
+
+      // Sort
+      if (sort === 'price-low') {
+        filteredBeats.sort((a, b) => (a.price_basic || 0) - (b.price_basic || 0));
+      } else if (sort === 'price-high') {
+        filteredBeats.sort((a, b) => (b.price_basic || 0) - (a.price_basic || 0));
+      }
+
+      renderBeats();
+    }
+
+    function openLicenseModal(beatId) {
+      currentBeat = beats.find(b => b.id === beatId);
+      if (!currentBeat) return;
+
+      document.getElementById('modalBeatTitle').textContent = currentBeat.title;
+      document.getElementById('modalBeatInfo').textContent = `${currentBeat.bpm || '---'} BPM - ${currentBeat.key || '---'}`;
+
+      const options = document.getElementById('licenseOptions');
+      options.innerHTML = `
+        <div class="license-option selected" onclick="selectLicense('basic', this)">
+          <div class="license-option-header">
+            <span class="license-option-name">Basic License</span>
+            <span class="license-option-price">$${currentBeat.price_basic || 30}</span>
+          </div>
+          <p class="license-option-features">MP3 file, 2,500 streams, non-exclusive</p>
+        </div>
+        <div class="license-option" onclick="selectLicense('premium', this)">
+          <div class="license-option-header">
+            <span class="license-option-name">Premium License</span>
+            <span class="license-option-price">$${currentBeat.price_premium || 75}</span>
+          </div>
+          <p class="license-option-features">WAV + MP3, 10,000 streams, trackouts available</p>
+        </div>
+        <div class="license-option" onclick="selectLicense('exclusive', this)">
+          <div class="license-option-header">
+            <span class="license-option-name">Exclusive License</span>
+            <span class="license-option-price">$${currentBeat.price_exclusive || 300}</span>
+          </div>
+          <p class="license-option-features">Full ownership, unlimited usage, beat removed from store</p>
+        </div>
+      `;
+
+      selectedLicense = 'basic';
+      document.getElementById('licenseModal').classList.add('active');
+    }
+
+    function selectLicense(license, element) {
+      selectedLicense = license;
+      document.querySelectorAll('.license-option').forEach(opt => opt.classList.remove('selected'));
+      element.classList.add('selected');
+    }
+
+    function closeLicenseModal() {
+      document.getElementById('licenseModal').classList.remove('active');
+      currentBeat = null;
+    }
+
+    function addToCart() {
+      if (!currentBeat) return;
+
+      const price = selectedLicense === 'basic' ? currentBeat.price_basic :
+                    selectedLicense === 'premium' ? currentBeat.price_premium :
+                    currentBeat.price_exclusive;
+
+      const licenseName = selectedLicense === 'basic' ? 'Basic License' :
+                          selectedLicense === 'premium' ? 'Premium License' :
+                          'Exclusive License';
+
+      cart.push({
+        beatId: currentBeat.id,
+        title: currentBeat.title,
+        cover: currentBeat.cover_art_url,
+        license: licenseName,
+        price: price || 30
+      });
+
+      closeLicenseModal();
+      updateCart();
+      showToast('Added to cart!');
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById('cartItems');
+      const cartFooter = document.getElementById('cartFooter');
+      const cartCount = document.getElementById('cartCount');
+      const cartTotal = document.getElementById('cartTotal');
+
+      cartCount.textContent = cart.length;
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = `
+          <div class="cart-empty">
+            <i data-lucide="shopping-bag" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+            <p>Your cart is empty</p>
+          </div>
+        `;
+        cartFooter.style.display = 'none';
+        lucide.createIcons();
+        return;
+      }
+
+      cartItems.innerHTML = cart.map((item, index) => `
+        <div class="cart-item">
+          <div class="cart-item-cover" style="${item.cover ? `background-image: url('${item.cover}'); background-size: cover;` : ''}"></div>
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-license">${item.license}</div>
+            <div class="cart-item-price">$${item.price}</div>
+          </div>
+          <button class="cart-item-remove" onclick="removeFromCart(${index})">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+      `).join('');
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      cartTotal.textContent = `$${total}`;
+      cartFooter.style.display = 'block';
+      lucide.createIcons();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function toggleCart() {
+      const sidebar = document.getElementById('cartSidebar');
+      const overlay = document.getElementById('cartOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    }
+
+    function proceedToCheckout() {
+      if (cart.length === 0) return;
+
+      // Save cart and producer ID to localStorage
+      localStorage.setItem('redpine_cart', JSON.stringify(cart));
+
+      // Get producer ID from storeData or URL
+      const subdomain = new URLSearchParams(window.location.search).get('subdomain');
+      if (storeData?.producer_id) {
+        localStorage.setItem('redpine_producer_id', storeData.producer_id);
+      }
+
+      // Close cart sidebar
+      toggleCart();
+
+      // Redirect to checkout page
+      window.location.href = 'checkout.html';
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

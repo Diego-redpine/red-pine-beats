@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Red Pine - Beat Selling Platform</title>
+  <script>
+    // Route based on subdomain
+    const hostname = window.location.hostname;
+    const subdomain = hostname.split('.')[0];
+    
+    // If subdomain is 'dashboard', go to login
+    if (subdomain === 'dashboard') {
+      window.location.href = '/login.html';
+    }
+    // If localhost or any other subdomain, show public store
+    else {
+      window.location.href = '/public-store.html';
+    }
+  </script>
+</head>
+<body>
+  <p>Loading...</p>
+</body>
+</html>

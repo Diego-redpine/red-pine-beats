@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Your Store - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    /* BP-008: Onboarding Styles */
+    .onboarding-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      padding: 20px;
+    }
+
+    .onboarding-card {
+      background: var(--white);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .onboarding-header {
+      padding: 32px;
+      text-align: center;
+      border-bottom: 1px solid var(--gray-medium);
+    }
+
+    .onboarding-logo {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+    }
+
+    .onboarding-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .onboarding-subtitle {
+      color: var(--gray-dark);
+      font-size: 14px;
+    }
+
+    /* Progress bar */
+    .progress-container {
+      padding: 24px 32px;
+      background: var(--gray-light);
+    }
+
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .progress-steps::before {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 24px;
+      right: 24px;
+      height: 2px;
+      background: var(--gray-medium);
+    }
+
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--gray-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-dark);
+      margin-bottom: 8px;
+      transition: all 0.3s;
+    }
+
+    .step-circle.active {
+      background: var(--red);
+      color: white;
+    }
+
+    .step-circle.completed {
+      background: #10B981;
+      color: white;
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: var(--gray-dark);
+      text-align: center;
+      max-width: 60px;
+    }
+
+    /* Step content */
+    .onboarding-body {
+      padding: 32px;
+      min-height: 300px;
+    }
+
+    .step-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .step-description {
+      color: var(--gray-dark);
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    /* Logo upload */
+    .logo-upload-area {
+      width: 160px;
+      height: 160px;
+      border: 2px dashed var(--gray-medium);
+      border-radius: 50%;
+      margin: 0 auto 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .logo-upload-area:hover {
+      border-color: var(--red);
+      background: var(--gray-light);
+    }
+
+    .logo-upload-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logo-upload-area .upload-placeholder {
+      text-align: center;
+      color: var(--gray-dark);
+    }
+
+    .logo-upload-area .upload-placeholder i {
+      margin-bottom: 8px;
+    }
+
+    /* Color picker */
+    .color-picker-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .color-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--gray-medium);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .color-preview:hover {
+      transform: scale(1.05);
+    }
+
+    .color-presets {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .color-preset {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 3px solid transparent;
+    }
+
+    .color-preset:hover {
+      transform: scale(1.1);
+    }
+
+    .color-preset.selected {
+      border-color: var(--black);
+    }
+
+    /* Subdomain input */
+    .subdomain-input-container {
+      display: flex;
+      align-items: center;
+      background: var(--gray-light);
+      border-radius: 8px;
+      padding: 4px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .subdomain-input-container input {
+      flex: 1;
+      border: none;
+      background: var(--white);
+      padding: 12px 16px;
+      font-size: 16px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .subdomain-input-container input:focus {
+      outline: none;
+    }
+
+    .subdomain-suffix {
+      padding: 0 16px;
+      color: var(--gray-dark);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .subdomain-status {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    .subdomain-status.available {
+      color: #10B981;
+    }
+
+    .subdomain-status.taken {
+      color: var(--red);
+    }
+
+    /* Footer */
+    .onboarding-footer {
+      padding: 24px 32px;
+      border-top: 1px solid var(--gray-medium);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .onboarding-footer .btn {
+      min-width: 120px;
+    }
+
+    /* Stripe connect */
+    .stripe-connect-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #635BFF;
+      color: white;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      margin: 0 auto;
+      transition: all 0.3s;
+    }
+
+    .stripe-connect-btn:hover {
+      background: #5851E6;
+      transform: scale(1.02);
+    }
+
+    .stripe-skip {
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .stripe-skip a {
+      color: var(--gray-dark);
+      font-size: 13px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="onboarding-container">
+    <div class="onboarding-card">
+      <div class="onboarding-header">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" class="onboarding-logo">
+        <h1 class="onboarding-title">Let's set up your store</h1>
+        <p class="onboarding-subtitle">Just a few quick steps to get you started</p>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-steps">
+          <div class="progress-step">
+            <div class="step-circle active" id="step-circle-1">1</div>
+            <span class="step-label">Name</span>
+          </div>
+          <div class="progress-step">
+            <div class="step-circle" id="step-circle-2">2</div>
+            <span class="step-label">Logo</span>
+          </div>
+          <div class="progress-step">
+            <div class="step-circle" id="step-circle-3">3</div>
+            <span class="step-label">Color</span>
+          </div>
+          <div class="progress-step">
+            <div class="step-circle" id="step-circle-4">4</div>
+            <span class="step-label">Stripe</span>
+          </div>
+          <div class="progress-step">
+            <div class="step-circle" id="step-circle-5">5</div>
+            <span class="step-label">URL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="onboarding-body">
+        <!-- Step 1: Producer Name -->
+        <div class="step-content active" id="step-1">
+          <h2 class="step-title">What's your producer name?</h2>
+          <p class="step-description">This is how customers will see you</p>
+          <div class="form-group" style="max-width: 400px; margin: 0 auto;">
+            <input type="text" class="form-input" id="producerName" placeholder="e.g., Metro Beats" style="font-size: 18px; text-align: center;">
+          </div>
+        </div>
+
+        <!-- Step 2: Logo Upload -->
+        <div class="step-content" id="step-2">
+          <h2 class="step-title">Upload your logo</h2>
+          <p class="step-description">A square image works best (PNG or JPG, max 2MB)</p>
+          <div class="logo-upload-area" onclick="document.getElementById('logoUpload').click()">
+            <div class="upload-placeholder" id="logoPlaceholder">
+              <i data-lucide="upload" style="width: 32px; height: 32px;"></i>
+              <div style="font-size: 13px;">Click to upload</div>
+            </div>
+            <img id="logoPreview" style="display: none;">
+          </div>
+          <input type="file" id="logoUpload" accept="image/png,image/jpeg" style="display: none;">
+          <p style="text-align: center; color: var(--gray-dark); font-size: 13px;">
+            You can skip this and add one later
+          </p>
+        </div>
+
+        <!-- Step 3: Primary Color -->
+        <div class="step-content" id="step-3">
+          <h2 class="step-title">Pick your brand color</h2>
+          <p class="step-description">This color will be used across your store</p>
+          <div class="color-picker-container">
+            <input type="color" id="colorPicker" value="#CE0707" style="display: none;">
+            <div class="color-preview" id="colorPreview" style="background: #CE0707;" onclick="document.getElementById('colorPicker').click()"></div>
+            <div class="color-presets">
+              <div class="color-preset selected" style="background: #CE0707;" data-color="#CE0707"></div>
+              <div class="color-preset" style="background: #3B82F6;" data-color="#3B82F6"></div>
+              <div class="color-preset" style="background: #8B5CF6;" data-color="#8B5CF6"></div>
+              <div class="color-preset" style="background: #10B981;" data-color="#10B981"></div>
+              <div class="color-preset" style="background: #F59E0B;" data-color="#F59E0B"></div>
+              <div class="color-preset" style="background: #EC4899;" data-color="#EC4899"></div>
+              <div class="color-preset" style="background: #000000;" data-color="#000000"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Stripe Connect -->
+        <div class="step-content" id="step-4">
+          <h2 class="step-title">Connect your Stripe account</h2>
+          <p class="step-description">Receive payments directly to your bank account</p>
+          <button class="stripe-connect-btn" onclick="connectStripe()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
+            </svg>
+            Connect with Stripe
+          </button>
+          <div class="stripe-skip">
+            <a onclick="skipStripe()">I'll do this later</a>
+          </div>
+          <div id="stripeStatus" style="text-align: center; margin-top: 16px;"></div>
+        </div>
+
+        <!-- Step 5: Subdomain -->
+        <div class="step-content" id="step-5">
+          <h2 class="step-title">Choose your store URL</h2>
+          <p class="step-description">This is where customers will find you</p>
+          <div class="subdomain-input-container">
+            <input type="text" id="subdomainInput" placeholder="yourname" oninput="checkSubdomain()">
+            <span class="subdomain-suffix">.redpine.systems</span>
+          </div>
+          <div class="subdomain-status" id="subdomainStatus"></div>
+        </div>
+      </div>
+
+      <div class="onboarding-footer">
+        <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()" style="visibility: hidden;">
+          <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Back
+        </button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
+          Next <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    let currentStep = 1;
+    const totalSteps = 5;
+    let onboardingData = {
+      name: '',
+      logo_url: null,
+      logoFile: null,
+      primary_color: '#CE0707',
+      stripe_account_id: null,
+      subdomain: ''
+    };
+
+    // Check auth on load
+    async function checkAuth() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        window.location.href = 'login.html';
+        return null;
+      }
+      return user;
+    }
+
+    checkAuth();
+
+    // Logo upload handler
+    document.getElementById('logoUpload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          alert('File too large. Max 2MB allowed.');
+          return;
+        }
+        onboardingData.logoFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('logoPreview').src = e.target.result;
+          document.getElementById('logoPreview').style.display = 'block';
+          document.getElementById('logoPlaceholder').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Color picker handlers
+    document.getElementById('colorPicker').addEventListener('input', (e) => {
+      const color = e.target.value;
+      onboardingData.primary_color = color;
+      document.getElementById('colorPreview').style.background = color;
+      document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
+    });
+
+    document.querySelectorAll('.color-preset').forEach(preset => {
+      preset.addEventListener('click', () => {
+        const color = preset.dataset.color;
+        onboardingData.primary_color = color;
+        document.getElementById('colorPreview').style.background = color;
+        document.getElementById('colorPicker').value = color;
+        document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
+        preset.classList.add('selected');
+      });
+    });
+
+    // Subdomain checking
+    let subdomainTimeout;
+    async function checkSubdomain() {
+      const input = document.getElementById('subdomainInput');
+      const status = document.getElementById('subdomainStatus');
+      const subdomain = input.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      input.value = subdomain;
+
+      if (subdomain.length < 3) {
+        status.textContent = 'Minimum 3 characters';
+        status.className = 'subdomain-status';
+        return;
+      }
+
+      status.textContent = 'Checking...';
+      status.className = 'subdomain-status';
+
+      clearTimeout(subdomainTimeout);
+      subdomainTimeout = setTimeout(async () => {
+        const { data } = await supabaseClient
+          .from('producers')
+          .select('subdomain')
+          .eq('subdomain', subdomain)
+          .single();
+
+        if (data) {
+          status.textContent = 'This URL is taken';
+          status.className = 'subdomain-status taken';
+          onboardingData.subdomain = '';
+        } else {
+          status.textContent = 'Available!';
+          status.className = 'subdomain-status available';
+          onboardingData.subdomain = subdomain;
+        }
+      }, 500);
+    }
+
+    // Stripe connect (simplified - in production use OAuth)
+    function connectStripe() {
+      const stripeStatus = document.getElementById('stripeStatus');
+      stripeStatus.innerHTML = `
+        <div class="form-group" style="margin-top: 16px;">
+          <input type="text" class="form-input" id="stripeAccountInput" placeholder="Enter Stripe Account ID (acct_...)" style="text-align: center;">
+          <button class="btn btn-primary" style="margin-top: 8px;" onclick="saveStripeAccount()">Save</button>
+        </div>
+      `;
+    }
+
+    function saveStripeAccount() {
+      const accountId = document.getElementById('stripeAccountInput').value.trim();
+      if (accountId && accountId.startsWith('acct_')) {
+        onboardingData.stripe_account_id = accountId;
+        document.getElementById('stripeStatus').innerHTML = '<div class="alert alert-success">Stripe connected!</div>';
+      } else {
+        alert('Please enter a valid Stripe Account ID starting with "acct_"');
+      }
+    }
+
+    function skipStripe() {
+      document.getElementById('stripeStatus').innerHTML = '<p style="color: var(--gray-dark);">Skipped - you can connect later in Settings</p>';
+      nextStep();
+    }
+
+    // Navigation
+    function updateProgress() {
+      for (let i = 1; i <= totalSteps; i++) {
+        const circle = document.getElementById(`step-circle-${i}`);
+        const content = document.getElementById(`step-${i}`);
+
+        circle.classList.remove('active', 'completed');
+        content.classList.remove('active');
+
+        if (i < currentStep) {
+          circle.classList.add('completed');
+          circle.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i>';
+        } else if (i === currentStep) {
+          circle.classList.add('active');
+          circle.textContent = i;
+          content.classList.add('active');
+        } else {
+          circle.textContent = i;
+        }
+      }
+
+      lucide.createIcons();
+
+      // Update buttons
+      document.getElementById('prevBtn').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+
+      const nextBtn = document.getElementById('nextBtn');
+      if (currentStep === totalSteps) {
+        nextBtn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Complete Setup';
+        lucide.createIcons();
+      } else {
+        nextBtn.innerHTML = 'Next <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    function validateStep() {
+      switch (currentStep) {
+        case 1:
+          const name = document.getElementById('producerName').value.trim();
+          if (!name) {
+            alert('Please enter your producer name');
+            return false;
+          }
+          onboardingData.name = name;
+          return true;
+        case 5:
+          if (!onboardingData.subdomain) {
+            alert('Please choose an available subdomain');
+            return false;
+          }
+          return true;
+        default:
+          return true;
+      }
+    }
+
+    function nextStep() {
+      if (!validateStep()) return;
+
+      if (currentStep < totalSteps) {
+        currentStep++;
+        updateProgress();
+      } else {
+        completeOnboarding();
+      }
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        updateProgress();
+      }
+    }
+
+    async function completeOnboarding() {
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.disabled = true;
+      nextBtn.innerHTML = '<div class="spinner" style="width:16px;height:16px;"></div> Setting up...';
+
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        // Upload logo if provided
+        if (onboardingData.logoFile) {
+          const logoPath = `logos/${user.id}/${Date.now()}-${onboardingData.logoFile.name}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('producer-assets')
+            .upload(logoPath, onboardingData.logoFile);
+
+          if (!uploadError) {
+            const { data: logoUrl } = supabaseClient.storage
+              .from('producer-assets')
+              .getPublicUrl(logoPath);
+            onboardingData.logo_url = logoUrl.publicUrl;
+          }
+        }
+
+        // Update producer record
+        const { error } = await supabaseClient
+          .from('producers')
+          .update({
+            name: onboardingData.name,
+            logo_url: onboardingData.logo_url,
+            primary_color: onboardingData.primary_color,
+            stripe_account_id: onboardingData.stripe_account_id,
+            subdomain: onboardingData.subdomain,
+            onboarding_completed: true
+          })
+          .eq('email', user.email);
+
+        if (error) throw error;
+
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+
+      } catch (error) {
+        console.error('Onboarding error:', error);
+        alert('Error completing setup: ' + error.message);
+        nextBtn.disabled = false;
+        nextBtn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Complete Setup';
+        lucide.createIcons();
+      }
+    }
+  </script>
+</body>
+</html>

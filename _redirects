@@ -1,0 +1,6 @@
+# Red Pine Redirects
+# Root redirects to login page
+/  /login.html  200
+
+# Public store only via producer subdomains (e.g., diegor.redpine.systems)
+/*  /public-store.html  200  Conditions=subdomain=*

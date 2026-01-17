@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        <span style="font-size: 28px; font-weight: 700; color: var(--black); margin-top: 8px;">RED PINE</span>
+      </div>
+      
+      <h1 class="auth-title">Welcome Back</h1>
+      
+      <div id="errorMessage"></div>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="email" required placeholder="your@email.com">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="password" required placeholder="••••••••">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          Login
+        </button>
+      </form>
+      
+      <div class="auth-link">
+        Don't have an account? <a href="signup.html">Sign up</a>
+      </div>
+
+      <div style="text-align: center; margin-top: 16px;">
+        <a href="#" onclick="showForgotPassword()" style="color: var(--gray-dark); text-decoration: none; font-size: 13px;">Forgot your password?</a>
+      </div>
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--gray-medium); text-align: center; font-size: 12px; color: var(--gray-dark);">
+        <a href="terms.html" style="color: var(--gray-dark); text-decoration: none; margin-right: 16px;">Terms of Service</a>
+        <a href="privacy.html" style="color: var(--gray-dark); text-decoration: none;">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      // Clear previous errors
+      errorMessage.innerHTML = '';
+      
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (error) throw error;
+        
+        // Success - redirect to dashboard
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        errorMessage.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+      }
+    });
+
+    // AUTH-011: Forgot password
+    function showForgotPassword() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Reset Password</h3>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">x</button>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom: 16px; color: var(--gray-dark);">Enter your email address and we'll send you a link to reset your password.</p>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="resetEmail" placeholder="your@email.com">
+            </div>
+            <div id="resetMessage"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="sendResetEmail()">Send Reset Link</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    async function sendResetEmail() {
+      const email = document.getElementById('resetEmail').value;
+      const messageDiv = document.getElementById('resetMessage');
+
+      if (!email) {
+        messageDiv.innerHTML = '<div class="alert alert-error">Please enter your email</div>';
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/reset-password.html'
+        });
+
+        if (error) throw error;
+
+        messageDiv.innerHTML = '<div class="alert alert-success">Check your email for the reset link!</div>';
+        setTimeout(() => {
+          document.querySelector('.modal-overlay').remove();
+        }, 3000);
+      } catch (error) {
+        messageDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>

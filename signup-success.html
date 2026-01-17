@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Red Pine!</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card" style="text-align: center;">
+      <div class="auth-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        <span style="font-size: 28px; font-weight: 700; color: var(--black); margin-top: 8px;">RED PINE</span>
+      </div>
+
+      <div id="loadingState">
+        <div class="spinner" style="margin: 24px auto;"></div>
+        <h2 style="margin-bottom: 8px;">Setting up your account...</h2>
+        <p style="color: #6B7280;">This will only take a moment.</p>
+      </div>
+
+      <div id="successState" style="display: none;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+        <h1 style="margin-bottom: 8px;">Welcome to Red Pine!</h1>
+        <p style="color: #6B7280; margin-bottom: 24px;">Your account has been created successfully.</p>
+        <a href="onboarding.html" class="btn btn-primary" style="width: 100%;">Get Started</a>
+      </div>
+
+      <div id="errorState" style="display: none;">
+        <div style="font-size: 64px; margin-bottom: 16px;">😕</div>
+        <h1 style="margin-bottom: 8px;">Something went wrong</h1>
+        <p id="errorMessage" style="color: #DC2626; margin-bottom: 24px;">Unable to verify your payment.</p>
+        <a href="signup.html" class="btn btn-secondary" style="width: 100%;">Try Again</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    // AUTH-004: Handle payment success
+    async function handleSignupSuccess() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+
+      if (!sessionId) {
+        showError('Invalid session. Please try signing up again.');
+        return;
+      }
+
+      try {
+        // Verify the checkout session and create the account
+        const response = await fetch('/.netlify/functions/verify-subscription-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to verify payment');
+        }
+
+        // Log the user in
+        if (data.email && data.password) {
+          const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+            email: data.email,
+            password: data.password
+          });
+
+          if (signInError) {
+            console.warn('Auto sign-in failed:', signInError);
+            // User can still sign in manually
+          }
+        }
+
+        showSuccess();
+
+      } catch (error) {
+        console.error('Signup verification error:', error);
+        showError(error.message);
+      }
+    }
+
+    function showSuccess() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('successState').style.display = 'block';
+    }
+
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorState').style.display = 'block';
+    }
+
+    handleSignupSuccess();
+  </script>
+</body>
+</html>

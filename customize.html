@@ -1,0 +1,4001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Editor - Red Pine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Poppins:wght@400;600;700&family=Bebas+Neue&family=Anton&family=Raleway:wght@400;700&family=Ubuntu:wght@400;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Archivo+Black&family=Staatliches&family=Fjalla+One&family=Open+Sans:wght@400;600&family=Nunito:wght@400;700&family=Source+Sans+Pro:wght@400;600&family=Work+Sans:wght@400;600&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    body {
+      overflow: hidden;
+    }
+    
+    .editor-container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+    
+    /* Sidebar Navigation */
+    .editor-sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: white;
+      border-right: 1px solid #E5E7EB;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+    
+    .editor-logo {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .editor-logo img {
+      height: 32px;
+    }
+    
+    .editor-logo h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+    }
+    
+    .editor-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .editor-section {
+      margin-bottom: 24px;
+    }
+    
+    .editor-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #6B7280;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    
+    .editor-nav-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    
+    .editor-nav-item:hover {
+      background: #F3F4F6;
+    }
+    
+    .editor-nav-item.active {
+      background: #FEE2E2;
+      color: #CE0707;
+    }
+    
+    .editor-actions {
+      padding: 16px;
+      border-top: 1px solid #E5E7EB;
+      display: flex;
+      gap: 8px;
+      background: white;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    .editor-actions .btn-primary {
+      background: linear-gradient(135deg, #CE0707 0%, #a00606 100%);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(206, 7, 7, 0.25);
+    }
+
+    .editor-actions .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(206, 7, 7, 0.35);
+    }
+    
+    /* Main Editor Area */
+    .editor-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #F9FAFB;
+      overflow: hidden;
+    }
+    
+    .editor-toolbar {
+      background: white;
+      border-bottom: 1px solid #E5E7EB;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    
+    .device-toggle {
+      display: flex;
+      gap: 4px;
+      background: #F3F4F6;
+      padding: 4px;
+      border-radius: 6px;
+    }
+    
+    .device-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6B7280;
+      transition: all 0.2s;
+    }
+    
+    .device-btn.active {
+      background: white;
+      color: #111;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .editor-preview-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    
+    .preview-frame {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 900px;
+      transition: all 0.3s;
+    }
+    
+    .preview-frame.mobile {
+      max-width: 375px;
+    }
+    
+    .preview-frame.tablet {
+      max-width: 768px;
+    }
+    
+    /* Properties Panel */
+    .properties-panel {
+      width: 300px;
+      min-width: 300px;
+      background: white;
+      border-left: 1px solid #E5E7EB;
+      overflow-y: auto;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+    
+    .properties-panel h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #111;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #D1D5DB;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #CE0707;
+      box-shadow: 0 0 0 3px rgba(206, 7, 7, 0.1);
+    }
+    
+    .form-textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    .color-picker-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .color-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .color-input-wrapper {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .color-preview {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      border: 2px solid #E5E7EB;
+      cursor: pointer;
+    }
+    
+    .color-value {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #D1D5DB;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+    }
+    
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .template-card {
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .template-card:hover {
+      border-color: #CE0707;
+    }
+    
+    .template-card.selected {
+      border-color: #CE0707;
+      background: #FEE2E2;
+    }
+    
+    .template-preview-img {
+      width: 100%;
+      height: 120px;
+      background: #F3F4F6;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #6B7280;
+    }
+    
+    .template-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111;
+    }
+    
+    .upload-area {
+      border: 2px dashed #D1D5DB;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .upload-area:hover {
+      border-color: #CE0707;
+      background: #FEF2F2;
+    }
+    
+    .upload-area.has-image {
+      border-style: solid;
+      padding: 0;
+      height: 120px;
+      overflow: hidden;
+    }
+    
+    .upload-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: #CE0707;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #A00606;
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #374151;
+      border: 1px solid #D1D5DB;
+    }
+    
+    .btn-secondary:hover {
+      background: #F9FAFB;
+    }
+    
+    /* Preview Styles */
+    #livePreview {
+      width: 100%;
+      min-height: 800px;
+    }
+    
+    .preview-nav {
+      background: #111;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .preview-logo {
+      height: 40px;
+      object-fit: contain;
+    }
+    
+    .preview-logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .preview-nav-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .preview-nav-link {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    
+    .preview-nav-link:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .preview-hero {
+      padding: 100px 40px;
+      text-align: center;
+      position: relative;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .preview-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 1;
+    }
+    
+    .preview-hero-content {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .preview-hero-title {
+      font-size: 56px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 16px;
+    }
+    
+    .preview-hero-subtitle {
+      font-size: 24px;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 24px;
+    }
+    
+    .preview-hero-bio {
+      font-size: 16px;
+      color: rgba(255,255,255,0.85);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .preview-beats-section {
+      padding: 80px 40px;
+      background: #F9FAFB;
+    }
+    
+    .preview-section-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #CE0707;
+      margin-bottom: 32px;
+    }
+    
+    .preview-beats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .preview-beat-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+    }
+    
+    .preview-beat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    
+    .preview-beat-cover {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .preview-beat-info {
+      padding: 16px;
+    }
+    
+    .preview-beat-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .preview-beat-meta {
+      font-size: 13px;
+      color: #6B7280;
+      margin-bottom: 12px;
+    }
+    
+    .preview-beat-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: #CE0707;
+    }
+    
+    .preview-footer {
+      background: #111;
+      color: white;
+      padding: 32px 40px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    /* Site Mode Choice Modal */
+    /* Store Landing Page */
+    .store-landing {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .store-landing.hidden {
+      display: none;
+    }
+
+    .store-landing-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #9ca3af;
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 24px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: white;
+    }
+
+    .store-landing-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    .store-landing-subtitle {
+      font-size: 16px;
+      color: #9ca3af;
+    }
+
+    .store-landing-options {
+      display: flex;
+      gap: 24px;
+      max-width: 800px;
+    }
+
+    .store-landing-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      width: 340px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .store-landing-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      border-color: #CE0707;
+    }
+
+    .store-landing-card-icon {
+      margin-bottom: 20px;
+    }
+
+    .store-landing-card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+
+    .store-landing-card-desc {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    .store-landing-card-features {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .store-landing-card-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .store-landing-options {
+        flex-direction: column;
+      }
+      .store-landing-card {
+        width: 100%;
+        max-width: 340px;
+      }
+    }
+
+    .choice-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .choice-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .choice-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 48px;
+      max-width: 700px;
+      width: 90%;
+      text-align: center;
+      transform: scale(0.9);
+      transition: all 0.3s ease;
+    }
+
+    .choice-modal-overlay.active .choice-modal {
+      transform: scale(1);
+    }
+
+    .choice-modal-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 12px;
+    }
+
+    .choice-modal-subtitle {
+      font-size: 16px;
+      color: #6B7280;
+      margin-bottom: 40px;
+    }
+
+    .choice-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .choice-option {
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 32px 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .choice-option:hover {
+      border-color: #CE0707;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(206, 7, 7, 0.1);
+    }
+
+    .choice-option.selected {
+      border-color: #CE0707;
+      background: #FEF2F2;
+    }
+
+    .choice-option-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .choice-option-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+
+    .choice-option-desc {
+      font-size: 14px;
+      color: #6B7280;
+      line-height: 1.5;
+    }
+
+    .choice-option-features {
+      margin-top: 16px;
+      text-align: left;
+      padding: 0 8px;
+    }
+
+    .choice-option-features li {
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .choice-option-features li::before {
+      content: "✓";
+      color: #10B981;
+      font-weight: bold;
+    }
+
+    .choice-modal-note {
+      font-size: 13px;
+      color: #9CA3AF;
+      font-style: italic;
+    }
+
+    @media (max-width: 600px) {
+      .choice-options {
+        grid-template-columns: 1fr;
+      }
+
+      .choice-modal {
+        padding: 32px 24px;
+      }
+    }
+
+    /* AI Chat Panel */
+    .ai-chat-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ai-chat-toggle:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .ai-chat-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100vh;
+      background: white;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s ease;
+    }
+
+    .ai-chat-panel.open {
+      right: 0;
+    }
+
+    .ai-chat-header {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-chat-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-chat-header h3 span {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .ai-chat-close {
+      background: none;
+      border: none;
+      color: #6B7280;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .ai-chat-close:hover {
+      color: #111;
+    }
+
+    .ai-credits {
+      padding: 12px 20px;
+      background: #F9FAFB;
+      border-bottom: 1px solid #E5E7EB;
+      font-size: 13px;
+      color: #6B7280;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-credits-count {
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .ai-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .ai-message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .ai-message.user {
+      align-self: flex-end;
+      background: #CE0707;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .ai-message.assistant {
+      align-self: flex-start;
+      background: #F3F4F6;
+      color: #111;
+      border-bottom-left-radius: 4px;
+    }
+
+    .ai-message.assistant.loading {
+      background: linear-gradient(90deg, #F3F4F6, #E5E7EB, #F3F4F6);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .ai-chat-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .ai-chat-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .ai-suggestion {
+      padding: 6px 12px;
+      background: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ai-suggestion:hover {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .ai-chat-input-wrapper {
+      display: flex;
+      gap: 12px;
+    }
+
+    .ai-chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #D1D5DB;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .ai-chat-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .ai-chat-send {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .ai-chat-send:hover {
+      transform: scale(1.05);
+    }
+
+    .ai-chat-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* AI Chat Overlay */
+    .ai-chat-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 499;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .ai-chat-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+  <!-- Store Landing Page -->
+  <div class="store-landing" id="storeLanding">
+    <div class="store-landing-header">
+      <a href="dashboard.html" class="back-link"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i> Back to Dashboard</a>
+      <h1 class="store-landing-title">Manage Your Store</h1>
+      <p class="store-landing-subtitle">Customize your online presence and sell your beats</p>
+    </div>
+    <div class="store-landing-options">
+      <div class="store-landing-card" onclick="openProfileEditor()">
+        <div class="store-landing-card-icon">
+          <i data-lucide="user-circle" style="width: 48px; height: 48px; color: #CE0707;"></i>
+        </div>
+        <h3 class="store-landing-card-title">Edit Profile</h3>
+        <p class="store-landing-card-desc">Update your bio, profile photo, and social links</p>
+        <ul class="store-landing-card-features">
+          <li><i data-lucide="check" style="width:14px;height:14px;color:#10B981;"></i> Profile photo</li>
+          <li><i data-lucide="check" style="width:14px;height:14px;color:#10B981;"></i> Bio and tagline</li>
+          <li><i data-lucide="check" style="width:14px;height:14px;color:#10B981;"></i> Social media links</li>
+        </ul>
+        <button class="btn btn-secondary" style="width:100%;margin-top:16px;">Edit Profile</button>
+      </div>
+
+      <div class="store-landing-card" onclick="openWebsiteEditor()">
+        <div class="store-landing-card-icon">
+          <i data-lucide="layout" style="width: 48px; height: 48px; color: #CE0707;"></i>
+        </div>
+        <h3 class="store-landing-card-title">Edit Website</h3>
+        <p class="store-landing-card-desc">Customize your beat store's look and feel</p>
+        <ul class="store-landing-card-features">
+          <li><i data-lucide="check" style="width:14px;height:14px;color:#10B981;"></i> Choose templates</li>
+          <li><i data-lucide="check" style="width:14px;height:14px;color:#10B981;"></i> Customize colors</li>
+          <li><i data-lucide="check" style="width:14px;height:14px;color:#10B981;"></i> Beat catalog layout</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;margin-top:16px;">Edit Website</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Mode Choice Modal (for new users) -->
+  <div class="choice-modal-overlay" id="choiceModal">
+    <div class="choice-modal">
+      <h2 class="choice-modal-title">How do you want to sell your beats?</h2>
+      <p class="choice-modal-subtitle">Choose the type of online presence that works best for you</p>
+
+      <div class="choice-options">
+        <div class="choice-option" onclick="selectSiteMode('profile')">
+          <div class="choice-option-icon">
+            <i data-lucide="link" style="width: 48px; height: 48px; color: #CE0707;"></i>
+          </div>
+          <div class="choice-option-title">Profile</div>
+          <div class="choice-option-desc">A simple link-in-bio style page</div>
+          <ul class="choice-option-features">
+            <li>Quick to set up</li>
+            <li>Social media links</li>
+            <li>Beat playlist embed</li>
+            <li>Perfect for Instagram bio</li>
+          </ul>
+        </div>
+
+        <div class="choice-option" onclick="selectSiteMode('site')">
+          <div class="choice-option-icon">
+            <i data-lucide="layout" style="width: 48px; height: 48px; color: #CE0707;"></i>
+          </div>
+          <div class="choice-option-title">Full Site</div>
+          <div class="choice-option-desc">A complete beat store website</div>
+          <ul class="choice-option-features">
+            <li>AI-powered design</li>
+            <li>Beat catalog with search</li>
+            <li>Shopping cart & checkout</li>
+            <li>Full customization</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="choice-modal-note">You can change this later in Settings</p>
+    </div>
+  </div>
+
+  <div class="editor-container">
+    <!-- Left Sidebar Navigation -->
+    <aside class="editor-sidebar">
+      <div class="editor-logo" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: #CE0707; font-size: 20px; font-weight: 700;">Store Editor</h2>
+        <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'" style="padding: 6px 12px; font-size: 12px;">Exit</button>
+      </div>
+      
+      <nav class="editor-nav">
+        <div class="editor-nav-item active" onclick="showPanel('template')">
+          Template
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('header')">
+          Header
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('hero')">
+          Hero
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('feature')">
+          Feature
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('catalog')">
+          Catalog
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('footer')">
+          Footer
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('seo')">
+          <i data-lucide="search" style="width:14px;height:14px;"></i> SEO
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('animations')">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i> Animations
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('popups')">
+          <i data-lucide="message-square" style="width:14px;height:14px;"></i> Pop-ups
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('pages')">
+          <i data-lucide="file-text" style="width:14px;height:14px;"></i> Pages
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('navigation')">
+          <i data-lucide="menu" style="width:14px;height:14px;"></i> Navigation
+        </div>
+        <div class="editor-nav-item" onclick="showPanel('login')">
+          Login Page
+        </div>
+      </nav>
+      
+      <!-- AI Assistant Button -->
+      <div style="padding: 16px; border-top: 1px solid #E5E7EB;">
+        <button class="ai-chat-toggle" onclick="toggleAIChat()" style="width: 100%;">
+          <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+          AI Design Assistant
+        </button>
+      </div>
+
+      <!-- STORE-036: Undo/Redo Buttons -->
+      <div style="padding: 12px 16px; border-top: 1px solid #E5E7EB;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 12px; color: #6B7280;">History</span>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn btn-small btn-secondary" id="undoBtn" style="padding: 6px 10px;" onclick="undo()" disabled title="Undo (Ctrl+Z)">
+              <i data-lucide="undo-2" style="width:14px;height:14px;"></i>
+            </button>
+            <button class="btn btn-small btn-secondary" id="redoBtn" style="padding: 6px 10px;" onclick="redo()" disabled title="Redo (Ctrl+Shift+Z)">
+              <i data-lucide="redo-2" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STORE-042: Mobile Preview Toggle -->
+      <div style="padding: 12px 16px; border-top: 1px solid #E5E7EB;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 12px; color: #6B7280;">Preview Mode</span>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn btn-small" id="desktopViewBtn" style="padding: 6px 10px; background: var(--red); color: white;" onclick="setPreviewMode('desktop')">
+              <i data-lucide="monitor" style="width:14px;height:14px;"></i>
+            </button>
+            <button class="btn btn-small btn-secondary" id="mobileViewBtn" style="padding: 6px 10px;" onclick="setPreviewMode('mobile')">
+              <i data-lucide="smartphone" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-actions">
+        <button class="btn btn-secondary" style="flex: 1;" onclick="previewLive()">Preview</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="publishStore()">Publish</button>
+      </div>
+    </aside>
+    
+    <!-- Main Preview Area -->
+    <main class="editor-main">
+      <div class="editor-toolbar">
+        <div style="font-size: 14px; font-weight: 600; color: #111;">
+          <span id="storeUrl">Loading...</span>
+        </div>
+        
+        <div class="device-toggle">
+          <button class="device-btn active" onclick="setDevice('desktop')">Desktop</button>
+          <button class="device-btn" onclick="setDevice('mobile')">Mobile</button>
+        </div>
+      </div>
+      
+      <div class="editor-preview-area">
+        <div class="preview-frame" id="previewFrame">
+          <div id="livePreview">
+            <p style="text-align: center; padding: 80px 20px; color: #6B7280;">Loading preview...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Right Properties Panel -->
+    <aside class="properties-panel" id="propertiesPanel">
+      <!-- Dynamic content loaded by JavaScript -->
+    </aside>
+  </div>
+
+  <!-- AI Chat Overlay -->
+  <div class="ai-chat-overlay" id="aiChatOverlay" onclick="toggleAIChat()"></div>
+
+  <!-- AI Chat Panel -->
+  <aside class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <h3><i data-lucide="sparkles" style="width: 20px; height: 20px; color: #667eea;"></i> <span>AI Assistant</span></h3>
+      <button class="ai-chat-close" onclick="toggleAIChat()">
+        <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+      </button>
+    </div>
+
+    <div class="ai-credits">
+      <span>AI Requests</span>
+      <span><span class="ai-credits-count" id="aiCreditsCount">10</span> / 10 remaining this month</span>
+    </div>
+
+    <div class="ai-chat-messages" id="aiChatMessages">
+      <div class="ai-message assistant">
+        Hi! I'm your AI design assistant. Tell me what you'd like to change about your store, and I'll help you customize it. For example:
+        <br><br>
+        "Make the hero section more modern"
+        <br>
+        "Change my color scheme to blue tones"
+        <br>
+        "Add a testimonials section"
+      </div>
+    </div>
+
+    <div class="ai-chat-input-area">
+      <div class="ai-chat-suggestions">
+        <button class="ai-suggestion" onclick="sendAISuggestion('Make it more modern')">More modern</button>
+        <button class="ai-suggestion" onclick="sendAISuggestion('Change colors to dark theme')">Dark theme</button>
+        <button class="ai-suggestion" onclick="sendAISuggestion('Make text bigger')">Bigger text</button>
+      </div>
+      <div class="ai-chat-input-wrapper">
+        <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Describe what you want to change..." onkeypress="handleAIKeyPress(event)">
+        <button class="ai-chat-send" id="aiSendBtn" onclick="sendAIMessage()">
+          <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/branding.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>lucide.createIcons();</script>
+  <script>
+    // AI Chat State
+    let aiCredits = 10;
+    let aiChatHistory = [];
+    let isAIChatOpen = false;
+
+    let currentStore = {
+      site_mode: null, // 'profile' or 'site'
+      template: 'gradient-hero',
+      logo_url: null,
+      logo_text: '',
+      primary_color: '#CE0707',
+      secondary_color: '#111111',
+      accent_color: '#FFFFFF',
+      background_color: '#F9FAFB',
+      heading_font: 'Oswald',
+      body_font: 'Inter',
+      hero_background: null,
+      hero_title: 'Welcome to My Store',
+      hero_subtitle: 'Premium Beats & Instrumentals',
+      hero_bio: 'Creating fire beats since day one. Browse my catalog and find your next hit.',
+      nav_link_1: 'Store',
+      nav_link_2: 'Login',
+      footer_text: 'Powered by Red Pine',
+      social_instagram: '',
+      social_twitter: '',
+      social_youtube: '',
+      
+      // Header section fields
+      header_logo_url: null,
+      header_brandname: '',
+      header_brandname_typography: 'Oswald',
+      header_brandname_color: '#FFFFFF',
+      header_bg_color: '#111111',
+      header_bg_image: '',
+      header_login_btn_color: '#FFFFFF',
+      header_cart_btn_color: '#CE0707',
+      header_button_typography: 'Inter',
+      
+      // Hero section fields
+      hero_text_color: '#FFFFFF',
+      hero_typography: 'Oswald',
+      hero_main_title: 'Welcome to My Store',
+      hero_subtitle: 'Premium Beats',
+      hero_bio: 'Creating fire beats since day one',
+      hero_bg_color: '#667eea',
+      hero_bg_image: '',
+      
+      // Feature section fields
+      feature_text_color: '#000000',
+      feature_typography: 'Inter',
+      feature_bg_color: '#F9FAFB',
+      feature_bg_image: '',
+      feature_button_color: '#CE0707',
+      feature_button_typography: 'Inter',
+      
+      // Catalog section fields
+      catalog_text_color: '#000000',
+      catalog_typography: 'Inter',
+      catalog_bg_color: '#FFFFFF',
+      catalog_bg_image: '',
+      catalog_button_color: '#CE0707',
+      catalog_button_typography: 'Inter',
+      
+      // Footer section fields
+      footer_social_icon_color: '#FFFFFF',
+      footer_bg_color: '#111111',
+      footer_bg_image: '',
+      
+      // Login page fields
+      login_logo_url: '',
+      login_brandname: '',
+      login_typography: 'Oswald',
+      login_bg_color: '#F9FAFB',
+      login_bg_image: '',
+      login_button_color: '#CE0707',
+      login_button_typography: 'Inter',
+
+      // STORE-043: Animation settings
+      animation_hero: 'fade-in',
+      animation_hero_duration: 0.6,
+      animation_hero_delay: 0,
+      animation_feature: 'slide-up',
+      animation_feature_duration: 0.5,
+      animation_feature_delay: 0.2,
+      animation_catalog: 'fade-in',
+      animation_catalog_duration: 0.5,
+      animation_catalog_delay: 0.1,
+      animation_footer: 'none',
+      animation_footer_duration: 0.5,
+      animation_footer_delay: 0,
+
+      // STORE-038: Multi-page support
+      pages: [
+        { id: 'home', title: 'Home', slug: '/', isDefault: true },
+        { id: 'store', title: 'Store', slug: '/store' }
+      ],
+      currentPageId: 'home',
+
+      // STORE-039: Navigation menu
+      nav_items: [
+        { id: 'nav_1', label: 'Home', type: 'page', target: '/' },
+        { id: 'nav_2', label: 'Beats', type: 'page', target: '/store' }
+      ],
+
+      // STORE-044: Pop-up settings
+      popup_enabled: false,
+      popup_trigger: 'delay', // delay, exit_intent, page_load
+      popup_delay_seconds: 5,
+      popup_show_once: true,
+      popup_template: 'email_capture',
+      popup_headline: 'Get Exclusive Beats',
+      popup_subheadline: 'Subscribe to get notified about new releases and exclusive discounts!',
+      popup_button_text: 'Subscribe',
+      popup_bg_color: '#FFFFFF',
+      popup_text_color: '#111827',
+      popup_accent_color: '#000000'
+    };
+    
+    let producerId = null;
+
+    // STORE-036: Undo/Redo history
+    const storeHistory = [];
+    let historyIndex = -1;
+    const MAX_HISTORY = 50;
+
+    function pushToHistory() {
+      // Remove any redo states
+      storeHistory.splice(historyIndex + 1);
+      // Add current state
+      storeHistory.push(JSON.stringify(currentStore));
+      // Limit to MAX_HISTORY
+      if (storeHistory.length > MAX_HISTORY) {
+        storeHistory.shift();
+      } else {
+        historyIndex++;
+      }
+      updateUndoRedoButtons();
+    }
+
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        currentStore = JSON.parse(storeHistory[historyIndex]);
+        refreshCurrentPanel();
+        updatePreview();
+        updateUndoRedoButtons();
+      }
+    }
+
+    function redo() {
+      if (historyIndex < storeHistory.length - 1) {
+        historyIndex++;
+        currentStore = JSON.parse(storeHistory[historyIndex]);
+        refreshCurrentPanel();
+        updatePreview();
+        updateUndoRedoButtons();
+      }
+    }
+
+    function refreshCurrentPanel() {
+      const activeNav = document.querySelector('.editor-nav-item.active');
+      if (activeNav) {
+        activeNav.click();
+      }
+    }
+
+    function updateUndoRedoButtons() {
+      const undoBtn = document.getElementById('undoBtn');
+      const redoBtn = document.getElementById('redoBtn');
+      if (undoBtn) undoBtn.disabled = historyIndex <= 0;
+      if (redoBtn) redoBtn.disabled = historyIndex >= storeHistory.length - 1;
+    }
+
+    // Keyboard shortcuts for undo/redo
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          redo();
+        } else {
+          e.preventDefault();
+          undo();
+        }
+      }
+    });
+
+    async function init() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      // Get producer
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+
+      if (!producer) {
+        alert('Producer not found');
+        return;
+      }
+
+      producerId = producer.id;
+      document.getElementById('storeUrl').textContent = `${producer.subdomain}.redpine.systems`;
+
+      // Load existing customization
+      const { data: customization } = await supabaseClient
+        .from('site_customizations')
+        .select('*')
+        .eq('producer_id', producer.id)
+        .single();
+
+      if (customization) {
+        currentStore = { ...currentStore, ...customization };
+
+        // Populate form fields with loaded data
+        const logoTextInput = document.getElementById('logoText');
+        const primaryColorInput = document.getElementById('primaryColor');
+        const heroTitleInput = document.getElementById('heroTitle');
+        const heroSubtitleInput = document.getElementById('heroSubtitle');
+        const heroBioInput = document.getElementById('heroBio');
+
+        if (logoTextInput) logoTextInput.value = currentStore.logo_text || '';
+        if (primaryColorInput) primaryColorInput.value = currentStore.primary_color || '#CE0707';
+        if (heroTitleInput) heroTitleInput.value = currentStore.hero_title || '';
+        if (heroSubtitleInput) heroSubtitleInput.value = currentStore.hero_subtitle || '';
+        if (heroBioInput) heroBioInput.value = currentStore.hero_bio || '';
+      } else {
+        currentStore.logo_text = producer.name;
+      }
+
+      // Always show the landing page first (RP-STORE-001)
+      showLanding();
+      lucide.createIcons();
+    }
+
+    function showChoiceModal() {
+      const modal = document.getElementById('choiceModal');
+      modal.classList.add('active');
+      // Re-initialize Lucide icons for the modal
+      lucide.createIcons();
+    }
+
+    function hideChoiceModal() {
+      const modal = document.getElementById('choiceModal');
+      modal.classList.remove('active');
+    }
+
+    async function selectSiteMode(mode) {
+      currentStore.site_mode = mode;
+
+      try {
+        // Check if customization exists
+        const { data: existing } = await supabaseClient
+          .from('site_customizations')
+          .select('id')
+          .eq('producer_id', producerId)
+          .single();
+
+        if (existing) {
+          // Update existing record
+          await supabaseClient
+            .from('site_customizations')
+            .update({ site_mode: mode })
+            .eq('producer_id', producerId);
+        } else {
+          // Create new record with site_mode
+          await supabaseClient
+            .from('site_customizations')
+            .insert([{
+              producer_id: producerId,
+              site_mode: mode,
+              template: 'gradient-hero',
+              primary_color: '#CE0707',
+              logo_text: currentStore.logo_text
+            }]);
+        }
+
+        hideChoiceModal();
+        loadEditor(mode);
+
+      } catch (error) {
+        console.error('Error saving site mode:', error);
+        alert('Error saving your choice. Please try again.');
+      }
+    }
+
+    // Store landing page functions
+    function hideLanding() {
+      document.getElementById('storeLanding').classList.add('hidden');
+    }
+
+    function showLanding() {
+      document.getElementById('storeLanding').classList.remove('hidden');
+    }
+
+    function openProfileEditor() {
+      hideLanding();
+      // Load profile mode or redirect
+      loadEditor('profile');
+    }
+
+    function openWebsiteEditor() {
+      hideLanding();
+      loadEditor('site');
+    }
+
+    function loadEditor(mode) {
+      if (mode === 'profile') {
+        // Redirect to profile editor
+        window.location.href = 'profile-editor.html';
+      } else {
+        // Show the full site editor
+        showPanel('template');
+        updatePreview();
+        // Load AI credits
+        loadAICredits();
+        // STORE-036: Initialize undo/redo history with current state
+        pushToHistory();
+      }
+    }
+
+    // AI Chat Functions
+    function toggleAIChat() {
+      isAIChatOpen = !isAIChatOpen;
+      const panel = document.getElementById('aiChatPanel');
+      const overlay = document.getElementById('aiChatOverlay');
+
+      if (isAIChatOpen) {
+        panel.classList.add('open');
+        overlay.classList.add('open');
+        lucide.createIcons();
+      } else {
+        panel.classList.remove('open');
+        overlay.classList.remove('open');
+      }
+    }
+
+    // STORE-034: AI credits tracking
+    let aiCreditsLimit = 10;
+
+    async function loadAICredits() {
+      try {
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('ai_credits_used, ai_credits_limit, ai_credits_reset_date')
+          .eq('id', producerId)
+          .single();
+
+        if (producer) {
+          // Set the limit (default to 10 if not set)
+          aiCreditsLimit = producer.ai_credits_limit || 10;
+
+          // Check if credits need to reset (new month)
+          const resetDate = producer.ai_credits_reset_date ? new Date(producer.ai_credits_reset_date) : null;
+          const now = new Date();
+
+          if (!resetDate || now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear()) {
+            // Reset credits for new month
+            await supabaseClient
+              .from('producers')
+              .update({ ai_credits_used: 0, ai_credits_reset_date: now.toISOString() })
+              .eq('id', producerId);
+            aiCredits = aiCreditsLimit;
+          } else {
+            aiCredits = Math.max(0, aiCreditsLimit - (producer.ai_credits_used || 0));
+          }
+
+          // Update display: "X / Y remaining this month"
+          document.getElementById('aiCreditsCount').textContent = aiCredits;
+          const creditsDisplay = document.querySelector('.ai-chat-header span:last-child');
+          if (creditsDisplay) {
+            creditsDisplay.innerHTML = `<span class="ai-credits-count" id="aiCreditsCount">${aiCredits}</span> / ${aiCreditsLimit} remaining`;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading AI credits:', error);
+      }
+    }
+
+    // STORE-034: Show buy AI credits modal
+    function showBuyAICreditsModal() {
+      const modal = document.createElement('div');
+      modal.id = 'buyAICreditsModal';
+      modal.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 10000; padding: 20px;
+      `;
+
+      modal.innerHTML = `
+        <div style="background: var(--white); border-radius: 16px; max-width: 500px; width: 100%; padding: 32px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="font-size: 22px; font-weight: 700;">Buy AI Credits</h3>
+            <button onclick="closeBuyAICreditsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray-dark);">&times;</button>
+          </div>
+
+          <p style="color: var(--gray-dark); margin-bottom: 24px;">You've used all your AI requests. Purchase more credits to continue using the AI design assistant.</p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button onclick="purchaseAICredits(10, 1000)" style="
+              display: flex; justify-content: space-between; align-items: center;
+              padding: 16px 20px; background: var(--gray-light); border: 2px solid var(--gray-medium);
+              border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            ">
+              <div style="text-align: left;">
+                <div style="font-size: 16px; font-weight: 600;">10 Credits</div>
+                <div style="font-size: 13px; color: var(--gray-dark);">Good for quick projects</div>
+              </div>
+              <div style="font-size: 20px; font-weight: 700; color: var(--red);">$10</div>
+            </button>
+
+            <button onclick="purchaseAICredits(50, 4000)" style="
+              display: flex; justify-content: space-between; align-items: center;
+              padding: 16px 20px; background: var(--red); color: white; border: 2px solid var(--red);
+              border-radius: 12px; cursor: pointer; transition: all 0.2s; position: relative;
+            ">
+              <div style="position: absolute; top: -10px; right: 16px; background: #10B981; color: white; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">BEST VALUE</div>
+              <div style="text-align: left;">
+                <div style="font-size: 16px; font-weight: 600;">50 Credits</div>
+                <div style="font-size: 13px; opacity: 0.9;">Save 20% - Great for redesigns</div>
+              </div>
+              <div style="font-size: 20px; font-weight: 700;">$40</div>
+            </button>
+
+            <button onclick="purchaseAICredits(100, 7000)" style="
+              display: flex; justify-content: space-between; align-items: center;
+              padding: 16px 20px; background: var(--gray-light); border: 2px solid var(--gray-medium);
+              border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            ">
+              <div style="text-align: left;">
+                <div style="font-size: 16px; font-weight: 600;">100 Credits</div>
+                <div style="font-size: 13px; color: var(--gray-dark);">Save 30% - For power users</div>
+              </div>
+              <div style="font-size: 20px; font-weight: 700; color: var(--red);">$70</div>
+            </button>
+          </div>
+
+          <p style="text-align: center; color: var(--gray-dark); font-size: 13px; margin-top: 20px;">
+            Credits are added to your account and never expire.
+          </p>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+    }
+
+    function closeBuyAICreditsModal() {
+      const modal = document.getElementById('buyAICreditsModal');
+      if (modal) modal.remove();
+    }
+
+    async function purchaseAICredits(credits, priceInCents) {
+      try {
+        // Call Netlify function to create Stripe checkout for credits
+        const response = await fetch('/.netlify/functions/buy-ai-credits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            producerId,
+            credits,
+            priceInCents
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error('Failed to create checkout');
+        }
+      } catch (error) {
+        console.error('Purchase error:', error);
+        alert('Failed to start purchase. Please try again.');
+      }
+    }
+
+    function handleAIKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendAIMessage();
+      }
+    }
+
+    function sendAISuggestion(suggestion) {
+      document.getElementById('aiChatInput').value = suggestion;
+      sendAIMessage();
+    }
+
+    async function sendAIMessage() {
+      const input = document.getElementById('aiChatInput');
+      const message = input.value.trim();
+
+      if (!message) return;
+
+      // STORE-034: Check credits and show buy modal if needed
+      if (aiCredits <= 0) {
+        showBuyAICreditsModal();
+        return;
+      }
+
+      // Add user message to chat
+      addChatMessage(message, 'user');
+      input.value = '';
+
+      // Add loading indicator
+      const loadingId = addChatMessage('Thinking...', 'assistant loading');
+
+      try {
+        // Call AI API (will be implemented in BP-016)
+        const response = await callAIDesignAssistant(message);
+
+        // Remove loading indicator
+        removeChatMessage(loadingId);
+
+        // Add AI response
+        addChatMessage(response.message, 'assistant');
+
+        // Apply suggested changes if any
+        if (response.changes) {
+          applyAIChanges(response.changes);
+        }
+
+        // STORE-034: Decrement credits and update display
+        aiCredits--;
+        document.getElementById('aiCreditsCount').textContent = aiCredits;
+
+        // Update credits in database
+        await supabaseClient
+          .from('producers')
+          .update({ ai_credits_used: aiCreditsLimit - aiCredits })
+          .eq('id', producerId);
+
+      } catch (error) {
+        console.error('AI request error:', error);
+        removeChatMessage(loadingId);
+        addChatMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+      }
+    }
+
+    function addChatMessage(text, className) {
+      const container = document.getElementById('aiChatMessages');
+      const id = 'msg-' + Date.now();
+      const messageDiv = document.createElement('div');
+      messageDiv.id = id;
+      messageDiv.className = 'ai-message ' + className;
+      messageDiv.textContent = text;
+      container.appendChild(messageDiv);
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function removeChatMessage(id) {
+      const msg = document.getElementById(id);
+      if (msg) msg.remove();
+    }
+
+    // AI Design Assistant API call via Supabase Edge Function
+    async function callAIDesignAssistant(userMessage) {
+      // Get producer name for context
+      let producerName = currentStore.logo_text || 'Producer';
+
+      try {
+        // Call the Supabase Edge Function
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-design-assistant`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            currentStore: currentStore,
+            producerName: producerName
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('AI service unavailable');
+        }
+
+        return await response.json();
+
+      } catch (error) {
+        console.error('AI API error:', error);
+
+        // Fallback to local processing if edge function unavailable
+        return localAIFallback(userMessage);
+      }
+    }
+
+    // Fallback AI processing when edge function is unavailable
+    function localAIFallback(userMessage) {
+      const lowerMessage = userMessage.toLowerCase();
+
+      if (lowerMessage.includes('modern') || lowerMessage.includes('clean')) {
+        return {
+          message: "I'll give your store a more modern look! I'm updating the colors to a cleaner palette and adjusting the typography for a contemporary feel.",
+          changes: {
+            primary_color: '#3B82F6',
+            hero_bg_color: '#1F2937',
+            hero_text_color: '#FFFFFF',
+            heading_font: 'Poppins'
+          }
+        };
+      } else if (lowerMessage.includes('dark')) {
+        return {
+          message: "Switching to a dark theme! This creates a sleek, professional atmosphere that makes your beats stand out.",
+          changes: {
+            template: 'dark-minimal',
+            hero_bg_color: '#000000',
+            header_bg_color: '#111111',
+            footer_bg_color: '#111111'
+          }
+        };
+      } else if (lowerMessage.includes('bigger text') || lowerMessage.includes('larger')) {
+        return {
+          message: "I've made the text larger for better readability. Your headlines will now have more impact!",
+          changes: {
+            heading_font: 'Bebas Neue'
+          }
+        };
+      } else if (lowerMessage.includes('color') || lowerMessage.includes('blue')) {
+        return {
+          message: "I've updated your color scheme to use blue tones. Blue conveys trust and professionalism - great for a beat store!",
+          changes: {
+            primary_color: '#3B82F6',
+            hero_bg_color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }
+        };
+      } else if (lowerMessage.includes('red') || lowerMessage.includes('fire') || lowerMessage.includes('bold')) {
+        return {
+          message: "Making your store stand out with bold red tones! This high-energy look is perfect for trap and hip-hop producers.",
+          changes: {
+            primary_color: '#DC2626',
+            hero_bg_color: '#991B1B',
+            hero_text_color: '#FFFFFF'
+          }
+        };
+      } else if (lowerMessage.includes('purple') || lowerMessage.includes('gradient')) {
+        return {
+          message: "Adding a vibrant purple gradient! This gives your store a creative, artistic vibe.",
+          changes: {
+            hero_bg_color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            primary_color: '#7C3AED'
+          }
+        };
+      } else if (lowerMessage.includes('minimal') || lowerMessage.includes('simple')) {
+        return {
+          message: "Going for a minimalist aesthetic! Clean lines and simple colors let your beats be the focus.",
+          changes: {
+            template: 'clean-modern',
+            primary_color: '#111111',
+            hero_bg_color: '#F9FAFB',
+            hero_text_color: '#111111'
+          }
+        };
+      } else {
+        return {
+          message: "I understand you want to customize your store. Try asking me to:\n\n• 'Make it more modern'\n• 'Switch to a dark theme'\n• 'Change colors to blue/red/purple'\n• 'Make the text bigger'\n• 'Give me a minimal look'\n\nWhat specific changes would you like?",
+          changes: null
+        };
+      }
+    }
+
+    function applyAIChanges(changes) {
+      if (!changes) return;
+
+      // Apply each change to currentStore
+      Object.keys(changes).forEach(key => {
+        if (currentStore.hasOwnProperty(key)) {
+          currentStore[key] = changes[key];
+        }
+      });
+
+      // Update the preview
+      updatePreview();
+
+      // Show success toast
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:20px;right:420px;background:#10B981;color:white;padding:12px 20px;border-radius:8px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;';
+      toast.textContent = 'Changes applied!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+
+    function showPanel(panelName) {
+      // Update active nav item
+      document.querySelectorAll('.editor-nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      if (event && event.target) event.target.classList.add('active');
+      
+      const panel = document.getElementById('propertiesPanel');
+      
+      // Switch preview based on section
+      if (panelName === 'login') {
+        renderLoginPreview();
+      } else {
+        updatePreview();  // Show main store preview
+      }
+      
+      switch(panelName) {
+        case 'template':
+          panel.innerHTML = `
+            <h3>Template Library</h3>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">Choose a template to get started. Click to preview, then apply.</p>
+
+            <div class="form-group">
+              <label class="form-label">Filter by Category</label>
+              <select class="form-input" id="templateFilter" onchange="filterTemplates(this.value)">
+                <option value="all">All Templates</option>
+                <option value="minimal">Minimal</option>
+                <option value="bold">Bold</option>
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="gradient">Gradient</option>
+              </select>
+            </div>
+
+            <div class="template-grid" id="templateGrid">
+              <!-- Minimal -->
+              <div class="template-card ${currentStore.template === 'clean-modern' ? 'selected' : ''}" data-category="minimal light" onclick="previewTemplate('clean-modern')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%); height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 40px; height: 6px; background: #374151; border-radius: 3px;"></div>
+                </div>
+                <div class="template-name">Clean Modern</div>
+                <span style="font-size: 10px; background: #E5E7EB; padding: 2px 6px; border-radius: 4px; color: #6B7280;">Minimal</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'minimal-white' ? 'selected' : ''}" data-category="minimal light" onclick="previewTemplate('minimal-white')">
+                <div class="template-preview-img" style="background: #FFFFFF; border: 1px solid #E5E7EB; height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 30px; height: 30px; border: 2px solid #111; border-radius: 50%;"></div>
+                </div>
+                <div class="template-name">Minimal White</div>
+                <span style="font-size: 10px; background: #E5E7EB; padding: 2px 6px; border-radius: 4px; color: #6B7280;">Minimal</span>
+              </div>
+
+              <!-- Dark -->
+              <div class="template-card ${currentStore.template === 'dark-minimal' ? 'selected' : ''}" data-category="dark minimal" onclick="previewTemplate('dark-minimal')">
+                <div class="template-preview-img" style="background: #000000; height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="color: white; font-size: 12px; font-weight: bold;">BEATS</div>
+                </div>
+                <div class="template-name">Dark Minimal</div>
+                <span style="font-size: 10px; background: #374151; padding: 2px 6px; border-radius: 4px; color: #D1D5DB;">Dark</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'midnight' ? 'selected' : ''}" data-category="dark bold" onclick="previewTemplate('midnight')">
+                <div class="template-preview-img" style="background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 20px; height: 20px; background: #3B82F6; border-radius: 4px;"></div>
+                </div>
+                <div class="template-name">Midnight Blue</div>
+                <span style="font-size: 10px; background: #374151; padding: 2px 6px; border-radius: 4px; color: #D1D5DB;">Dark</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'neon-dark' ? 'selected' : ''}" data-category="dark bold" onclick="previewTemplate('neon-dark')">
+                <div class="template-preview-img" style="background: #0A0A0A; height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="color: #22D3EE; font-size: 14px; font-weight: bold; text-shadow: 0 0 10px #22D3EE;">NEON</div>
+                </div>
+                <div class="template-name">Neon Dark</div>
+                <span style="font-size: 10px; background: #374151; padding: 2px 6px; border-radius: 4px; color: #D1D5DB;">Dark</span>
+              </div>
+
+              <!-- Bold -->
+              <div class="template-card ${currentStore.template === 'bold-red' ? 'selected' : ''}" data-category="bold" onclick="previewTemplate('bold-red')">
+                <div class="template-preview-img" style="background: #DC2626; height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="color: white; font-size: 16px; font-weight: 900;">BOLD</div>
+                </div>
+                <div class="template-name">Bold Red</div>
+                <span style="font-size: 10px; background: #FEE2E2; padding: 2px 6px; border-radius: 4px; color: #B91C1C;">Bold</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'urban' ? 'selected' : ''}" data-category="bold dark" onclick="previewTemplate('urban')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #1F2937 0%, #374151 100%); height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="color: #F59E0B; font-size: 12px; font-weight: bold;">URBAN</div>
+                </div>
+                <div class="template-name">Urban</div>
+                <span style="font-size: 10px; background: #FEF3C7; padding: 2px 6px; border-radius: 4px; color: #92400E;">Bold</span>
+              </div>
+
+              <!-- Gradient -->
+              <div class="template-card ${currentStore.template === 'gradient-hero' ? 'selected' : ''}" data-category="gradient bold" onclick="previewTemplate('gradient-hero')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 80px; border-radius: 6px; margin-bottom: 8px;"></div>
+                <div class="template-name">Gradient Hero</div>
+                <span style="font-size: 10px; background: #E0E7FF; padding: 2px 6px; border-radius: 4px; color: #4338CA;">Gradient</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'sunset' ? 'selected' : ''}" data-category="gradient bold" onclick="previewTemplate('sunset')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #F97316 0%, #EC4899 100%); height: 80px; border-radius: 6px; margin-bottom: 8px;"></div>
+                <div class="template-name">Sunset</div>
+                <span style="font-size: 10px; background: #FFEDD5; padding: 2px 6px; border-radius: 4px; color: #C2410C;">Gradient</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'ocean' ? 'selected' : ''}" data-category="gradient" onclick="previewTemplate('ocean')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%); height: 80px; border-radius: 6px; margin-bottom: 8px;"></div>
+                <div class="template-name">Ocean</div>
+                <span style="font-size: 10px; background: #CFFAFE; padding: 2px 6px; border-radius: 4px; color: #0E7490;">Gradient</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'forest' ? 'selected' : ''}" data-category="gradient" onclick="previewTemplate('forest')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #059669 0%, #10B981 100%); height: 80px; border-radius: 6px; margin-bottom: 8px;"></div>
+                <div class="template-name">Forest</div>
+                <span style="font-size: 10px; background: #D1FAE5; padding: 2px 6px; border-radius: 4px; color: #047857;">Gradient</span>
+              </div>
+
+              <!-- Light -->
+              <div class="template-card ${currentStore.template === 'soft-pink' ? 'selected' : ''}" data-category="light" onclick="previewTemplate('soft-pink')">
+                <div class="template-preview-img" style="background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%); height: 80px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 20px; height: 20px; background: #EC4899; border-radius: 50%;"></div>
+                </div>
+                <div class="template-name">Soft Pink</div>
+                <span style="font-size: 10px; background: #FCE7F3; padding: 2px 6px; border-radius: 4px; color: #BE185D;">Light</span>
+              </div>
+              <div class="template-card ${currentStore.template === 'cream' ? 'selected' : ''}" data-category="light minimal" onclick="previewTemplate('cream')">
+                <div class="template-preview-img" style="background: #FFFBEB; height: 80px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #FDE68A; display: flex; align-items: center; justify-content: center;">
+                  <div style="width: 40px; height: 4px; background: #92400E; border-radius: 2px;"></div>
+                </div>
+                <div class="template-name">Cream</div>
+                <span style="font-size: 10px; background: #FEF3C7; padding: 2px 6px; border-radius: 4px; color: #92400E;">Light</span>
+              </div>
+            </div>
+
+            <div id="templatePreviewModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+              <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">
+                <h3 style="margin-bottom: 16px;">Apply Template?</h3>
+                <p style="color: #6B7280; margin-bottom: 20px;">This will replace your current design settings. This action can be undone with Ctrl+Z.</p>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                  <button class="btn btn-secondary" onclick="closeTemplatePreview()">Cancel</button>
+                  <button class="btn btn-primary" onclick="confirmApplyTemplate()">Apply Template</button>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'header':
+          panel.innerHTML = `
+            <h3>Logo / Brandname</h3>
+            <div class="form-group">
+              <label class="form-label">Logo Image</label>
+              <div class="upload-area ${currentStore.logo_url ? 'has-image' : ''}" onclick="document.getElementById('logoInput').click()">
+                ${currentStore.logo_url ? 
+                  `<img src="${currentStore.logo_url}" class="upload-preview" alt="Logo">` :
+                  `<div>
+                    <div style="font-size: 32px; margin-bottom: 8px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="logoInput" accept="image/*" style="display: none;" onchange="uploadLogo(event)">
+              ${currentStore.logo_url ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeLogo()">Remove Logo</button>` : 
+                ''
+              }
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Brandname</label>
+              <input type="text" class="form-input" value="${currentStore.logo_text || ''}" oninput="updateStore('logo_text', this.value)" placeholder="Producer Name">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Brandname Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.header_brandname_color || '#FFFFFF'}" onchange="updateStoreColor('header_brandname_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.header_brandname_color || '#FFFFFF'}" oninput="updateStoreColor('header_brandname_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Brandname Typography</label>
+              <select class="form-input" onchange="updateStore('header_brandname_typography', this.value)">
+                <option value="Oswald" ${currentStore.header_brandname_typography === 'Oswald' ? 'selected' : ''}>Oswald</option>
+                <option value="Montserrat" ${currentStore.header_brandname_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                <option value="Roboto" ${currentStore.header_brandname_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Inter" ${currentStore.header_brandname_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+              </select>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.header_bg_color || '#111111'}" onchange="updateStoreColor('header_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.header_bg_color || '#111111'}" oninput="updateStoreColor('header_bg_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image</label>
+              <div class="upload-area ${currentStore.header_bg_image ? 'has-image' : ''}" onclick="document.getElementById('headerBgInput').click()">
+                ${currentStore.header_bg_image ? 
+                  `<img src="${currentStore.header_bg_image}" class="upload-preview" alt="Header Background">` :
+                  `<div>
+                    <div style="width: 32px; height: 32px; margin: 0 auto 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="headerBgInput" accept="image/*" style="display: none;" onchange="uploadHeaderBackground(event)">
+              ${currentStore.header_bg_image ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeHeaderBackground()">Remove Background</button>` : 
+                ''
+              }
+              <p style="font-size: 11px; color: #6B7280; margin-top: 8px;">Optional header background</p>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Buttons</h3>
+            <div class="form-group">
+              <label class="form-label">Login Button Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.header_login_btn_color || '#FFFFFF'}" onchange="updateStoreColor('header_login_btn_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.header_login_btn_color || '#FFFFFF'}" oninput="updateStoreColor('header_login_btn_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Cart Button Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.header_cart_btn_color || '#CE0707'}" onchange="updateStoreColor('header_cart_btn_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.header_cart_btn_color || '#CE0707'}" oninput="updateStoreColor('header_cart_btn_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Button Typography</label>
+              <select class="form-input" onchange="updateStore('header_button_typography', this.value)">
+                <option value="Inter" ${currentStore.header_button_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Roboto" ${currentStore.header_button_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Montserrat" ${currentStore.header_button_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+              </select>
+            </div>
+          `;
+          break;
+          
+        case 'hero':
+          panel.innerHTML = `
+            <h3>Text</h3>
+            <div class="form-group">
+              <label class="form-label">Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.hero_text_color || '#FFFFFF'}" onchange="updateStore('hero_text_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.hero_text_color || '#FFFFFF'}" oninput="updateStore('hero_text_color', this.value)" style="flex: 1;">
+              </div>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Text color in hero section</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Typography</label>
+              <select class="form-input" onchange="updateStore('hero_typography', this.value)">
+                <option value="Oswald" ${currentStore.hero_typography === 'Oswald' ? 'selected' : ''}>Oswald</option>
+                <option value="Montserrat" ${currentStore.hero_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                <option value="Roboto" ${currentStore.hero_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Main Title</label>
+              <input type="text" class="form-input" value="${currentStore.hero_title || ''}" oninput="updateStore('hero_title', this.value)" placeholder="Welcome to My Store">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Subtitle</label>
+              <input type="text" class="form-input" value="${currentStore.hero_subtitle || ''}" oninput="updateStore('hero_subtitle', this.value)" placeholder="Premium Beats">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Bio / Description</label>
+              <textarea class="form-input form-textarea" oninput="updateStore('hero_bio', this.value)" placeholder="Tell customers about your music...">${currentStore.hero_bio || ''}</textarea>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.hero_bg_color || '#667eea'}" onchange="updateStore('hero_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.hero_bg_color || '#667eea'}" oninput="updateStore('hero_bg_color', this.value)" style="flex: 1;">
+              </div>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Or use gradient/image below</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image</label>
+              <div class="upload-area ${currentStore.hero_background ? 'has-image' : ''}" onclick="document.getElementById('bgInput').click()">
+                ${currentStore.hero_background ? 
+                  `<img src="${currentStore.hero_background}" class="upload-preview" alt="Background">` :
+                  `<div>
+                    <div style="font-size: 32px; margin-bottom: 8px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">JPG or PNG, 1920x1080 recommended</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="bgInput" accept="image/*" style="display: none;" onchange="uploadBackground(event)">
+              ${currentStore.hero_background ? `
+                <button class="btn btn-secondary" style="width: 100%; margin-top: 12px;" onclick="removeBackground()">Remove Background</button>
+              ` : ''}
+            </div>
+          `;
+          break;
+          
+        case 'feature':
+          panel.innerHTML = `
+            <h3>Text</h3>
+            <div class="form-group">
+              <label class="form-label">Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.feature_text_color || '#000000'}" onchange="updateStore('feature_text_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.feature_text_color || '#000000'}" oninput="updateStore('feature_text_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Typography</label>
+              <select class="form-input" onchange="updateStore('feature_typography', this.value)">
+                <option value="Inter">Inter</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Montserrat">Montserrat</option>
+              </select>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.feature_bg_color || '#F9FAFB'}" onchange="updateStoreColor('feature_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.feature_bg_color || '#F9FAFB'}" oninput="updateStoreColor('feature_bg_color', this.value)" style="flex: 1;">
+              </div>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Feature section background</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image</label>
+              <div class="upload-area ${currentStore.feature_bg_image ? 'has-image' : ''}" onclick="document.getElementById('featureBgInput').click()">
+                ${currentStore.feature_bg_image ? 
+                  `<img src="${currentStore.feature_bg_image}" class="upload-preview" alt="Feature Background">` :
+                  `<div>
+                    <div style="width: 32px; height: 32px; margin: 0 auto 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="featureBgInput" accept="image/*" style="display: none;" onchange="uploadFeatureBackground(event)">
+              ${currentStore.feature_bg_image ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeFeatureBackground()">Remove Background</button>` : 
+                ''
+              }
+            </div>
+            
+            <h3 style="margin-top: 24px;">Button</h3>
+            <div class="form-group">
+              <label class="form-label">Button Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.feature_button_color || '#CE0707'}" onchange="updateStoreColor('feature_button_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.feature_button_color || '#CE0707'}" oninput="updateStoreColor('feature_button_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Button Typography</label>
+              <select class="form-input" onchange="updateStore('feature_button_typography', this.value)">
+                <option value="Inter" ${currentStore.feature_button_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Roboto" ${currentStore.feature_button_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Montserrat" ${currentStore.feature_button_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+              </select>
+            </div>
+            
+            <p style="font-size: 12px; color: #6B7280; margin-top: 16px; padding: 12px; background: #F9FAFB; border-radius: 6px;">
+              Feature section appears between Hero and Catalog - use it to highlight special offers or announcements.
+            </p>
+          `;
+          break;
+          
+        case 'catalog':
+          panel.innerHTML = `
+            <h3>Text</h3>
+            <div class="form-group">
+              <label class="form-label">Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.catalog_text_color || '#000000'}" onchange="updateStore('catalog_text_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.catalog_text_color || '#000000'}" oninput="updateStore('catalog_text_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Typography</label>
+              <select class="form-input" onchange="updateStore('catalog_typography', this.value)">
+                <option value="Inter" ${currentStore.catalog_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Roboto" ${currentStore.catalog_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Montserrat" ${currentStore.catalog_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+              </select>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.catalog_bg_color || '#F9FAFB'}" onchange="updateStoreColor('catalog_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.catalog_bg_color || '#F9FAFB'}" oninput="updateStoreColor('catalog_bg_color', this.value)" style="flex: 1;">
+              </div>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Beat catalog background</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image</label>
+              <div class="upload-area ${currentStore.catalog_bg_image ? 'has-image' : ''}" onclick="document.getElementById('catalogBgInput').click()">
+                ${currentStore.catalog_bg_image ? 
+                  `<img src="${currentStore.catalog_bg_image}" class="upload-preview" alt="Catalog Background">` :
+                  `<div>
+                    <div style="width: 32px; height: 32px; margin: 0 auto 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="catalogBgInput" accept="image/*" style="display: none;" onchange="uploadCatalogBackground(event)">
+              ${currentStore.catalog_bg_image ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeCatalogBackground()">Remove Background</button>` : 
+                ''
+              }
+            </div>
+            
+            <h3 style="margin-top: 24px;">Button</h3>
+            <div class="form-group">
+              <label class="form-label">Button Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.catalog_button_color || '#CE0707'}" onchange="updateStoreColor('catalog_button_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.catalog_button_color || '#CE0707'}" oninput="updateStoreColor('catalog_button_color', this.value)" style="flex: 1;">
+              </div>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Buy button color</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Button Typography</label>
+              <select class="form-input" onchange="updateStore('catalog_typography', this.value)">
+                <option value="Inter" ${currentStore.catalog_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Roboto" ${currentStore.catalog_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Montserrat" ${currentStore.catalog_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+              </select>
+            </div>
+          `;
+          break;
+          
+        case 'catalog':
+          panel.innerHTML = `
+            <h3>Catalog Section</h3>
+            <p style="font-size: 12px; color: #6B7280; margin-bottom: 16px;">
+              Customize the appearance of your full beat catalog.
+            </p>
+            
+            <div class="form-group">
+              <label class="form-label">Text Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.catalog_text_color || '#000000'}" onchange="updateStoreColor('catalog_text_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.catalog_text_color || '#000000'}" oninput="updateStoreColor('catalog_text_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Typography</label>
+              <select class="form-input" onchange="updateStore('catalog_typography', this.value)">
+                <option value="Oswald" ${currentStore.catalog_typography === 'Oswald' ? 'selected' : ''}>Oswald</option>
+                <option value="Playfair Display" ${currentStore.catalog_typography === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
+                <option value="Montserrat" ${currentStore.catalog_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                <option value="Roboto" ${currentStore.catalog_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Poppins" ${currentStore.catalog_typography === 'Poppins' ? 'selected' : ''}>Poppins</option>
+                <option value="Bebas Neue" ${currentStore.catalog_typography === 'Bebas Neue' ? 'selected' : ''}>Bebas Neue</option>
+                <option value="Anton" ${currentStore.catalog_typography === 'Anton' ? 'selected' : ''}>Anton</option>
+                <option value="Raleway" ${currentStore.catalog_typography === 'Raleway' ? 'selected' : ''}>Raleway</option>
+                <option value="Ubuntu" ${currentStore.catalog_typography === 'Ubuntu' ? 'selected' : ''}>Ubuntu</option>
+                <option value="Lato" ${currentStore.catalog_typography === 'Lato' ? 'selected' : ''}>Lato</option>
+                <option value="Merriweather" ${currentStore.catalog_typography === 'Merriweather' ? 'selected' : ''}>Merriweather</option>
+                <option value="Archivo Black" ${currentStore.catalog_typography === 'Archivo Black' ? 'selected' : ''}>Archivo Black</option>
+                <option value="Staatliches" ${currentStore.catalog_typography === 'Staatliches' ? 'selected' : ''}>Staatliches</option>
+                <option value="Fjalla One" ${currentStore.catalog_typography === 'Fjalla One' ? 'selected' : ''}>Fjalla One</option>
+                <option value="Open Sans" ${currentStore.catalog_typography === 'Open Sans' ? 'selected' : ''}>Open Sans</option>
+                <option value="Nunito" ${currentStore.catalog_typography === 'Nunito' ? 'selected' : ''}>Nunito</option>
+                <option value="Source Sans Pro" ${currentStore.catalog_typography === 'Source Sans Pro' ? 'selected' : ''}>Source Sans Pro</option>
+                <option value="Work Sans" ${currentStore.catalog_typography === 'Work Sans' ? 'selected' : ''}>Work Sans</option>
+                <option value="Karla" ${currentStore.catalog_typography === 'Karla' ? 'selected' : ''}>Karla</option>
+                <option value="Inter" ${currentStore.catalog_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+              </select>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.catalog_bg_color || '#FFFFFF'}" onchange="updateStoreColor('catalog_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.catalog_bg_color || '#FFFFFF'}" oninput="updateStoreColor('catalog_bg_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image URL</label>
+              <input type="text" class="form-input" value="${currentStore.catalog_bg_image || ''}" oninput="updateStore('catalog_bg_image', this.value)" placeholder="https://...">
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Optional catalog background</p>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Button</h3>
+            <div class="form-group">
+              <label class="form-label">Button Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.catalog_button_color || '#CE0707'}" onchange="updateStoreColor('catalog_button_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.catalog_button_color || '#CE0707'}" oninput="updateStoreColor('catalog_button_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Button Typography</label>
+              <select class="form-input" onchange="updateStore('catalog_button_typography', this.value)">
+                <option value="Inter" ${currentStore.catalog_button_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Roboto" ${currentStore.catalog_button_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Montserrat" ${currentStore.catalog_button_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                <option value="Poppins" ${currentStore.catalog_button_typography === 'Poppins' ? 'selected' : ''}>Poppins</option>
+                <option value="Oswald" ${currentStore.catalog_button_typography === 'Oswald' ? 'selected' : ''}>Oswald</option>
+              </select>
+            </div>
+          `;
+          break;
+          
+        case 'footer':
+          panel.innerHTML = `
+            <h3>Social Links</h3>
+            <p style="font-size: 12px; color: #6B7280; margin-bottom: 16px;">
+              Add your social media links. Icons will appear in the footer.
+            </p>
+            
+            <div class="form-group">
+              <label class="form-label">Instagram</label>
+              <input type="url" class="form-input" value="${currentStore.social_instagram || ''}" oninput="updateStore('social_instagram', this.value)" placeholder="https://instagram.com/yourname">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Twitter/X</label>
+              <input type="url" class="form-input" value="${currentStore.social_twitter || ''}" oninput="updateStore('social_twitter', this.value)" placeholder="https://twitter.com/yourname">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">YouTube</label>
+              <input type="url" class="form-input" value="${currentStore.social_youtube || ''}" oninput="updateStore('social_youtube', this.value)" placeholder="https://youtube.com/@yourname">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Social Icon Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.footer_social_icon_color || '#FFFFFF'}" onchange="updateStore('footer_social_icon_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.footer_social_icon_color || '#FFFFFF'}" oninput="updateStore('footer_social_icon_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.footer_bg_color || '#111111'}" onchange="updateStoreColor('footer_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.footer_bg_color || '#111111'}" oninput="updateStoreColor('footer_bg_color', this.value)" style="flex: 1;">
+              </div>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Footer background color</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image</label>
+              <div class="upload-area ${currentStore.footer_bg_image ? 'has-image' : ''}" onclick="document.getElementById('footerBgInput').click()">
+                ${currentStore.footer_bg_image ? 
+                  `<img src="${currentStore.footer_bg_image}" class="upload-preview" alt="Footer Background">` :
+                  `<div>
+                    <div style="width: 32px; height: 32px; margin: 0 auto 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="footerBgInput" accept="image/*" style="display: none;" onchange="uploadFooterBackground(event)">
+              ${currentStore.footer_bg_image ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeFooterBackground()">Remove Background</button>` : 
+                ''
+              }
+            </div>
+            
+            <p style="font-size: 12px; color: #6B7280; margin-top: 16px; padding: 12px; background: #F9FAFB; border-radius: 6px;">
+              Footer displays "Powered by Red Pine" in Fira Code font.
+            </p>
+          `;
+          break;
+
+        case 'seo':
+          panel.innerHTML = `
+            <h3>SEO Settings</h3>
+            <p style="font-size: 12px; color: #6B7280; margin-bottom: 16px;">
+              Optimize your store for search engines. These settings affect how your store appears in search results.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">Page Title</label>
+              <input type="text" class="form-input" value="${currentStore.seo_title || ''}" oninput="updateStore('seo_title', this.value)" placeholder="Your Store Name - Beat Producer">
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">
+                ${(currentStore.seo_title || '').length}/60 characters (recommended)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Meta Description</label>
+              <textarea class="form-input" rows="3" oninput="updateStore('seo_description', this.value)" placeholder="Premium beats for hip hop, trap, and R&B artists. Licensed beats ready for your next hit.">${currentStore.seo_description || ''}</textarea>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">
+                ${(currentStore.seo_description || '').length}/160 characters (recommended)
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Keywords</label>
+              <input type="text" class="form-input" value="${currentStore.seo_keywords || ''}" oninput="updateStore('seo_keywords', this.value)" placeholder="beats, hip hop beats, trap beats, buy beats online">
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Separate keywords with commas</p>
+            </div>
+
+            <h3 style="margin-top: 24px;">Social Preview</h3>
+            <p style="font-size: 12px; color: #6B7280; margin-bottom: 16px;">
+              How your store looks when shared on social media (Open Graph).
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">OG Image</label>
+              <div class="upload-area ${currentStore.seo_og_image ? 'has-image' : ''}" onclick="document.getElementById('ogImageInput').click()">
+                ${currentStore.seo_og_image ?
+                  '<img src="' + currentStore.seo_og_image + '" class="upload-preview" alt="OG Image">' :
+                  '<div><div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Click to upload</div><div style="font-size: 11px; color: #9CA3AF;">1200x630px recommended</div></div>'
+                }
+              </div>
+              <input type="file" id="ogImageInput" accept="image/*" style="display: none;" onchange="handleOGImageUpload(this)">
+            </div>
+
+            <div style="margin-top: 24px; padding: 16px; background: #F3F4F6; border-radius: 8px;">
+              <h4 style="font-size: 12px; color: #6B7280; margin-bottom: 8px;">PREVIEW</h4>
+              <div style="background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="height: 100px; background: ${currentStore.seo_og_image ? 'url(' + currentStore.seo_og_image + ') center/cover' : '#E5E7EB'};"></div>
+                <div style="padding: 12px;">
+                  <div style="font-size: 13px; font-weight: 600;">${currentStore.seo_title || 'Your Store Title'}</div>
+                  <div style="font-size: 11px; color: #6B7280; margin-top: 4px;">${(currentStore.seo_description || 'Your store description...').substring(0, 80)}...</div>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+
+        case 'animations':
+          panel.innerHTML = `
+            <h3>Component Animations</h3>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 20px;">Add entrance animations to your store sections</p>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Hero Section</h4>
+            <div class="form-group">
+              <label class="form-label">Animation Type</label>
+              <select class="form-input" onchange="updateStore('animation_hero', this.value)">
+                <option value="none" ${currentStore.animation_hero === 'none' ? 'selected' : ''}>None</option>
+                <option value="fade-in" ${currentStore.animation_hero === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                <option value="slide-up" ${currentStore.animation_hero === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                <option value="slide-down" ${currentStore.animation_hero === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+                <option value="zoom-in" ${currentStore.animation_hero === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Duration (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_hero_duration || 0.6}" min="0.1" max="3" step="0.1" onchange="updateStore('animation_hero_duration', parseFloat(this.value))">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Delay (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_hero_delay || 0}" min="0" max="2" step="0.1" onchange="updateStore('animation_hero_delay', parseFloat(this.value))">
+              </div>
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Featured Beats</h4>
+            <div class="form-group">
+              <label class="form-label">Animation Type</label>
+              <select class="form-input" onchange="updateStore('animation_feature', this.value)">
+                <option value="none" ${currentStore.animation_feature === 'none' ? 'selected' : ''}>None</option>
+                <option value="fade-in" ${currentStore.animation_feature === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                <option value="slide-up" ${currentStore.animation_feature === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                <option value="stagger" ${currentStore.animation_feature === 'stagger' ? 'selected' : ''}>Stagger</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Duration (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_feature_duration || 0.5}" min="0.1" max="3" step="0.1" onchange="updateStore('animation_feature_duration', parseFloat(this.value))">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Delay (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_feature_delay || 0.2}" min="0" max="2" step="0.1" onchange="updateStore('animation_feature_delay', parseFloat(this.value))">
+              </div>
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Beat Cards</h4>
+            <div class="form-group">
+              <label class="form-label">Animation Type</label>
+              <select class="form-input" onchange="updateStore('animation_beats', this.value)">
+                <option value="none" ${currentStore.animation_beats === 'none' ? 'selected' : ''}>None</option>
+                <option value="fade-in" ${currentStore.animation_beats === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                <option value="slide-up" ${currentStore.animation_beats === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                <option value="stagger" ${currentStore.animation_beats === 'stagger' ? 'selected' : ''}>Stagger</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Duration (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_beats_duration || 0.4}" min="0.1" max="3" step="0.1" onchange="updateStore('animation_beats_duration', parseFloat(this.value))">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Delay (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_beats_delay || 0.1}" min="0" max="2" step="0.1" onchange="updateStore('animation_beats_delay', parseFloat(this.value))">
+              </div>
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Testimonials</h4>
+            <div class="form-group">
+              <label class="form-label">Animation Type</label>
+              <select class="form-input" onchange="updateStore('animation_testimonials', this.value)">
+                <option value="none" ${currentStore.animation_testimonials === 'none' ? 'selected' : ''}>None</option>
+                <option value="fade-in" ${currentStore.animation_testimonials === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                <option value="slide-up" ${currentStore.animation_testimonials === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Duration (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_testimonials_duration || 0.5}" min="0.1" max="3" step="0.1" onchange="updateStore('animation_testimonials_duration', parseFloat(this.value))">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Delay (s)</label>
+                <input type="number" class="form-input" value="${currentStore.animation_testimonials_delay || 0}" min="0" max="2" step="0.1" onchange="updateStore('animation_testimonials_delay', parseFloat(this.value))">
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; padding: 16px; background: #F0FDF4; border-radius: 8px; border: 1px solid #86EFAC;">
+              <p style="font-size: 12px; color: #166534; margin: 0;"><strong>Tip:</strong> Use subtle animations with short durations (0.3-0.6s) for a professional look. Stagger animations work great for card grids.</p>
+            </div>
+          `;
+          break;
+
+        case 'popups':
+          panel.innerHTML = `
+            <h3>Pop-up Modal</h3>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 20px;">Create pop-ups to capture emails and engage visitors</p>
+
+            <div class="form-group">
+              <label class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
+                Enable Pop-up
+                <label class="toggle-switch">
+                  <input type="checkbox" ${currentStore.popup_enabled ? 'checked' : ''} onchange="updateStore('popup_enabled', this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </label>
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Template</h4>
+            <div class="form-group">
+              <label class="form-label">Pop-up Type</label>
+              <select class="form-input" onchange="updateStore('popup_template', this.value)">
+                <option value="email_capture" ${currentStore.popup_template === 'email_capture' ? 'selected' : ''}>Email Capture</option>
+                <option value="discount" ${currentStore.popup_template === 'discount' ? 'selected' : ''}>Discount Offer</option>
+                <option value="announcement" ${currentStore.popup_template === 'announcement' ? 'selected' : ''}>Announcement</option>
+              </select>
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Content</h4>
+            <div class="form-group">
+              <label class="form-label">Headline</label>
+              <input type="text" class="form-input" value="${currentStore.popup_headline || ''}" oninput="updateStore('popup_headline', this.value)" placeholder="Get Exclusive Beats">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subheadline</label>
+              <textarea class="form-input" rows="2" oninput="updateStore('popup_subheadline', this.value)" placeholder="Subscribe to get notified...">${currentStore.popup_subheadline || ''}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Button Text</label>
+              <input type="text" class="form-input" value="${currentStore.popup_button_text || 'Subscribe'}" oninput="updateStore('popup_button_text', this.value)">
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Trigger</h4>
+            <div class="form-group">
+              <label class="form-label">Show Pop-up</label>
+              <select class="form-input" onchange="updateStore('popup_trigger', this.value); document.getElementById('delaySettings').style.display = this.value === 'delay' ? 'block' : 'none';">
+                <option value="page_load" ${currentStore.popup_trigger === 'page_load' ? 'selected' : ''}>On Page Load</option>
+                <option value="delay" ${currentStore.popup_trigger === 'delay' ? 'selected' : ''}>After Delay</option>
+                <option value="exit_intent" ${currentStore.popup_trigger === 'exit_intent' ? 'selected' : ''}>On Exit Intent</option>
+              </select>
+            </div>
+            <div id="delaySettings" class="form-group" style="display: ${currentStore.popup_trigger === 'delay' ? 'block' : 'none'};">
+              <label class="form-label">Delay (seconds)</label>
+              <input type="number" class="form-input" value="${currentStore.popup_delay_seconds || 5}" min="1" max="60" onchange="updateStore('popup_delay_seconds', parseInt(this.value))">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
+                Show Once Per Session
+                <label class="toggle-switch">
+                  <input type="checkbox" ${currentStore.popup_show_once ? 'checked' : ''} onchange="updateStore('popup_show_once', this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </label>
+              <p style="font-size: 11px; color: #6B7280; margin-top: 4px;">Only show pop-up once per visitor session</p>
+            </div>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">Styling</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Background</label>
+                <input type="color" class="form-input" value="${currentStore.popup_bg_color || '#FFFFFF'}" style="height: 40px; padding: 4px;" onchange="updateStore('popup_bg_color', this.value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Text</label>
+                <input type="color" class="form-input" value="${currentStore.popup_text_color || '#111827'}" style="height: 40px; padding: 4px;" onchange="updateStore('popup_text_color', this.value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Accent</label>
+                <input type="color" class="form-input" value="${currentStore.popup_accent_color || '#000000'}" style="height: 40px; padding: 4px;" onchange="updateStore('popup_accent_color', this.value)">
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; padding: 16px; background: #F3F4F6; border-radius: 8px;">
+              <h4 style="font-size: 12px; color: #6B7280; margin-bottom: 12px;">PREVIEW</h4>
+              <div style="background: ${currentStore.popup_bg_color || '#FFFFFF'}; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="color: ${currentStore.popup_text_color || '#111827'}; font-size: 18px; margin-bottom: 8px;">${currentStore.popup_headline || 'Get Exclusive Beats'}</h3>
+                <p style="color: ${currentStore.popup_text_color || '#111827'}; opacity: 0.7; font-size: 12px; margin-bottom: 16px;">${currentStore.popup_subheadline || 'Subscribe to get notified...'}</p>
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                  <input type="email" placeholder="your@email.com" style="padding: 8px 12px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 12px; width: 150px;" disabled>
+                  <button style="background: ${currentStore.popup_accent_color || '#000000'}; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">${currentStore.popup_button_text || 'Subscribe'}</button>
+                </div>
+              </div>
+            </div>
+          `;
+          break;
+
+        case 'pages':
+          const pagesHtml = (currentStore.pages || []).map(page => `
+            <div class="page-item" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: ${page.id === currentStore.currentPageId ? '#F3F4F6' : 'white'}; border: 1px solid ${page.id === currentStore.currentPageId ? 'var(--red)' : '#E5E7EB'}; border-radius: 8px; margin-bottom: 8px; cursor: pointer;" onclick="switchToPage('${page.id}')">
+              <div>
+                <div style="font-weight: 500; font-size: 14px;">${page.title}</div>
+                <div style="font-size: 12px; color: #6B7280;">${page.slug}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${page.isDefault ? '<span style="font-size: 10px; background: #DBEAFE; color: #1D4ED8; padding: 2px 6px; border-radius: 4px;">Default</span>' : ''}
+                ${!page.isDefault ? `<button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); editPage('${page.id}')" style="padding: 4px 8px;"><i data-lucide="pencil" style="width:12px;height:12px;"></i></button>
+                <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); deletePage('${page.id}')" style="padding: 4px 8px;"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>` : ''}
+              </div>
+            </div>
+          `).join('');
+
+          panel.innerHTML = `
+            <h3>Pages</h3>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">Manage your store pages. Click a page to edit its content.</p>
+
+            <div id="pagesList">
+              ${pagesHtml}
+            </div>
+
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 16px;" onclick="showAddPageModal()">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i> Add New Page
+            </button>
+
+            <div id="addPageModal" style="display: none; margin-top: 16px; padding: 16px; background: #F9FAFB; border-radius: 8px;">
+              <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">New Page</h4>
+              <div class="form-group">
+                <label class="form-label">Page Title</label>
+                <input type="text" class="form-input" id="newPageTitle" placeholder="About Us" oninput="updatePageSlug()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">URL Slug</label>
+                <input type="text" class="form-input" id="newPageSlug" placeholder="/about">
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <button class="btn btn-secondary" onclick="hideAddPageModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="addNewPage()">Add Page</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; padding: 16px; background: #FEF3C7; border-radius: 8px; border: 1px solid #FDE68A;">
+              <p style="font-size: 12px; color: #92400E; margin: 0;"><strong>Note:</strong> Each page can have its own hero section, content blocks, and layout. Use the Navigation panel to add pages to your menu.</p>
+            </div>
+          `;
+          setTimeout(() => lucide.createIcons(), 0);
+          break;
+
+        case 'navigation':
+          const navItemsHtml = (currentStore.nav_items || []).map((item, index) => `
+            <div class="nav-menu-item" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: white; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 8px;">
+              <div style="cursor: grab; color: #9CA3AF;" class="drag-handle">
+                <i data-lucide="grip-vertical" style="width:16px;height:16px;"></i>
+              </div>
+              <div style="flex: 1;">
+                <input type="text" class="form-input" value="${item.label}" style="font-size: 13px; padding: 6px 10px;" onchange="updateNavItem('${item.id}', 'label', this.value)">
+              </div>
+              <select class="form-input" style="width: 90px; font-size: 12px; padding: 6px 8px;" onchange="updateNavItem('${item.id}', 'type', this.value)">
+                <option value="page" ${item.type === 'page' ? 'selected' : ''}>Page</option>
+                <option value="external" ${item.type === 'external' ? 'selected' : ''}>External</option>
+              </select>
+              <input type="text" class="form-input" value="${item.target}" placeholder="${item.type === 'external' ? 'https://...' : '/'}" style="width: 100px; font-size: 12px; padding: 6px 8px;" onchange="updateNavItem('${item.id}', 'target', this.value)">
+              <button class="btn btn-small btn-secondary" onclick="moveNavItem('${item.id}', -1)" style="padding: 4px 6px;" ${index === 0 ? 'disabled' : ''}>
+                <i data-lucide="chevron-up" style="width:12px;height:12px;"></i>
+              </button>
+              <button class="btn btn-small btn-secondary" onclick="moveNavItem('${item.id}', 1)" style="padding: 4px 6px;" ${index === (currentStore.nav_items || []).length - 1 ? 'disabled' : ''}>
+                <i data-lucide="chevron-down" style="width:12px;height:12px;"></i>
+              </button>
+              <button class="btn btn-small btn-secondary" onclick="removeNavItem('${item.id}')" style="padding: 4px 6px; color: #DC2626;">
+                <i data-lucide="x" style="width:12px;height:12px;"></i>
+              </button>
+            </div>
+          `).join('');
+
+          panel.innerHTML = `
+            <h3>Navigation Menu</h3>
+            <p style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">Build your site's navigation menu. Drag to reorder items.</p>
+
+            <div id="navItemsList">
+              ${navItemsHtml || '<p style="color: #6B7280; text-align: center; padding: 20px;">No menu items yet</p>'}
+            </div>
+
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 12px;" onclick="addNavItem()">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i> Add Menu Item
+            </button>
+
+            <h4 style="font-size: 14px; font-weight: 600; margin: 24px 0 12px;">Quick Add Pages</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${(currentStore.pages || []).map(page => `
+                <button class="btn btn-small btn-secondary" onclick="addPageToNav('${page.title}', '${page.slug}')" style="font-size: 11px;">
+                  + ${page.title}
+                </button>
+              `).join('')}
+            </div>
+
+            <div style="margin-top: 24px; padding: 16px; background: #F3F4F6; border-radius: 8px;">
+              <h4 style="font-size: 12px; color: #6B7280; margin-bottom: 8px;">PREVIEW</h4>
+              <div style="background: white; padding: 12px 16px; border-radius: 6px; display: flex; gap: 16px; justify-content: center;">
+                ${(currentStore.nav_items || []).map(item => `
+                  <span style="font-size: 13px; color: #374151; cursor: pointer;">${item.label}</span>
+                `).join('')}
+              </div>
+            </div>
+          `;
+          setTimeout(() => lucide.createIcons(), 0);
+          break;
+
+        case 'login':
+          panel.innerHTML = `
+            <h3>Logo / Brandname</h3>
+            <div class="form-group">
+              <label class="form-label">Logo Image</label>
+              <div class="upload-area ${currentStore.login_logo_url || currentStore.logo_url ? 'has-image' : ''}" onclick="document.getElementById('loginLogoInput').click()">
+                ${currentStore.login_logo_url || currentStore.logo_url ? 
+                  `<img src="${currentStore.login_logo_url || currentStore.logo_url}" class="upload-preview" alt="Login Logo">` :
+                  `<div>
+                    <div style="font-size: 32px; margin-bottom: 8px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="loginLogoInput" accept="image/*" style="display: none;" onchange="uploadLoginLogo(event)">
+              ${currentStore.login_logo_url || currentStore.logo_url ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeLoginLogo()">Remove Logo</button>` : 
+                ''
+              }
+              <p style="font-size: 11px; color: #6B7280; margin-top: 8px;">Uses same logo as header by default</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Brandname</label>
+              <input type="text" class="form-input" value="${currentStore.logo_text || ''}" oninput="updateStore('login_brandname', this.value)" placeholder="Producer Name">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Typography</label>
+              <select class="form-input" onchange="updateStore('login_typography', this.value)">
+                <option value="Oswald" ${currentStore.login_typography === 'Oswald' ? 'selected' : ''}>Oswald</option>
+                <option value="Montserrat" ${currentStore.login_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+                <option value="Roboto" ${currentStore.login_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+              </select>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Background</h3>
+            <div class="form-group">
+              <label class="form-label">Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.login_bg_color || '#F9FAFB'}" onchange="updateStore('login_bg_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.login_bg_color || '#F9FAFB'}" oninput="updateStore('login_bg_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Background Image</label>
+              <div class="upload-area ${currentStore.login_bg_image ? 'has-image' : ''}" onclick="document.getElementById('loginBgInput').click()">
+                ${currentStore.login_bg_image ? 
+                  `<img src="${currentStore.login_bg_image}" class="upload-preview" alt="Login Background">` :
+                  `<div>
+                    <div style="width: 32px; height: 32px; margin: 0 auto 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Click to upload</div>
+                    <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">PNG or JPG, max 2MB</div>
+                  </div>`
+                }
+              </div>
+              <input type="file" id="loginBgInput" accept="image/*" style="display: none;" onchange="uploadLoginBackground(event)">
+              ${currentStore.login_bg_image ? 
+                `<button class="btn btn-secondary" style="width: 100%; margin-top: 8px; font-size: 12px;" onclick="removeLoginBackground()">Remove Background</button>` : 
+                ''
+              }>
+            </div>
+            
+            <h3 style="margin-top: 24px;">Button</h3>
+            <div class="form-group">
+              <label class="form-label">Button Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" value="${currentStore.login_button_color || '#CE0707'}" onchange="updateStoreColor('login_button_color', this.value)" style="width: 60px; height: 40px; border: 2px solid #E5E7EB; border-radius: 6px;">
+                <input type="text" class="form-input" value="${currentStore.login_button_color || '#CE0707'}" oninput="updateStoreColor('login_button_color', this.value)" style="flex: 1;">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Button Typography</label>
+              <select class="form-input" onchange="updateStore('login_button_typography', this.value)">
+                <option value="Inter" ${currentStore.login_button_typography === 'Inter' ? 'selected' : ''}>Inter</option>
+                <option value="Roboto" ${currentStore.login_button_typography === 'Roboto' ? 'selected' : ''}>Roboto</option>
+                <option value="Montserrat" ${currentStore.login_button_typography === 'Montserrat' ? 'selected' : ''}>Montserrat</option>
+              </select>
+            </div>
+            
+            <p style="font-size: 12px; color: #6B7280; margin-top: 16px; padding: 12px; background: #F9FAFB; border-radius: 6px;">
+              Login page styling for customer accounts (Stripe integration coming soon).
+            </p>
+          `;
+          break;
+      }
+    }
+
+
+    function selectTemplate(templateName) {
+      currentStore.template = templateName;
+      showPanel('template');
+      updatePreview();
+    }
+
+    // STORE-037: Template gallery functions
+    let pendingTemplate = null;
+
+    function filterTemplates(category) {
+      const cards = document.querySelectorAll('#templateGrid .template-card');
+      cards.forEach(card => {
+        const cardCategories = card.dataset.category || '';
+        if (category === 'all' || cardCategories.includes(category)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function previewTemplate(templateName) {
+      pendingTemplate = templateName;
+      const modal = document.getElementById('templatePreviewModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeTemplatePreview() {
+      pendingTemplate = null;
+      const modal = document.getElementById('templatePreviewModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function confirmApplyTemplate() {
+      if (pendingTemplate) {
+        // Push to history before applying
+        pushToHistory();
+        // Apply template settings
+        applyTemplateSettings(pendingTemplate);
+        currentStore.template = pendingTemplate;
+        showPanel('template');
+        updatePreview();
+      }
+      closeTemplatePreview();
+    }
+
+    function applyTemplateSettings(templateName) {
+      const templates = {
+        'gradient-hero': { primary_color: '#667eea', hero_bg: 'gradient', hero_gradient_start: '#667eea', hero_gradient_end: '#764ba2' },
+        'dark-minimal': { primary_color: '#FFFFFF', hero_bg: 'solid', hero_bg_color: '#000000' },
+        'clean-modern': { primary_color: '#374151', hero_bg: 'gradient', hero_gradient_start: '#F9FAFB', hero_gradient_end: '#E5E7EB' },
+        'minimal-white': { primary_color: '#111827', hero_bg: 'solid', hero_bg_color: '#FFFFFF' },
+        'midnight': { primary_color: '#3B82F6', hero_bg: 'gradient', hero_gradient_start: '#0F172A', hero_gradient_end: '#1E293B' },
+        'neon-dark': { primary_color: '#22D3EE', hero_bg: 'solid', hero_bg_color: '#0A0A0A' },
+        'bold-red': { primary_color: '#FFFFFF', hero_bg: 'solid', hero_bg_color: '#DC2626' },
+        'urban': { primary_color: '#F59E0B', hero_bg: 'gradient', hero_gradient_start: '#1F2937', hero_gradient_end: '#374151' },
+        'sunset': { primary_color: '#FFFFFF', hero_bg: 'gradient', hero_gradient_start: '#F97316', hero_gradient_end: '#EC4899' },
+        'ocean': { primary_color: '#FFFFFF', hero_bg: 'gradient', hero_gradient_start: '#06B6D4', hero_gradient_end: '#3B82F6' },
+        'forest': { primary_color: '#FFFFFF', hero_bg: 'gradient', hero_gradient_start: '#059669', hero_gradient_end: '#10B981' },
+        'soft-pink': { primary_color: '#EC4899', hero_bg: 'gradient', hero_gradient_start: '#FDF2F8', hero_gradient_end: '#FCE7F3' },
+        'cream': { primary_color: '#92400E', hero_bg: 'solid', hero_bg_color: '#FFFBEB' }
+      };
+      const settings = templates[templateName] || {};
+      Object.keys(settings).forEach(key => {
+        currentStore[key] = settings[key];
+      });
+    }
+
+    // STORE-038: Page management functions
+    function switchToPage(pageId) {
+      pushToHistory();
+      currentStore.currentPageId = pageId;
+      showPanel('pages');
+      updatePreview();
+    }
+
+    function showAddPageModal() {
+      document.getElementById('addPageModal').style.display = 'block';
+      document.getElementById('newPageTitle').value = '';
+      document.getElementById('newPageSlug').value = '';
+    }
+
+    function hideAddPageModal() {
+      document.getElementById('addPageModal').style.display = 'none';
+    }
+
+    function updatePageSlug() {
+      const title = document.getElementById('newPageTitle').value;
+      const slug = '/' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      document.getElementById('newPageSlug').value = slug;
+    }
+
+    function addNewPage() {
+      const title = document.getElementById('newPageTitle').value.trim();
+      const slug = document.getElementById('newPageSlug').value.trim();
+
+      if (!title || !slug) {
+        alert('Please enter a page title and slug');
+        return;
+      }
+
+      pushToHistory();
+
+      const newPage = {
+        id: 'page_' + Date.now(),
+        title: title,
+        slug: slug,
+        isDefault: false
+      };
+
+      currentStore.pages = [...(currentStore.pages || []), newPage];
+      hideAddPageModal();
+      showPanel('pages');
+    }
+
+    function editPage(pageId) {
+      const page = currentStore.pages.find(p => p.id === pageId);
+      if (!page) return;
+
+      const newTitle = prompt('Page Title:', page.title);
+      if (newTitle === null) return;
+
+      const newSlug = prompt('URL Slug:', page.slug);
+      if (newSlug === null) return;
+
+      pushToHistory();
+      page.title = newTitle;
+      page.slug = newSlug;
+      showPanel('pages');
+    }
+
+    function deletePage(pageId) {
+      if (!confirm('Are you sure you want to delete this page?')) return;
+
+      pushToHistory();
+      currentStore.pages = currentStore.pages.filter(p => p.id !== pageId);
+      if (currentStore.currentPageId === pageId) {
+        currentStore.currentPageId = 'home';
+      }
+      showPanel('pages');
+    }
+
+    // STORE-039: Navigation menu functions
+    function addNavItem() {
+      pushToHistory();
+      const newItem = {
+        id: 'nav_' + Date.now(),
+        label: 'New Link',
+        type: 'page',
+        target: '/'
+      };
+      currentStore.nav_items = [...(currentStore.nav_items || []), newItem];
+      showPanel('navigation');
+    }
+
+    function addPageToNav(label, slug) {
+      // Check if already in nav
+      const exists = (currentStore.nav_items || []).some(item => item.target === slug);
+      if (exists) {
+        alert('This page is already in the navigation menu');
+        return;
+      }
+      pushToHistory();
+      const newItem = {
+        id: 'nav_' + Date.now(),
+        label: label,
+        type: 'page',
+        target: slug
+      };
+      currentStore.nav_items = [...(currentStore.nav_items || []), newItem];
+      showPanel('navigation');
+    }
+
+    function updateNavItem(itemId, field, value) {
+      pushToHistory();
+      const item = currentStore.nav_items.find(i => i.id === itemId);
+      if (item) {
+        item[field] = value;
+      }
+      showPanel('navigation');
+    }
+
+    function moveNavItem(itemId, direction) {
+      const items = currentStore.nav_items || [];
+      const index = items.findIndex(i => i.id === itemId);
+      if (index < 0) return;
+
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= items.length) return;
+
+      pushToHistory();
+      const [item] = items.splice(index, 1);
+      items.splice(newIndex, 0, item);
+      currentStore.nav_items = items;
+      showPanel('navigation');
+    }
+
+    function removeNavItem(itemId) {
+      pushToHistory();
+      currentStore.nav_items = (currentStore.nav_items || []).filter(i => i.id !== itemId);
+      showPanel('navigation');
+    }
+
+    function updateStore(key, value) {
+      // Push current state to history before change
+      pushToHistory();
+
+      currentStore[key] = value;
+      // Keep current preview type (don't switch back to main store)
+      const currentPanel = document.querySelector('.editor-nav-item.active');
+      if (currentPanel && currentPanel.textContent.trim() === 'Login Page') {
+        renderLoginPreview();
+      } else {
+        updatePreview();
+      }
+    }
+    
+    function updateStoreColor(key, value) {
+      // Update both the store and the text input
+      currentStore[key] = value;
+      const colorInput = document.getElementById(key.split('_')[0]);
+      if (colorInput) {
+        colorInput.value = value;
+        // Update the text input next to it
+        const textInput = colorInput.nextElementSibling;
+        if (textInput) textInput.value = value;
+      }
+      
+      // Keep current preview type
+      const currentPanel = document.querySelector('.editor-nav-item.active');
+      if (currentPanel && currentPanel.textContent.trim() === 'Login Page') {
+        renderLoginPreview();
+      } else {
+        updatePreview();
+      }
+    }
+    
+    function removeLogo() {
+      currentStore.logo_url = null;
+      showPanel('logo');
+      updatePreview();
+    }
+    
+    async function uploadLogo(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Show loading in panel
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('.upload-area');
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/logo-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('logos')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('logos')
+          .getPublicUrl(path);
+        
+        currentStore.logo_url = data.publicUrl;
+        
+        // Force immediate preview update
+        setTimeout(() => {
+          updatePreview();
+          showPanel('logo');
+        }, 100);
+        
+      } catch (error) {
+        console.error('Logo upload error:', error);
+        showPanel('logo');
+        alert('Error uploading logo. Please try again.');
+      }
+    }
+    
+    async function uploadBackground(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Show loading
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('.upload-area');
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/bg-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+        
+        currentStore.hero_background = data.publicUrl;
+        
+        // Force immediate preview update
+        setTimeout(() => {
+          updatePreview();
+          showPanel('background');
+        }, 100);
+        
+      } catch (error) {
+        console.error('Background upload error:', error);
+        showPanel('background');
+        alert('Error uploading background. Please try again.');
+      }
+    }
+    
+    function removeBackground() {
+      currentStore.hero_background = null;
+      showPanel('background');
+      updatePreview();
+    }
+    
+    // Header Background Upload
+    async function uploadHeaderBackground(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('#headerBgInput').previousElementSibling;
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/header-bg-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+        
+        currentStore.header_bg_image = data.publicUrl;
+        updatePreview();
+        showPanel('header');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+        showPanel('header');
+      }
+    }
+    
+    function removeHeaderBackground() {
+      currentStore.header_bg_image = '';
+      updatePreview();
+      showPanel('header');
+    }
+    
+    // Feature Background Upload
+    async function uploadFeatureBackground(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('#featureBgInput').previousElementSibling;
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/feature-bg-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+        
+        currentStore.feature_bg_image = data.publicUrl;
+        updatePreview();
+        showPanel('feature');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+        showPanel('feature');
+      }
+    }
+    
+    function removeFeatureBackground() {
+      currentStore.feature_bg_image = '';
+      updatePreview();
+      showPanel('feature');
+    }
+    
+    // Catalog Background Upload
+    async function uploadCatalogBackground(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('#catalogBgInput').previousElementSibling;
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/catalog-bg-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+        
+        currentStore.catalog_bg_image = data.publicUrl;
+        updatePreview();
+        showPanel('catalog');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+        showPanel('catalog');
+      }
+    }
+    
+    function removeCatalogBackground() {
+      currentStore.catalog_bg_image = '';
+      updatePreview();
+      showPanel('catalog');
+    }
+    
+    // Footer Background Upload
+    async function uploadFooterBackground(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('#footerBgInput').previousElementSibling;
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/footer-bg-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+        
+        currentStore.footer_bg_image = data.publicUrl;
+        updatePreview();
+        showPanel('footer');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+        showPanel('footer');
+      }
+    }
+    
+    function removeFooterBackground() {
+      currentStore.footer_bg_image = '';
+      updatePreview();
+      showPanel('footer');
+    }
+
+    // STORE-041: SEO OG Image Upload
+    async function handleOGImageUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      try {
+        const path = `${producerId}/og-image-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+
+        if (error) throw error;
+
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+
+        currentStore.seo_og_image = data.publicUrl;
+        updatePreview();
+        showPanel('seo');
+        showToast('OG image uploaded', 'success');
+      } catch (error) {
+        console.error('OG image upload error:', error);
+        showToast('Upload failed', 'error');
+      }
+    }
+
+    // Login Logo Upload
+    async function uploadLoginLogo(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('#loginLogoInput').previousElementSibling;
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/login-logo-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('logos')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('logos')
+          .getPublicUrl(path);
+        
+        currentStore.login_logo_url = data.publicUrl;
+        renderLoginPreview();
+        showPanel('login');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+        showPanel('login');
+      }
+    }
+    
+    function removeLoginLogo() {
+      currentStore.login_logo_url = '';
+      renderLoginPreview();
+      showPanel('login');
+    }
+    
+    // Login Background Upload
+    async function uploadLoginBackground(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const panel = document.getElementById('propertiesPanel');
+      const uploadArea = panel.querySelector('#loginBgInput').previousElementSibling;
+      if (uploadArea) {
+        uploadArea.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">Uploading...</div>';
+      }
+      
+      try {
+        const path = `${producerId}/login-bg-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(path, file);
+        
+        if (error) throw error;
+        
+        const { data } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(path);
+        
+        currentStore.login_bg_image = data.publicUrl;
+        renderLoginPreview();
+        showPanel('login');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+        showPanel('login');
+      }
+    }
+    
+    function removeLoginBackground() {
+      currentStore.login_bg_image = '';
+      renderLoginPreview();
+      showPanel('login');
+    }
+
+    function renderLoginPreview() {
+      const preview = document.getElementById('livePreview');
+      const loginBgColor = currentStore.login_bg_color || '#F9FAFB';
+      const loginBgImage = currentStore.login_bg_image || '';
+      const logoUrl = currentStore.login_logo_url || currentStore.logo_url || '';
+      const brandname = currentStore.login_brandname || currentStore.logo_text || '';
+      const typography = currentStore.login_typography || 'Oswald';
+      const buttonColor = currentStore.login_button_color || '#CE0707';
+      const buttonTypography = currentStore.login_button_typography || 'Inter';
+      
+      const bgStyle = loginBgImage ? 
+        `background-image: url('${loginBgImage}'); background-size: cover; background-position: center;` :
+        `background-color: ${loginBgColor};`;
+      
+      preview.innerHTML = `
+        <div style="${bgStyle} min-height: 600px; display: flex; align-items: center; justify-content: center; padding: 40px;">
+          <div style="background: white; padding: 48px; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
+            ${logoUrl ? `<img src="${logoUrl}" style="height: 48px; margin-bottom: 24px; object-fit: contain;">` : ''}
+            <h1 style="font-family: '${typography}', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 8px; color: #111;">${brandname}</h1>
+            <p style="color: #6B7280; margin-bottom: 32px; font-size: 14px;">Sign in to your account</p>
+            
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Email</label>
+              <input type="email" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+              <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Password</label>
+              <input type="password" placeholder="••••••••" style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+            </div>
+            
+            <button style="width: 100%; background: ${buttonColor}; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: '${buttonTypography}', sans-serif; cursor: pointer;">
+              Sign In
+            </button>
+            
+            <p style="margin-top: 24px; text-align: center; font-size: 13px; color: #6B7280;">
+              Don't have an account? <a href="#" style="color: ${buttonColor}; text-decoration: none; font-weight: 500;">Sign up</a>
+            </p>
+            
+            <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #E5E7EB; text-align: center;">
+              <p style="font-family: 'Fira Code', monospace; font-size: 11px; color: #9CA3AF;">Powered by <strong style="color: #CE0707;">Red Pine</strong></p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+
+function updatePreview() {
+  const preview = document.getElementById('livePreview');
+  const template = currentStore.template;
+  const headingFont = currentStore.heading_font;
+  const bodyFont = currentStore.body_font;
+  
+  if (template === 'gradient-hero') {
+    renderGradientHero(preview, headingFont, bodyFont);
+  } else if (template === 'dark-minimal') {
+    renderDarkMinimal(preview, headingFont, bodyFont);
+  } else {
+    renderCleanModern(preview, headingFont, bodyFont);
+  }
+}
+
+function renderGradientHero(preview, headingFont, bodyFont) {
+  const heroStyle = currentStore.hero_background ? 
+    `background-image: url('${currentStore.hero_background}'); background-size: cover; background-position: center;` :
+    `background: ${currentStore.hero_bg_color ? currentStore.hero_bg_color : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: ${currentStore.hero_text_color || '#FFFFFF'};`;
+  
+  preview.innerHTML = `
+    <style>
+      #livePreview * { font-family: '${bodyFont}', sans-serif; }
+      #livePreview h1, #livePreview h2, #livePreview h3 { font-family: '${headingFont}', sans-serif; }
+    </style>
+    
+    <div class="preview-nav" style="background: ${currentStore.header_bg_color || currentStore.secondary_color}; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        ${currentStore.logo_url ? `<img src="${currentStore.logo_url}" style="height: 40px; object-fit: contain;">` : ''}
+        ${currentStore.logo_text ? `<div style="font-size: 24px; font-weight: 700; color: ${currentStore.header_brandname_color || 'white'}; font-family: '${currentStore.header_brandname_typography || 'Oswald'}';">${currentStore.logo_text}</div>` : ''}
+      </div>
+      <div style="display: flex; gap: 24px;">
+        <a href="#" style="color: white; text-decoration: none; font-size: 14px; font-weight: 500; background: ${currentStore.header_login_btn_color || 'rgba(255,255,255,0.1)'}; padding: 8px 16px; border-radius: 4px; font-family: '${currentStore.header_button_typography || 'Inter'}', sans-serif;">Login</a>
+        <a href="#" style="color: white; text-decoration: none; font-size: 14px; font-weight: 500; background: ${currentStore.header_cart_btn_color || currentStore.primary_color}; padding: 8px 16px; border-radius: 4px; font-family: '${currentStore.header_button_typography || 'Inter'}', sans-serif;">Cart</a>
+      </div>
+    </div>
+    
+    <div style="${heroStyle} padding: 120px 40px; text-align: center; position: relative;">
+      ${currentStore.hero_background ? '<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4);"></div>' : ''}
+      <div style="position: relative; z-index: 2;">
+        <h1 style="font-size: 64px; font-weight: 700; color: ${currentStore.hero_text_color || 'white'}; margin-bottom: 16px; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_title}</h1>
+        <p style="font-size: 28px; color: ${currentStore.hero_text_color || 'rgba(255,255,255,0.9)'}; margin-bottom: 24px; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_subtitle}</p>
+        ${currentStore.hero_bio ? `<p style="font-size: 18px; color: ${currentStore.hero_text_color || 'rgba(255,255,255,0.85)'}; max-width: 600px; margin: 0 auto; line-height: 1.6; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_bio}</p>` : ''}
+      </div>
+    </div>
+    
+    <div style="padding: 80px 40px; background: ${currentStore.feature_bg_color || '#F9FAFB'}; ${currentStore.feature_bg_image ? `background-image: url('${currentStore.feature_bg_image}'); background-size: cover; background-position: center;` : ''}">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 2px; color: ${currentStore.feature_text_color || currentStore.primary_color}; margin-bottom: 16px; text-transform: uppercase; font-family: '${currentStore.feature_typography || 'Inter'}', sans-serif;">Featured Beats</div>
+        <h2 style="font-size: 36px; font-weight: 700; color: ${currentStore.feature_text_color || '#000'}; font-family: '${currentStore.feature_typography || 'Inter'}', sans-serif;">Trending Now</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
+        ${generateBeatCards().split('</div>').slice(0, 3).join('</div>') + '</div>'}
+      </div>
+    </div>
+    
+    <div style="padding: 80px 40px; background: ${currentStore.catalog_bg_color || currentStore.background_color};">
+      <div style="text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: ${currentStore.catalog_text_color || currentStore.primary_color}; margin-bottom: 40px; font-family: '${currentStore.catalog_typography || 'Inter'}', sans-serif;">FULL CATALOG</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
+        ${generateBeatCards()}
+      </div>
+    </div>
+    
+    ${generateFooter()}
+  `;
+}
+
+function renderDarkMinimal(preview, headingFont, bodyFont) {
+  const heroStyle = currentStore.hero_background ? 
+    `background-image: url('${currentStore.hero_background}'); background-size: cover; background-position: center;` :
+    'background: #000;';
+  
+  preview.innerHTML = `
+    <style>
+      #livePreview * { font-family: '${bodyFont}', sans-serif; }
+      #livePreview h1, #livePreview h2, #livePreview h3 { font-family: '${headingFont}', sans-serif; }
+    </style>
+    
+    <div class="preview-nav" style="background: ${currentStore.secondary_color}; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        ${currentStore.logo_url ? `<img src="${currentStore.logo_url}" style="height: 40px; object-fit: contain;">` : ''}
+        ${currentStore.logo_text ? `<div style="font-size: 24px; font-weight: 700; color: ${currentStore.header_brandname_color || 'white'}; font-family: '${currentStore.header_brandname_typography || 'Oswald'}';">${currentStore.logo_text}</div>` : ''}
+      </div>
+      <div style="display: flex; gap: 24px;">
+        <a href="#" style="color: white; text-decoration: none; font-size: 14px; font-weight: 500; background: ${currentStore.header_login_btn_color || 'rgba(255,255,255,0.1)'}; padding: 8px 16px; border-radius: 4px; font-family: '${currentStore.header_button_typography || 'Inter'}', sans-serif;">Login</a>
+        <a href="#" style="color: white; text-decoration: none; font-size: 14px; font-weight: 500; background: ${currentStore.primary_color}; padding: 8px 16px; border-radius: 4px; font-family: '${currentStore.header_button_typography || 'Inter'}', sans-serif;">Cart</a>
+      </div>
+    </div>
+    
+    <div style="${heroStyle} padding: 100px 60px; position: relative;">
+      ${currentStore.hero_background ? '<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);"></div>' : ''}
+      <div style="position: relative; z-index: 2; max-width: 700px;">
+        <h1 style="font-size: 48px; font-weight: 700; color: ${currentStore.hero_text_color || 'white'}; margin-bottom: 20px; line-height: 1.1; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_title}</h1>
+        <p style="font-size: 20px; color: ${currentStore.hero_text_color || 'rgba(255,255,255,0.8)'}; margin-bottom: 16px; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_subtitle}</p>
+        ${currentStore.hero_bio ? `<p style="font-size: 16px; color: ${currentStore.hero_text_color || 'rgba(255,255,255,0.7)'}; line-height: 1.6; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_bio}</p>` : ''}
+      </div>
+    </div>
+    
+    <div style="padding: 80px 40px; background: ${currentStore.feature_bg_color || '#000'}; ${currentStore.feature_bg_image ? `background-image: url('${currentStore.feature_bg_image}'); background-size: cover; background-position: center;` : ''}">
+      <div style="margin-bottom: 32px;">
+        <div style="font-size: 11px; font-weight: 700; letter-spacing: 3px; color: ${currentStore.feature_text_color || currentStore.primary_color}; margin-bottom: 16px; text-transform: uppercase; font-family: '${currentStore.feature_typography || 'Inter'}', sans-serif;">Featured</div>
+        <h2 style="font-size: 32px; font-weight: 700; color: ${currentStore.feature_text_color || 'white'}; font-family: '${currentStore.feature_typography || 'Inter'}', sans-serif;">Top Picks</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto;">
+        ${generateBeatCards().split('</div>').slice(0, 3).join('</div>') + '</div>'}
+      </div>
+    </div>
+    
+    <div style="padding: 80px 40px; background: ${currentStore.catalog_bg_color || currentStore.background_color};">
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 3px; color: ${currentStore.catalog_text_color || currentStore.primary_color}; margin-bottom: 32px; text-transform: uppercase; font-family: '${currentStore.catalog_typography || 'Inter'}', sans-serif;">All Beats</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto;">
+        ${generateBeatCards()}
+      </div>
+    </div>
+    
+    ${generateFooter()}
+  `;
+}
+
+function renderCleanModern(preview, headingFont, bodyFont) {
+  const heroStyle = currentStore.hero_background ? 
+    `background-image: url('${currentStore.hero_background}'); background-size: cover; background-position: center;` :
+    'background: #F9FAFB;';
+  
+  const heroTextColor = currentStore.hero_text_color || (currentStore.hero_background ? 'white' : '#111');
+  
+  preview.innerHTML = `
+    <style>
+      #livePreview * { font-family: '${bodyFont}', sans-serif; }
+      #livePreview h1, #livePreview h2, #livePreview h3 { font-family: '${headingFont}', sans-serif; }
+    </style>
+    
+    <div class="preview-nav" style="background: ${currentStore.secondary_color}; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        ${currentStore.logo_url ? `<img src="${currentStore.logo_url}" style="height: 40px; object-fit: contain;">` : ''}
+        ${currentStore.logo_text ? `<div style="font-size: 24px; font-weight: 700; color: ${currentStore.header_brandname_color || 'white'}; font-family: '${currentStore.header_brandname_typography || 'Oswald'}';">${currentStore.logo_text}</div>` : ''}
+      </div>
+      <div style="display: flex; gap: 24px;">
+        <a href="#" style="color: white; text-decoration: none; font-size: 14px; font-weight: 500; background: ${currentStore.header_login_btn_color || 'rgba(255,255,255,0.1)'}; padding: 8px 16px; border-radius: 4px; font-family: '${currentStore.header_button_typography || 'Inter'}', sans-serif;">Login</a>
+        <a href="#" style="color: white; text-decoration: none; font-size: 14px; font-weight: 500; background: ${currentStore.primary_color}; padding: 8px 16px; border-radius: 4px; font-family: '${currentStore.header_button_typography || 'Inter'}', sans-serif;">Cart</a>
+      </div>
+    </div>
+    
+    <div style="${heroStyle} padding: 60px 40px; display: flex; align-items: center; justify-content: space-between; gap: 60px; position: relative; min-height: 400px;">
+      ${currentStore.hero_background ? '<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3);"></div>' : ''}
+      <div style="flex: 1; position: relative; z-index: 2;">
+        <h1 style="font-size: 52px; font-weight: 700; color: ${heroTextColor}; margin-bottom: 16px; line-height: 1.2; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_title}</h1>
+        <p style="font-size: 22px; color: ${heroTextColor}; opacity: 0.9; margin-bottom: 20px; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_subtitle}</p>
+        ${currentStore.hero_bio ? `<p style="font-size: 16px; color: ${heroTextColor}; opacity: 0.8; line-height: 1.7; font-family: '${currentStore.hero_typography || 'Oswald'}', sans-serif;">${currentStore.hero_bio}</p>` : ''}
+      </div>
+      <div style="flex: 0 0 300px; height: 300px; background: linear-gradient(135deg, ${currentStore.primary_color}, #667eea); border-radius: 12px; position: relative; z-index: 2;"></div>
+    </div>
+    
+    <div style="padding: 80px 40px; background: ${currentStore.feature_bg_color || '#FFF'}; ${currentStore.feature_bg_image ? `background-image: url('${currentStore.feature_bg_image}'); background-size: cover; background-position: center;` : ''}">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: ${currentStore.feature_text_color || currentStore.primary_color}; margin-bottom: 12px; text-transform: uppercase; font-family: '${currentStore.feature_typography || 'Inter'}', sans-serif;">Featured</div>
+        <h2 style="font-size: 36px; font-weight: 700; color: ${currentStore.feature_text_color || '#000'}; font-family: '${currentStore.feature_typography || 'Inter'}', sans-serif;">Staff Picks</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
+        ${generateBeatCards().split('</div>').slice(0, 3).join('</div>') + '</div>'}
+      </div>
+    </div>
+    
+    <div style="padding: 80px 40px; background: ${currentStore.catalog_bg_color || currentStore.background_color};">
+      <div style="text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: ${currentStore.catalog_text_color || currentStore.primary_color}; margin-bottom: 40px; font-family: '${currentStore.catalog_typography || 'Inter'}', sans-serif;">BROWSE ALL</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
+        ${generateBeatCards()}
+      </div>
+    </div>
+    
+    ${generateFooter()}
+  `;
+}
+
+function generateBeatCards() {
+  return `
+    <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+      <div style="padding: 16px;">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Sample Beat 1</div>
+        <div style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">140 BPM • F Minor • Trap</div>
+        <div style="font-size: 20px; font-weight: 700; color: ${currentStore.primary_color};">$30</div>
+      </div>
+    </div>
+    <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+      <div style="padding: 16px;">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Sample Beat 2</div>
+        <div style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">128 BPM • C Major • R&B</div>
+        <div style="font-size: 20px; font-weight: 700; color: ${currentStore.primary_color};">$35</div>
+      </div>
+    </div>
+    <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+      <div style="padding: 16px;">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Sample Beat 3</div>
+        <div style="font-size: 13px; color: #6B7280; margin-bottom: 12px;">150 BPM • G Minor • Drill</div>
+        <div style="font-size: 20px; font-weight: 700; color: ${currentStore.primary_color};">$40</div>
+      </div>
+    </div>
+  `;
+}
+
+function generateFooter() {
+  const instagramIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`;
+  
+  const twitterIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+  
+  const youtubeIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+  
+  return `
+    <div style="background: ${currentStore.footer_bg_color || currentStore.secondary_color}; ${currentStore.footer_bg_image ? `background-image: url('${currentStore.footer_bg_image}'); background-size: cover; background-position: center;` : ''} padding: 32px 40px; text-align: center; color: white;">
+      <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 16px;">
+        ${currentStore.social_instagram ? `<a href="${currentStore.social_instagram}" target="_blank" style="color: ${currentStore.footer_social_icon_color || 'white'}; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${instagramIcon}</a>` : ''}
+        ${currentStore.social_twitter ? `<a href="${currentStore.social_twitter}" target="_blank" style="color: ${currentStore.footer_social_icon_color || 'white'}; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${twitterIcon}</a>` : ''}
+        ${currentStore.social_youtube ? `<a href="${currentStore.social_youtube}" target="_blank" style="color: ${currentStore.footer_social_icon_color || 'white'}; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">${youtubeIcon}</a>` : ''}
+      </div>
+      <div style="font-size: 14px; font-family: 'Fira Code', monospace;">Powered by <strong style="color: #CE0707;">Red Pine</strong></div>
+    </div>
+  `;
+}
+    
+    function setDevice(device) {
+      document.querySelectorAll('.device-btn').forEach(btn => btn.classList.remove('active'));
+      if (event && event.target) event.target.classList.add('active');
+
+      const frame = document.getElementById('previewFrame');
+      frame.className = 'preview-frame';
+      if (device !== 'desktop') {
+        frame.classList.add(device);
+      }
+    }
+
+    // STORE-042: Set preview mode (desktop/mobile)
+    function setPreviewMode(mode) {
+      const frame = document.getElementById('previewFrame');
+      const desktopBtn = document.getElementById('desktopViewBtn');
+      const mobileBtn = document.getElementById('mobileViewBtn');
+
+      if (mode === 'mobile') {
+        frame.className = 'preview-frame mobile';
+        desktopBtn.className = 'btn btn-small btn-secondary';
+        desktopBtn.style.background = '';
+        desktopBtn.style.color = '';
+        mobileBtn.className = 'btn btn-small';
+        mobileBtn.style.background = 'var(--red)';
+        mobileBtn.style.color = 'white';
+      } else {
+        frame.className = 'preview-frame';
+        desktopBtn.className = 'btn btn-small';
+        desktopBtn.style.background = 'var(--red)';
+        desktopBtn.style.color = 'white';
+        mobileBtn.className = 'btn btn-small btn-secondary';
+        mobileBtn.style.background = '';
+        mobileBtn.style.color = '';
+      }
+      lucide.createIcons();
+    }
+
+    function previewLive() {
+      const url = document.getElementById('storeUrl').textContent;
+      window.open(`https://${url}`, '_blank');
+    }
+    
+    async function publishStore() {
+      if (!producerId) {
+        alert('Producer not found');
+        return;
+      }
+      
+      try {
+        // Check if customization exists
+        const { data: existing } = await supabaseClient
+          .from('site_customizations')
+          .select('id')
+          .eq('producer_id', producerId)
+          .single();
+        
+        const storeData = {
+          producer_id: producerId,
+          site_mode: currentStore.site_mode,
+          template: currentStore.template,
+          logo_url: currentStore.logo_url,
+          logo_text: currentStore.logo_text,
+          primary_color: currentStore.primary_color,
+          secondary_color: currentStore.secondary_color,
+          accent_color: currentStore.accent_color,
+          background_color: currentStore.background_color,
+          heading_font: currentStore.heading_font,
+          body_font: currentStore.body_font,
+          hero_background: currentStore.hero_background,
+          hero_title: currentStore.hero_title,
+          hero_subtitle: currentStore.hero_subtitle,
+          hero_bio: currentStore.hero_bio,
+          nav_link_1: currentStore.nav_link_1,
+          nav_link_2: currentStore.nav_link_2,
+          footer_text: currentStore.footer_text,
+          social_instagram: currentStore.social_instagram,
+          social_twitter: currentStore.social_twitter,
+          social_youtube: currentStore.social_youtube,
+          
+          // Header section
+          header_logo_url: currentStore.header_logo_url,
+          header_brandname: currentStore.header_brandname,
+          header_brandname_typography: currentStore.header_brandname_typography,
+          header_bg_color: currentStore.header_bg_color,
+          header_bg_image: currentStore.header_bg_image,
+          header_login_btn_color: currentStore.header_login_btn_color,
+          header_cart_btn_color: currentStore.header_cart_btn_color,
+          header_button_typography: currentStore.header_button_typography,
+          
+          // Hero section
+          hero_text_color: currentStore.hero_text_color,
+          hero_typography: currentStore.hero_typography,
+          hero_main_title: currentStore.hero_main_title,
+          hero_subtitle: currentStore.hero_subtitle,
+          hero_bio: currentStore.hero_bio,
+          hero_bg_color: currentStore.hero_bg_color,
+          hero_bg_image: currentStore.hero_bg_image,
+          
+          // Feature section
+          feature_text_color: currentStore.feature_text_color,
+          feature_typography: currentStore.feature_typography,
+          feature_bg_color: currentStore.feature_bg_color,
+          feature_bg_image: currentStore.feature_bg_image,
+          feature_button_color: currentStore.feature_button_color,
+          feature_button_typography: currentStore.feature_button_typography,
+          
+          // Catalog section
+          catalog_text_color: currentStore.catalog_text_color,
+          catalog_typography: currentStore.catalog_typography,
+          catalog_bg_color: currentStore.catalog_bg_color,
+          catalog_bg_image: currentStore.catalog_bg_image,
+          catalog_button_color: currentStore.catalog_button_color,
+          catalog_button_typography: currentStore.catalog_button_typography,
+          
+          // Footer section
+          footer_social_icon_color: currentStore.footer_social_icon_color,
+          footer_bg_color: currentStore.footer_bg_color,
+          footer_bg_image: currentStore.footer_bg_image,
+          
+          // Login page
+          login_logo_url: currentStore.login_logo_url,
+          login_brandname: currentStore.login_brandname,
+          login_typography: currentStore.login_typography,
+          login_bg_color: currentStore.login_bg_color,
+          login_bg_image: currentStore.login_bg_image,
+          login_button_color: currentStore.login_button_color,
+          login_button_typography: currentStore.login_button_typography
+        };
+        
+        let error;
+        if (existing) {
+          const result = await supabaseClient
+            .from('site_customizations')
+            .update(storeData)
+            .eq('producer_id', producerId);
+          error = result.error;
+        } else {
+          const result = await supabaseClient
+            .from('site_customizations')
+            .insert([storeData]);
+          error = result.error;
+        }
+        
+        if (error) throw error;
+        
+        // Get the store URL from the page
+        const storeUrl = document.getElementById('storeUrl').textContent;
+        
+        // Show success toast and redirect
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#10B981;color:white;padding:16px 24px;border-radius:8px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;';
+        toast.textContent = 'Store Published!';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          window.location.href = 'store-preview.html?published=true';
+        }, 1500);
+        
+      } catch (error) {
+        console.error('Publish error:', error);
+        alert('Error publishing store: ' + error.message);
+      }
+    }
+    
+    init();
+  </script>
+</body>
+</html>

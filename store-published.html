@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Published - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <button class="hamburger-menu" onclick="toggleMobileMenu()">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html" class="active"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="publish-success">
+        <i data-lucide="check-circle"></i>
+        <h1>Your Store is Live!</h1>
+        <p>Your beat store is now published and ready for customers.</p>
+      </div>
+
+      <div class="store-preview-section">
+        <h2>Store Preview</h2>
+        <iframe id="store-preview" class="store-preview-frame"></iframe>
+        <a id="store-url" target="_blank" class="store-link">Visit your store &rarr;</a>
+      </div>
+
+      <div class="custom-domain-section">
+        <h2>Custom Domain</h2>
+        <p>Connect your own domain to your store</p>
+        <div class="domain-input-group">
+          <input type="text" id="custom-domain" class="form-input" placeholder="yourdomain.com">
+          <button class="btn btn-primary" onclick="saveDomain()">Save Domain</button>
+        </div>
+        <div class="dns-instructions">
+          <h3>DNS Setup</h3>
+          <ol>
+            <li>Go to your domain registrar</li>
+            <li>Find DNS Settings</li>
+            <li>Add CNAME record: Type=CNAME, Name=@, Value=redpine.systems</li>
+            <li>Wait 24-48 hours for propagation</li>
+          </ol>
+        </div>
+      </div>
+
+      <div style="margin-top: 30px; display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="location.href='profile-editor.html'">Continue Editing</button>
+        <button class="btn btn-secondary" onclick="location.href='customize.html'">Customize Store</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>
+    lucide.createIcons();
+
+    let currentProducer = null;
+
+    async function init() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+
+      if (!producer) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      currentProducer = producer;
+
+      // Set store URL
+      const storeUrl = `https://${producer.username}.redpine.systems`;
+      document.getElementById('store-url').href = storeUrl;
+      document.getElementById('store-url').textContent = storeUrl + ' →';
+
+      // Set iframe preview
+      document.getElementById('store-preview').src = storeUrl;
+
+      // Load existing custom domain
+      const { data: customization } = await supabaseClient
+        .from('site_customizations')
+        .select('custom_domain')
+        .eq('producer_id', producer.id)
+        .single();
+
+      if (customization && customization.custom_domain) {
+        document.getElementById('custom-domain').value = customization.custom_domain;
+      }
+    }
+
+    async function saveDomain() {
+      const domain = document.getElementById('custom-domain').value.trim();
+
+      if (!domain) {
+        showToast('Please enter a domain', 'error');
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('site_customizations')
+          .upsert({
+            producer_id: currentProducer.id,
+            custom_domain: domain
+          }, { onConflict: 'producer_id' });
+
+        if (error) throw error;
+
+        showToast('Domain saved! DNS propagation may take 24-48 hours.', 'success');
+      } catch (error) {
+        console.error('Error saving domain:', error);
+        showToast('Error saving domain', 'error');
+      }
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.querySelector('.sidebar-overlay').classList.toggle('open');
+    }
+
+    init();
+  </script>
+</body>
+</html>

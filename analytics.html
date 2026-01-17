@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .analytics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .date-range-selector {
+      display: flex;
+      gap: 8px;
+      background: var(--gray-light);
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .date-range-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .date-range-btn.active {
+      background: var(--white);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .analytics-card {
+      background: var(--white);
+      border: 1px solid var(--gray-medium);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .analytics-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 200px;
+    }
+
+    .big-stat {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .big-stat-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--red);
+      margin-bottom: 8px;
+    }
+
+    .big-stat-label {
+      font-size: 14px;
+      color: var(--gray-dark);
+    }
+
+    .big-stat-trend {
+      font-size: 13px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .big-stat-trend.up {
+      color: #10B981;
+    }
+
+    .big-stat-trend.down {
+      color: #EF4444;
+    }
+
+    .top-beats-list {
+      list-style: none;
+    }
+
+    .top-beat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-medium);
+    }
+
+    .top-beat-item:last-child {
+      border-bottom: none;
+    }
+
+    .top-beat-rank {
+      width: 24px;
+      height: 24px;
+      background: var(--gray-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .top-beat-cover {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .top-beat-info {
+      flex: 1;
+    }
+
+    .top-beat-title {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .top-beat-stat {
+      font-size: 12px;
+      color: var(--gray-dark);
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--gray-light);
+      padding: 4px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .view-toggle-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .view-toggle-btn.active {
+      background: var(--white);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .license-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .license-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .license-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    .license-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .license-value {
+      font-weight: 600;
+    }
+
+    .wide-card {
+      grid-column: 1 / -1;
+    }
+
+    @media (min-width: 1200px) {
+      .wide-card {
+        grid-column: span 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="hamburger-menu" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html" class="active"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="analytics-header">
+        <div class="top-bar" style="flex: 1; margin-bottom: 0;">
+          <h1 class="page-title">Analytics</h1>
+          <div class="theme-toggle-wrapper">
+            <i data-lucide="sun" style="width:16px;height:16px;"></i>
+            <label class="theme-toggle">
+              <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+              <span class="theme-toggle-slider"></span>
+            </label>
+            <i data-lucide="moon" style="width:16px;height:16px;"></i>
+          </div>
+        </div>
+        <div class="date-range-selector">
+          <button class="date-range-btn" onclick="setDateRange('7d')">7 Days</button>
+          <button class="date-range-btn active" onclick="setDateRange('30d')">30 Days</button>
+          <button class="date-range-btn" onclick="setDateRange('90d')">90 Days</button>
+          <button class="date-range-btn" onclick="setDateRange('all')">All Time</button>
+          <button class="btn btn-secondary" onclick="exportAnalyticsReport()" style="margin-left: 16px;">
+            <i data-lucide="download" style="width:14px;height:14px;"></i> Export
+          </button>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <!-- Total Revenue Card -->
+        <div class="analytics-card">
+          <h3><i data-lucide="dollar-sign" style="width:16px;height:16px;"></i> Total Revenue</h3>
+          <div class="big-stat">
+            <div class="big-stat-value" id="totalRevenue">$0</div>
+            <div class="big-stat-label">in selected period</div>
+            <div class="big-stat-trend up" id="revenueTrend">
+              <i data-lucide="trending-up" style="width:14px;height:14px;"></i>
+              <span>+0% vs previous period</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Sales Card -->
+        <div class="analytics-card">
+          <h3><i data-lucide="shopping-bag" style="width:16px;height:16px;"></i> Total Sales</h3>
+          <div class="big-stat">
+            <div class="big-stat-value" id="totalSales">0</div>
+            <div class="big-stat-label">beats sold</div>
+            <div class="big-stat-trend up" id="salesTrend">
+              <i data-lucide="trending-up" style="width:14px;height:14px;"></i>
+              <span>+0% vs previous period</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Average Order Value -->
+        <div class="analytics-card">
+          <h3><i data-lucide="calculator" style="width:16px;height:16px;"></i> Average Order Value</h3>
+          <div class="big-stat">
+            <div class="big-stat-value" id="avgOrderValue">$0</div>
+            <div class="big-stat-label">per transaction</div>
+          </div>
+        </div>
+
+        <!-- Revenue Over Time Chart -->
+        <div class="analytics-card wide-card">
+          <h3><i data-lucide="line-chart" style="width:16px;height:16px;"></i> Revenue Over Time</h3>
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" onclick="setRevenueView('daily')">Daily</button>
+            <button class="view-toggle-btn" onclick="setRevenueView('weekly')">Weekly</button>
+            <button class="view-toggle-btn" onclick="setRevenueView('monthly')">Monthly</button>
+          </div>
+          <div class="chart-container">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Top Selling Beats -->
+        <div class="analytics-card">
+          <h3><i data-lucide="trophy" style="width:16px;height:16px;"></i> Top Selling Beats</h3>
+          <ul class="top-beats-list" id="topBeatsList">
+            <li style="text-align: center; padding: 24px; color: var(--gray-dark);">Loading...</li>
+          </ul>
+        </div>
+
+        <!-- Sales by License Type -->
+        <div class="analytics-card">
+          <h3><i data-lucide="pie-chart" style="width:16px;height:16px;"></i> Sales by License Type</h3>
+          <div class="chart-container" style="height: 180px;">
+            <canvas id="licenseChart"></canvas>
+          </div>
+          <div class="license-breakdown" id="licenseBreakdown" style="margin-top: 16px;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- ANALYTICS-009: Real-time Visitors -->
+        <div class="analytics-card">
+          <h3><i data-lucide="activity" style="width:16px;height:16px;"></i> Active Now</h3>
+          <div class="big-stat">
+            <div class="big-stat-value" id="activeVisitors" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span class="pulse-dot" style="width: 12px; height: 12px; background: #10B981; border-radius: 50%; animation: pulse 2s infinite;"></span>
+              <span id="activeVisitorCount">0</span>
+            </div>
+            <div class="big-stat-label">visitors in last 5 min</div>
+          </div>
+          <style>
+            @keyframes pulse {
+              0%, 100% { opacity: 1; transform: scale(1); }
+              50% { opacity: 0.5; transform: scale(1.2); }
+            }
+          </style>
+        </div>
+
+        <!-- Page Views Card -->
+        <div class="analytics-card">
+          <h3><i data-lucide="eye" style="width:16px;height:16px;"></i> Page Views</h3>
+          <div class="big-stat">
+            <div class="big-stat-value" id="totalViews">0</div>
+            <div class="big-stat-label">store visits</div>
+          </div>
+        </div>
+
+        <!-- Unique Visitors Card -->
+        <div class="analytics-card">
+          <h3><i data-lucide="users" style="width:16px;height:16px;"></i> Unique Customers</h3>
+          <div class="big-stat">
+            <div class="big-stat-value" id="uniqueCustomers">0</div>
+            <div class="big-stat-label">buyers</div>
+          </div>
+        </div>
+
+        <!-- Most Viewed Beats -->
+        <div class="analytics-card">
+          <h3><i data-lucide="eye" style="width:16px;height:16px;"></i> Most Viewed Beats</h3>
+          <ul class="top-beats-list" id="mostViewedList">
+            <li style="text-align: center; padding: 24px; color: var(--gray-dark);">Loading...</li>
+          </ul>
+        </div>
+
+        <!-- ANALYTICS-010: Traffic Sources -->
+        <div class="analytics-card">
+          <h3><i data-lucide="share-2" style="width:16px;height:16px;"></i> Traffic Sources</h3>
+          <div class="chart-container" style="height: 180px;">
+            <canvas id="trafficSourcesChart"></canvas>
+          </div>
+          <div id="trafficSourcesList" style="margin-top: 16px;">
+            <div style="text-align: center; color: var(--gray-dark); font-size: 13px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- ANALYTICS-011: Geographic Data -->
+        <div class="analytics-card">
+          <h3><i data-lucide="globe" style="width:16px;height:16px;"></i> Top Locations</h3>
+          <div id="geoLocationsList">
+            <div style="text-align: center; color: var(--gray-dark); font-size: 13px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- ANALYTICS-013: Beat Performance Comparison -->
+        <div class="analytics-card" style="grid-column: 1 / -1;">
+          <h3><i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i> Beat Performance Comparison</h3>
+          <p style="font-size: 12px; color: var(--gray-dark); margin-bottom: 16px;">Select beats to compare their performance</p>
+          <div id="beatCompareSelector" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+            <!-- Beat checkboxes will be populated here -->
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="compareBeatPerformance()" id="compareBtn" disabled>
+            <i data-lucide="bar-chart-2" style="width:14px;height:14px;"></i> Compare Selected
+          </button>
+          <div id="beatCompareResults" style="margin-top: 24px; display: none;">
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="comparisonChart"></canvas>
+            </div>
+            <div id="comparisonTable" style="margin-top: 16px; overflow-x: auto;"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/branding.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>lucide.createIcons();</script>
+  <script>
+    let revenueChart = null;
+    let licenseChart = null;
+    let currentDateRange = '30d';
+    let currentRevenueView = 'daily';
+    let analyticsData = {
+      sales: [],
+      beats: [],
+      producer: null
+    };
+
+    async function loadAnalytics() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      try {
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return;
+        analyticsData.producer = producer;
+
+        // Load all sales
+        const { data: sales } = await supabaseClient
+          .from('sales')
+          .select('*, beats(title, cover_art_url, views)')
+          .eq('producer_id', producer.id)
+          .order('created_at', { ascending: false });
+
+        analyticsData.sales = sales || [];
+
+        // Load all beats for views
+        const { data: beats } = await supabaseClient
+          .from('beats')
+          .select('*')
+          .eq('producer_id', producer.id);
+
+        analyticsData.beats = beats || [];
+
+        updateAnalyticsDisplay();
+
+      } catch (error) {
+        console.error('Error loading analytics:', error);
+      }
+    }
+
+    function getDateRangeFilter() {
+      const now = new Date();
+      let startDate;
+
+      switch (currentDateRange) {
+        case '7d':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30d':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case '90d':
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        case 'all':
+        default:
+          startDate = new Date(0);
+      }
+
+      return startDate;
+    }
+
+    function updateAnalyticsDisplay() {
+      const startDate = getDateRangeFilter();
+      const filteredSales = analyticsData.sales.filter(s =>
+        new Date(s.created_at) >= startDate
+      );
+
+      // Calculate totals
+      const totalRevenue = filteredSales.reduce((sum, s) => sum + s.amount, 0);
+      const totalSales = filteredSales.length;
+      const avgOrderValue = totalSales > 0 ? totalRevenue / totalSales : 0;
+
+      document.getElementById('totalRevenue').textContent = '$' + (totalRevenue / 100).toFixed(2);
+      document.getElementById('totalSales').textContent = totalSales;
+      document.getElementById('avgOrderValue').textContent = '$' + (avgOrderValue / 100).toFixed(2);
+
+      // Total views from beats
+      const totalViews = analyticsData.beats.reduce((sum, b) => sum + (b.views || 0), 0);
+      document.getElementById('totalViews').textContent = totalViews.toLocaleString();
+
+      // Unique customers
+      const uniqueEmails = new Set(filteredSales.map(s => s.customer_email));
+      document.getElementById('uniqueCustomers').textContent = uniqueEmails.size;
+
+      // Calculate trend (compare to previous period)
+      const periodLength = currentDateRange === '7d' ? 7 :
+                          currentDateRange === '30d' ? 30 :
+                          currentDateRange === '90d' ? 90 : 365;
+
+      const previousStartDate = new Date(startDate.getTime() - periodLength * 24 * 60 * 60 * 1000);
+      const previousSales = analyticsData.sales.filter(s => {
+        const date = new Date(s.created_at);
+        return date >= previousStartDate && date < startDate;
+      });
+
+      const previousRevenue = previousSales.reduce((sum, s) => sum + s.amount, 0);
+      const revenueChange = previousRevenue > 0
+        ? ((totalRevenue - previousRevenue) / previousRevenue * 100).toFixed(0)
+        : totalRevenue > 0 ? 100 : 0;
+
+      const revenueTrendEl = document.getElementById('revenueTrend');
+      revenueTrendEl.className = 'big-stat-trend ' + (revenueChange >= 0 ? 'up' : 'down');
+      revenueTrendEl.innerHTML = `
+        <i data-lucide="${revenueChange >= 0 ? 'trending-up' : 'trending-down'}" style="width:14px;height:14px;"></i>
+        <span>${revenueChange >= 0 ? '+' : ''}${revenueChange}% vs previous period</span>
+      `;
+
+      const previousSalesCount = previousSales.length;
+      const salesChange = previousSalesCount > 0
+        ? ((totalSales - previousSalesCount) / previousSalesCount * 100).toFixed(0)
+        : totalSales > 0 ? 100 : 0;
+
+      const salesTrendEl = document.getElementById('salesTrend');
+      salesTrendEl.className = 'big-stat-trend ' + (salesChange >= 0 ? 'up' : 'down');
+      salesTrendEl.innerHTML = `
+        <i data-lucide="${salesChange >= 0 ? 'trending-up' : 'trending-down'}" style="width:14px;height:14px;"></i>
+        <span>${salesChange >= 0 ? '+' : ''}${salesChange}% vs previous period</span>
+      `;
+
+      lucide.createIcons();
+
+      // Update charts
+      updateRevenueChart(filteredSales);
+      updateLicenseChart(filteredSales);
+      updateTopBeats(filteredSales);
+      updateMostViewed();
+    }
+
+    function updateRevenueChart(sales) {
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+
+      // Group sales by date
+      const grouped = {};
+      const now = new Date();
+
+      // Determine grouping
+      let dateFormat, groupBy;
+      if (currentRevenueView === 'daily') {
+        groupBy = (date) => date.toISOString().split('T')[0];
+        dateFormat = { month: 'short', day: 'numeric' };
+      } else if (currentRevenueView === 'weekly') {
+        groupBy = (date) => {
+          const week = getWeekNumber(date);
+          return `${date.getFullYear()}-W${week}`;
+        };
+        dateFormat = { month: 'short', day: 'numeric' };
+      } else {
+        groupBy = (date) => `${date.getFullYear()}-${date.getMonth() + 1}`;
+        dateFormat = { month: 'short', year: 'numeric' };
+      }
+
+      sales.forEach(sale => {
+        const date = new Date(sale.created_at);
+        const key = groupBy(date);
+        grouped[key] = (grouped[key] || 0) + sale.amount;
+      });
+
+      const sortedKeys = Object.keys(grouped).sort();
+      const labels = sortedKeys.map(key => {
+        if (currentRevenueView === 'monthly') {
+          const [year, month] = key.split('-');
+          return new Date(year, month - 1).toLocaleDateString('en-US', dateFormat);
+        }
+        return key;
+      });
+      const data = sortedKeys.map(key => grouped[key] / 100);
+
+      if (revenueChart) {
+        revenueChart.destroy();
+      }
+
+      revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length > 0 ? labels : ['No data'],
+          datasets: [{
+            label: 'Revenue',
+            data: data.length > 0 ? data : [0],
+            borderColor: '#CE0707',
+            backgroundColor: 'rgba(206, 7, 7, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#CE0707'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value) => '$' + value
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateLicenseChart(sales) {
+      const ctx = document.getElementById('licenseChart').getContext('2d');
+
+      // Group by license type
+      const licenseData = { basic: 0, premium: 0, exclusive: 0 };
+      sales.forEach(sale => {
+        const type = sale.license_type?.toLowerCase() || 'basic';
+        licenseData[type] = (licenseData[type] || 0) + 1;
+      });
+
+      const colors = {
+        basic: '#3B82F6',
+        premium: '#F59E0B',
+        exclusive: '#10B981'
+      };
+
+      if (licenseChart) {
+        licenseChart.destroy();
+      }
+
+      const total = Object.values(licenseData).reduce((a, b) => a + b, 0);
+
+      licenseChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Basic', 'Premium', 'Exclusive'],
+          datasets: [{
+            data: [licenseData.basic, licenseData.premium, licenseData.exclusive],
+            backgroundColor: [colors.basic, colors.premium, colors.exclusive],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '60%'
+        }
+      });
+
+      // Update breakdown
+      const breakdownEl = document.getElementById('licenseBreakdown');
+      breakdownEl.innerHTML = Object.entries(licenseData).map(([type, count]) => {
+        const percent = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+        return `
+          <div class="license-item">
+            <div class="license-color" style="background: ${colors[type]};"></div>
+            <div class="license-name" style="text-transform: capitalize;">${type}</div>
+            <div class="license-value">${count} (${percent}%)</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateTopBeats(sales) {
+      // Aggregate sales by beat
+      const beatSales = {};
+      sales.forEach(sale => {
+        const beatId = sale.beat_id;
+        if (!beatSales[beatId]) {
+          beatSales[beatId] = {
+            title: sale.beats?.title || 'Unknown',
+            cover: sale.beats?.cover_art_url,
+            count: 0,
+            revenue: 0
+          };
+        }
+        beatSales[beatId].count += 1;
+        beatSales[beatId].revenue += sale.amount;
+      });
+
+      const sorted = Object.values(beatSales)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      const listEl = document.getElementById('topBeatsList');
+      if (sorted.length === 0) {
+        listEl.innerHTML = '<li style="text-align: center; padding: 24px; color: var(--gray-dark);">No sales yet</li>';
+        return;
+      }
+
+      listEl.innerHTML = sorted.map((beat, i) => `
+        <li class="top-beat-item">
+          <div class="top-beat-rank">${i + 1}</div>
+          <img src="${beat.cover || 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23e5e7eb' width='40' height='40'/%3E%3C/svg%3E'}" class="top-beat-cover" alt="">
+          <div class="top-beat-info">
+            <div class="top-beat-title">${beat.title}</div>
+            <div class="top-beat-stat">${beat.count} sales</div>
+          </div>
+          <div style="font-weight: 600; color: var(--red);">$${(beat.revenue / 100).toFixed(0)}</div>
+        </li>
+      `).join('');
+    }
+
+    function updateMostViewed() {
+      const sorted = [...analyticsData.beats]
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 5);
+
+      const listEl = document.getElementById('mostViewedList');
+      if (sorted.length === 0) {
+        listEl.innerHTML = '<li style="text-align: center; padding: 24px; color: var(--gray-dark);">No beats yet</li>';
+        return;
+      }
+
+      listEl.innerHTML = sorted.map((beat, i) => `
+        <li class="top-beat-item">
+          <div class="top-beat-rank">${i + 1}</div>
+          <img src="${beat.cover_art_url || 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23e5e7eb' width='40' height='40'/%3E%3C/svg%3E'}" class="top-beat-cover" alt="">
+          <div class="top-beat-info">
+            <div class="top-beat-title">${beat.title}</div>
+            <div class="top-beat-stat">${(beat.views || 0).toLocaleString()} views</div>
+          </div>
+        </li>
+      `).join('');
+
+      // ANALYTICS-013: Populate beat comparison selector
+      populateBeatCompareSelector();
+
+      // ANALYTICS-010: Load traffic sources
+      loadTrafficSources();
+    }
+
+    // ANALYTICS-010: Traffic sources chart
+    let trafficSourcesChart = null;
+
+    async function loadTrafficSources() {
+      try {
+        const { data: pageViews } = await supabaseClient
+          .from('page_views')
+          .select('referrer')
+          .eq('producer_id', analyticsData.producer.id);
+
+        if (!pageViews || pageViews.length === 0) {
+          document.getElementById('trafficSourcesList').innerHTML =
+            '<div style="text-align: center; color: var(--gray-dark); font-size: 13px;">No traffic data yet</div>';
+          return;
+        }
+
+        // Parse and categorize referrers
+        const sources = { Direct: 0, Social: 0, Search: 0, Other: 0 };
+        const socialDomains = ['facebook', 'instagram', 'twitter', 'tiktok', 'youtube', 'linkedin', 'snapchat', 'pinterest', 'reddit'];
+        const searchDomains = ['google', 'bing', 'yahoo', 'duckduckgo', 'baidu'];
+
+        pageViews.forEach(pv => {
+          const referrer = pv.referrer || '';
+
+          if (!referrer || referrer === '') {
+            sources.Direct++;
+          } else {
+            const refLower = referrer.toLowerCase();
+
+            if (socialDomains.some(domain => refLower.includes(domain))) {
+              sources.Social++;
+            } else if (searchDomains.some(domain => refLower.includes(domain))) {
+              sources.Search++;
+            } else {
+              sources.Other++;
+            }
+          }
+        });
+
+        updateTrafficSourcesChart(sources);
+        updateTrafficSourcesList(sources, pageViews.length);
+
+      } catch (error) {
+        console.error('Error loading traffic sources:', error);
+      }
+    }
+
+    function updateTrafficSourcesChart(sources) {
+      const ctx = document.getElementById('trafficSourcesChart').getContext('2d');
+
+      if (trafficSourcesChart) {
+        trafficSourcesChart.destroy();
+      }
+
+      const colors = {
+        Direct: '#3B82F6',
+        Social: '#8B5CF6',
+        Search: '#10B981',
+        Other: '#6B7280'
+      };
+
+      trafficSourcesChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(sources),
+          datasets: [{
+            data: Object.values(sources),
+            backgroundColor: Object.keys(sources).map(k => colors[k]),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+
+    function updateTrafficSourcesList(sources, total) {
+      const sourceIcons = {
+        Direct: 'link',
+        Social: 'share-2',
+        Search: 'search',
+        Other: 'globe'
+      };
+
+      const listHtml = Object.entries(sources)
+        .filter(([, count]) => count > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([source, count]) => {
+          const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray-medium);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="${sourceIcons[source]}" style="width:14px;height:14px;color:var(--gray-dark);"></i>
+                <span style="font-size: 13px;">${source}</span>
+              </div>
+              <span style="font-size: 13px; font-weight: 600;">${percentage}%</span>
+            </div>
+          `;
+        }).join('');
+
+      document.getElementById('trafficSourcesList').innerHTML = listHtml || '<div style="text-align: center; color: var(--gray-dark); font-size: 13px;">No data</div>';
+
+      // Re-create icons
+      if (window.lucide) lucide.createIcons();
+
+      // ANALYTICS-011: Load geographic data
+      loadGeographicData();
+    }
+
+    // ANALYTICS-009: Real-time visitors - polling every 30 seconds
+    async function loadActiveVisitors() {
+      try {
+        // RP-ANALYTICS-003: Add null check before accessing .id
+        if (!analyticsData.producer || !analyticsData.producer.id) {
+          console.warn('Producer not loaded yet');
+          return;
+        }
+
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+        const { count, error } = await supabaseClient
+          .from('page_views')
+          .select('*', { count: 'exact', head: true })
+          .eq('producer_id', analyticsData.producer.id)
+          .gte('timestamp', fiveMinutesAgo);
+
+        if (!error) {
+          document.getElementById('activeVisitorCount').textContent = count || 0;
+        }
+      } catch (error) {
+        console.error('Error loading active visitors:', error);
+      }
+    }
+
+    // Start polling for real-time visitors
+    function startActiveVisitorPolling() {
+      loadActiveVisitors();
+      setInterval(loadActiveVisitors, 30000); // Update every 30 seconds
+    }
+
+    // ANALYTICS-011: Geographic data - Top locations
+    async function loadGeographicData() {
+      try {
+        // RP-ANALYTICS-002 & 003: Add null check and handle empty state
+        if (!analyticsData.producer || !analyticsData.producer.id) {
+          document.getElementById('geoLocationsList').innerHTML =
+            '<div style="text-align: center; color: var(--gray-dark); font-size: 13px; padding: 20px;">Loading...</div>';
+          return;
+        }
+
+        const { data: pageViews } = await supabaseClient
+          .from('page_views')
+          .select('country, city, user_agent')
+          .eq('producer_id', analyticsData.producer.id);
+
+        if (!pageViews || pageViews.length === 0) {
+          document.getElementById('geoLocationsList').innerHTML =
+            '<div style="text-align: center; color: var(--gray-dark); font-size: 13px; padding: 20px;">No visitor data yet. Share your store to start tracking!</div>';
+          return;
+        }
+
+        // Count by country (use user_agent to guess timezone/region if country not set)
+        const countries = {};
+        pageViews.forEach(pv => {
+          let location = pv.country || 'Unknown';
+
+          // If no country, try to infer from timezone in user agent or default
+          if (location === 'Unknown' || !location) {
+            // Simplified: check for common locale hints
+            const ua = (pv.user_agent || '').toLowerCase();
+            if (ua.includes('en-us') || ua.includes('america')) location = 'United States';
+            else if (ua.includes('en-gb') || ua.includes('europe/london')) location = 'United Kingdom';
+            else if (ua.includes('de')) location = 'Germany';
+            else if (ua.includes('fr')) location = 'France';
+            else if (ua.includes('es')) location = 'Spain';
+            else if (ua.includes('pt-br')) location = 'Brazil';
+            else if (ua.includes('ja')) location = 'Japan';
+            else location = 'Other';
+          }
+
+          countries[location] = (countries[location] || 0) + 1;
+        });
+
+        const total = pageViews.length;
+        const sortedCountries = Object.entries(countries)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+
+        // Country flag emoji mapping
+        const countryFlags = {
+          'United States': '🇺🇸',
+          'United Kingdom': '🇬🇧',
+          'Canada': '🇨🇦',
+          'Germany': '🇩🇪',
+          'France': '🇫🇷',
+          'Australia': '🇦🇺',
+          'Brazil': '🇧🇷',
+          'India': '🇮🇳',
+          'Japan': '🇯🇵',
+          'Spain': '🇪🇸',
+          'Netherlands': '🇳🇱',
+          'Italy': '🇮🇹',
+          'Mexico': '🇲🇽',
+          'Other': '🌍',
+          'Unknown': '🌐'
+        };
+
+        const listHtml = sortedCountries.map(([country, count], i) => {
+          const percentage = ((count / total) * 100).toFixed(1);
+          const flag = countryFlags[country] || '🌐';
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-medium);">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">${flag}</span>
+                <span style="font-size: 13px;">${country}</span>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 13px; font-weight: 600;">${count}</span>
+                <span style="font-size: 11px; color: var(--gray-dark); margin-left: 4px;">(${percentage}%)</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('geoLocationsList').innerHTML = listHtml || '<div style="text-align: center; color: var(--gray-dark); font-size: 13px;">No data</div>';
+
+      } catch (error) {
+        console.error('Error loading geographic data:', error);
+        document.getElementById('geoLocationsList').innerHTML = '<div style="text-align: center; color: var(--gray-dark); font-size: 13px;">Failed to load</div>';
+      }
+    }
+
+    function setDateRange(range) {
+      currentDateRange = range;
+      document.querySelectorAll('.date-range-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase().includes(range.replace('d', ' day').replace('all', 'all time')));
+      });
+      // Re-select the correct button
+      document.querySelectorAll('.date-range-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      updateAnalyticsDisplay();
+    }
+
+    function setRevenueView(view) {
+      currentRevenueView = view;
+      document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase() === view);
+      });
+      const startDate = getDateRangeFilter();
+      const filteredSales = analyticsData.sales.filter(s =>
+        new Date(s.created_at) >= startDate
+      );
+      updateRevenueChart(filteredSales);
+    }
+
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    // ANALYTICS-012: Export analytics report
+    function exportAnalyticsReport() {
+      // Get current stats from the page
+      const totalRevenue = document.getElementById('totalRevenue').textContent;
+      const totalSales = document.getElementById('totalSales').textContent;
+      const avgOrderValue = document.getElementById('avgOrderValue').textContent;
+      const conversionRate = document.getElementById('conversionRate').textContent;
+
+      // Get date range
+      const activeBtn = document.querySelector('.date-range-btn.active');
+      const dateRange = activeBtn ? activeBtn.textContent : '30 Days';
+
+      // Get top beats data
+      const topBeatsRows = document.querySelectorAll('#topBeatsBody tr');
+      const topBeatsData = [];
+      topBeatsRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+          topBeatsData.push({
+            title: cells[0].textContent.trim(),
+            sales: cells[1].textContent.trim(),
+            revenue: cells[2].textContent.trim()
+          });
+        }
+      });
+
+      // Create CSV content
+      const csvRows = [
+        ['Analytics Report'],
+        ['Date Range:', dateRange],
+        ['Generated:', new Date().toLocaleString()],
+        [''],
+        ['Summary Statistics'],
+        ['Total Revenue:', totalRevenue],
+        ['Total Sales:', totalSales],
+        ['Average Order Value:', avgOrderValue],
+        ['Conversion Rate:', conversionRate],
+        [''],
+        ['Top Performing Beats'],
+        ['Title', 'Sales', 'Revenue']
+      ];
+
+      topBeatsData.forEach(beat => {
+        csvRows.push([beat.title, beat.sales, beat.revenue]);
+      });
+
+      const csvContent = csvRows.map(row =>
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `analytics_report_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast('Analytics report exported', 'success');
+    }
+
+    // ANALYTICS-013: Beat Performance Comparison
+    let comparisonChart = null;
+    let selectedBeatsForComparison = new Set();
+
+    function populateBeatCompareSelector() {
+      const container = document.getElementById('beatCompareSelector');
+      const beats = analyticsData.beats || [];
+
+      if (beats.length === 0) {
+        container.innerHTML = '<span style="color: var(--gray-dark);">No beats available</span>';
+        return;
+      }
+
+      container.innerHTML = beats.slice(0, 10).map(beat => `
+        <label style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--gray-light); border-radius: 6px; cursor: pointer; font-size: 13px;">
+          <input type="checkbox" value="${beat.id}" onchange="toggleBeatSelection('${beat.id}')" ${selectedBeatsForComparison.has(beat.id) ? 'checked' : ''}>
+          ${beat.title}
+        </label>
+      `).join('');
+    }
+
+    function toggleBeatSelection(beatId) {
+      if (selectedBeatsForComparison.has(beatId)) {
+        selectedBeatsForComparison.delete(beatId);
+      } else {
+        if (selectedBeatsForComparison.size >= 5) {
+          showToast('Maximum 5 beats for comparison', 'error');
+          event.target.checked = false;
+          return;
+        }
+        selectedBeatsForComparison.add(beatId);
+      }
+
+      const btn = document.getElementById('compareBtn');
+      btn.disabled = selectedBeatsForComparison.size < 2;
+    }
+
+    function compareBeatPerformance() {
+      if (selectedBeatsForComparison.size < 2) {
+        showToast('Select at least 2 beats', 'error');
+        return;
+      }
+
+      const selectedIds = Array.from(selectedBeatsForComparison);
+      const beats = analyticsData.beats.filter(b => selectedIds.includes(b.id));
+
+      // Calculate stats for each beat
+      const beatStats = beats.map(beat => {
+        const beatSales = analyticsData.sales.filter(s => s.beat_id === beat.id);
+        const revenue = beatSales.reduce((sum, s) => sum + s.amount, 0);
+        return {
+          id: beat.id,
+          title: beat.title,
+          views: beat.views || 0,
+          sales: beatSales.length,
+          revenue: revenue
+        };
+      });
+
+      // Render comparison chart
+      const ctx = document.getElementById('comparisonChart').getContext('2d');
+
+      if (comparisonChart) {
+        comparisonChart.destroy();
+      }
+
+      comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: beatStats.map(b => b.title.length > 15 ? b.title.substring(0, 15) + '...' : b.title),
+          datasets: [
+            {
+              label: 'Views',
+              data: beatStats.map(b => b.views),
+              backgroundColor: '#3B82F6',
+              barPercentage: 0.7
+            },
+            {
+              label: 'Sales',
+              data: beatStats.map(b => b.sales),
+              backgroundColor: '#10B981',
+              barPercentage: 0.7
+            },
+            {
+              label: 'Revenue ($)',
+              data: beatStats.map(b => b.revenue / 100),
+              backgroundColor: '#CE0707',
+              barPercentage: 0.7
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+
+      // Render comparison table
+      document.getElementById('comparisonTable').innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="background: var(--gray-light);">
+              <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--gray-medium);">Beat</th>
+              <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--gray-medium);">Views</th>
+              <th style="padding: 12px; text-align: center; border-bottom: 2px solid var(--gray-medium);">Sales</th>
+              <th style="padding: 12px; text-align: right; border-bottom: 2px solid var(--gray-medium);">Revenue</th>
+              <th style="padding: 12px; text-align: right; border-bottom: 2px solid var(--gray-medium);">Conversion</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${beatStats.map(b => `
+              <tr>
+                <td style="padding: 12px; border-bottom: 1px solid var(--gray-medium);">${b.title}</td>
+                <td style="padding: 12px; text-align: center; border-bottom: 1px solid var(--gray-medium);">${b.views.toLocaleString()}</td>
+                <td style="padding: 12px; text-align: center; border-bottom: 1px solid var(--gray-medium);">${b.sales}</td>
+                <td style="padding: 12px; text-align: right; border-bottom: 1px solid var(--gray-medium); color: var(--red); font-weight: 600;">$${(b.revenue / 100).toFixed(2)}</td>
+                <td style="padding: 12px; text-align: right; border-bottom: 1px solid var(--gray-medium);">${b.views > 0 ? ((b.sales / b.views) * 100).toFixed(1) : 0}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById('beatCompareResults').style.display = 'block';
+    }
+
+    loadAnalytics();
+    startActiveVisitorPolling(); // ANALYTICS-009: Start real-time visitor polling
+  </script>
+</body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Red Pine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --primary: #CE0707;
+      --primary-dark: #A00505;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F9FAFB;
+      --text-primary: #111111;
+      --text-secondary: #6B7280;
+      --border-color: #E5E7EB;
+      --success: #10B981;
+      --warning: #F59E0B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .checkout-header {
+      background: white;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .checkout-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .checkout-brand img {
+      height: 36px;
+    }
+
+    .checkout-brand span {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .secure-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    /* Main Container */
+    .checkout-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 40px;
+    }
+
+    @media (max-width: 900px) {
+      .checkout-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Order Summary Section */
+    .checkout-section {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title .step {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Cart Items */
+    .cart-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .checkout-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+    }
+
+    .checkout-item-cover {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .checkout-item-info {
+      flex: 1;
+    }
+
+    .checkout-item-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .checkout-item-license {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .checkout-item-price {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--primary);
+    }
+
+    .checkout-item-remove {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .checkout-item-remove:hover {
+      color: #EF4444;
+    }
+
+    /* Email Input */
+    .email-section {
+      margin-bottom: 24px;
+    }
+
+    .email-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .email-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .email-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(206, 7, 7, 0.1);
+    }
+
+    .email-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    /* Price Summary */
+    .price-summary {
+      border-top: 1px solid var(--border-color);
+      padding-top: 24px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .price-row.total {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* Checkout Button */
+    .checkout-btn {
+      width: 100%;
+      padding: 18px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .checkout-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .checkout-btn:disabled {
+      background: #D1D5DB;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .checkout-btn .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* What You'll Get Section */
+    .benefits-section {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      height: fit-content;
+    }
+
+    .benefits-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .benefits-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .benefit-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .benefit-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--success);
+      flex-shrink: 0;
+    }
+
+    .benefit-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .benefit-text strong {
+      color: var(--text-primary);
+    }
+
+    /* Payment Methods */
+    .payment-methods {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .payment-methods-title {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .payment-icons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .payment-icon {
+      width: 48px;
+      height: 32px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* Guarantee */
+    .guarantee {
+      margin-top: 24px;
+      padding: 16px;
+      background: #FEF3C7;
+      border-radius: 8px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .guarantee-icon {
+      color: var(--warning);
+      flex-shrink: 0;
+    }
+
+    .guarantee-text {
+      font-size: 13px;
+      color: #92400E;
+    }
+
+    /* Empty Cart */
+    .empty-cart {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-cart-icon {
+      color: var(--text-secondary);
+      opacity: 0.3;
+      margin-bottom: 20px;
+    }
+
+    .empty-cart h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .empty-cart p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .back-to-store {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .back-to-store:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Error Message */
+    .error-message {
+      background: #FEE2E2;
+      color: #DC2626;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="checkout-header">
+    <a href="store-preview.html" class="checkout-brand">
+      <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+      <span>Checkout</span>
+    </a>
+    <div class="secure-badge">
+      <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+      Secure Checkout
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="checkout-container" id="checkoutContent">
+    <!-- Order Summary -->
+    <div class="checkout-section">
+      <h2 class="section-title">
+        <span class="step">1</span>
+        Review Your Order
+      </h2>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <div class="cart-items-list" id="cartItemsList">
+        <!-- Dynamic cart items -->
+      </div>
+
+      <div class="email-section">
+        <h2 class="section-title">
+          <span class="step">2</span>
+          Your Email
+        </h2>
+        <label class="email-label">Email address</label>
+        <input type="email" class="email-input" id="customerEmail" placeholder="you@example.com">
+        <p class="email-hint">Your licenses and receipts will be sent to this email</p>
+      </div>
+
+      <div class="price-summary">
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span id="subtotal">$0</span>
+        </div>
+        <div class="price-row">
+          <span>Processing Fee</span>
+          <span>$0</span>
+        </div>
+        <div class="price-row total">
+          <span>Total</span>
+          <span id="totalPrice">$0</span>
+        </div>
+      </div>
+
+      <button class="checkout-btn" id="payBtn" onclick="processCheckout()">
+        <i data-lucide="lock" style="width: 20px; height: 20px;"></i>
+        Pay Now
+      </button>
+    </div>
+
+    <!-- What You'll Get -->
+    <div class="benefits-section">
+      <h3 class="benefits-title">What You'll Get</h3>
+      <div class="benefits-list">
+        <div class="benefit-item">
+          <i data-lucide="download" class="benefit-icon"></i>
+          <p class="benefit-text"><strong>Instant Download</strong> - Access your files immediately after purchase</p>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="file-text" class="benefit-icon"></i>
+          <p class="benefit-text"><strong>License Agreement</strong> - Clear terms for your use of the beat</p>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="headphones" class="benefit-icon"></i>
+          <p class="benefit-text"><strong>High Quality Files</strong> - WAV and MP3 formats as per your license</p>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="mail" class="benefit-icon"></i>
+          <p class="benefit-text"><strong>Email Receipt</strong> - Confirmation and download links sent to your inbox</p>
+        </div>
+      </div>
+
+      <div class="payment-methods">
+        <p class="payment-methods-title">We accept</p>
+        <div class="payment-icons">
+          <div class="payment-icon">VISA</div>
+          <div class="payment-icon">MC</div>
+          <div class="payment-icon">AMEX</div>
+          <div class="payment-icon">PayPal</div>
+        </div>
+      </div>
+
+      <div class="guarantee">
+        <i data-lucide="shield" class="guarantee-icon" style="width: 24px; height: 24px;"></i>
+        <p class="guarantee-text">
+          <strong>Secure Payment</strong><br>
+          Your payment is processed securely through Stripe. We never store your card details.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty Cart View -->
+  <div class="checkout-section empty-cart" id="emptyCart" style="display: none; max-width: 500px; margin: 60px auto;">
+    <i data-lucide="shopping-bag" class="empty-cart-icon" style="width: 64px; height: 64px;"></i>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven't added any beats to your cart yet.</p>
+    <a href="store-preview.html" class="back-to-store">
+      <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+      Back to Store
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    let cart = [];
+    let producerId = null;
+    let isProcessing = false;
+
+    async function init() {
+      // Get cart from localStorage
+      const savedCart = localStorage.getItem('redpine_cart');
+      const savedProducerId = localStorage.getItem('redpine_producer_id');
+
+      if (savedCart) {
+        cart = JSON.parse(savedCart);
+      }
+
+      producerId = savedProducerId;
+
+      if (cart.length === 0) {
+        document.getElementById('checkoutContent').style.display = 'none';
+        document.getElementById('emptyCart').style.display = 'block';
+        return;
+      }
+
+      renderCartItems();
+      updatePriceSummary();
+
+      // Try to get user email if logged in
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user?.email) {
+          document.getElementById('customerEmail').value = user.email;
+        }
+      } catch (e) {
+        // Not logged in, that's okay
+      }
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cartItemsList');
+
+      container.innerHTML = cart.map((item, index) => `
+        <div class="checkout-item">
+          <div class="checkout-item-cover" style="${item.cover ? `background-image: url('${item.cover}'); background-size: cover;` : ''}"></div>
+          <div class="checkout-item-info">
+            <div class="checkout-item-title">${item.title}</div>
+            <div class="checkout-item-license">${item.license}</div>
+            <div class="checkout-item-price">$${item.price}</div>
+          </div>
+          <button class="checkout-item-remove" onclick="removeItem(${index})">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      localStorage.setItem('redpine_cart', JSON.stringify(cart));
+
+      if (cart.length === 0) {
+        document.getElementById('checkoutContent').style.display = 'none';
+        document.getElementById('emptyCart').style.display = 'block';
+        return;
+      }
+
+      renderCartItems();
+      updatePriceSummary();
+    }
+
+    function updatePriceSummary() {
+      const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+      document.getElementById('subtotal').textContent = `$${subtotal}`;
+      document.getElementById('totalPrice').textContent = `$${subtotal}`;
+    }
+
+    async function processCheckout() {
+      if (isProcessing) return;
+
+      const email = document.getElementById('customerEmail').value.trim();
+      if (!email || !isValidEmail(email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      if (!producerId) {
+        showError('Store information is missing. Please go back and try again.');
+        return;
+      }
+
+      isProcessing = true;
+      const btn = document.getElementById('payBtn');
+      btn.innerHTML = '<div class="spinner"></div> Processing...';
+      btn.disabled = true;
+
+      try {
+        // Call the Supabase Edge Function to create checkout session
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            cartItems: cart,
+            producerId: producerId,
+            customerEmail: email,
+            successUrl: `${window.location.origin}/checkout-success.html`,
+            cancelUrl: `${window.location.origin}/checkout.html`,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        if (data.url) {
+          // Clear cart before redirecting
+          localStorage.removeItem('redpine_cart');
+          // Redirect to Stripe Checkout
+          window.location.href = data.url;
+        } else {
+          throw new Error('No checkout URL received');
+        }
+      } catch (error) {
+        console.error('Checkout error:', error);
+        showError(error.message || 'Something went wrong. Please try again.');
+        btn.innerHTML = '<i data-lucide="lock" style="width: 20px; height: 20px;"></i> Pay Now';
+        btn.disabled = false;
+        isProcessing = false;
+        lucide.createIcons();
+      }
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+      setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

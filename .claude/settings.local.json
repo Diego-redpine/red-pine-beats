@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(xargs:*)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(for f in netlify/functions/*.js)",
+      "Bash(do echo \"Checking $f...\")",
+      "Bash(node --check:*)",
+      "Bash(done)",
+      "Bash(npx netlify-cli:*)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(node -e:*)",
+      "Bash(for f in assets/js/*.js)",
+      "Bash(do node --check:*)",
+      "Bash(grep:*)",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(node /tmp/check-html.js:*)",
+      "Bash(for f in /Users/Diego21/Downloads/red-pine-complete-deploy/netlify/functions/*.js)",
+      "Bash(node -c:*)"
+    ]
+  }
+}

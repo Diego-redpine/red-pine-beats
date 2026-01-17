@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Beat - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <!-- Mobile hamburger menu -->
+  <button class="hamburger-menu" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html" class="active"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <h1 class="page-title">Upload New Beat</h1>
+      </div>
+      
+      <div id="uploadMessage"></div>
+      
+      <form id="uploadForm">
+        <!-- Beat Info -->
+        <div class="form-group">
+          <label class="form-label">Beat Title *</label>
+          <input type="text" class="form-input" id="title" required placeholder="Sunset Vibes">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">BPM</label>
+            <input type="number" class="form-input" id="bpm" placeholder="140">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Key</label>
+            <select class="form-select" id="key">
+              <option value="">Select key...</option>
+              <option value="C Major">C Major</option>
+              <option value="C Minor">C Minor</option>
+              <option value="D Major">D Major</option>
+              <option value="D Minor">D Minor</option>
+              <option value="E Major">E Major</option>
+              <option value="E Minor">E Minor</option>
+              <option value="F Major">F Major</option>
+              <option value="F Minor">F Minor</option>
+              <option value="G Major">G Major</option>
+              <option value="G Minor">G Minor</option>
+              <option value="A Major">A Major</option>
+              <option value="A Minor">A Minor</option>
+              <option value="B Major">B Major</option>
+              <option value="B Minor">B Minor</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Genre</label>
+          <input type="text" class="form-input" id="genre" placeholder="Trap, Drill, etc.">
+        </div>
+        
+        <!-- File Uploads -->
+        <div class="form-group">
+          <label class="form-label">Audio File (WAV/MP3) *</label>
+          <div class="file-upload" onclick="document.getElementById('audioFile').click()">
+            <input type="file" id="audioFile" accept="audio/*" required>
+            <div class="file-upload-label">Click to upload audio file</div>
+            <div class="file-upload-hint">WAV or MP3 recommended</div>
+            <div id="audioPreview" class="file-preview"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Cover Art (Image) *</label>
+          <div class="file-upload" onclick="document.getElementById('coverArt').click()">
+            <input type="file" id="coverArt" accept="image/*" required>
+            <div class="file-upload-label">Click to upload cover art</div>
+            <div class="file-upload-hint">JPG or PNG, square recommended</div>
+            <div id="coverPreview" class="file-preview"></div>
+          </div>
+        </div>
+        
+        <!-- Pricing -->
+        <h3 style="margin: 32px 0 16px; font-size: 18px;">Pricing</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Basic Lease ($) *</label>
+            <input type="number" class="form-input" id="priceBasic" required value="30" min="1">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Premium Lease ($)</label>
+            <input type="number" class="form-input" id="pricePremium" placeholder="100" min="1">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Exclusive Rights ($)</label>
+          <input type="number" class="form-input" id="priceExclusive" placeholder="500" min="1">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" id="uploadBtn">
+          Upload Beat
+        </button>
+      </form>
+    </main>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>
+    // BPM detection function (same as dashboard.js)
+    async function detectBPMFromFile(file) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      const channelData = audioBuffer.getChannelData(0);
+      const sampleRate = audioBuffer.sampleRate;
+
+      const startSample = Math.floor(channelData.length * 0.1);
+      const maxSamples = Math.min(sampleRate * 30, channelData.length - startSample);
+
+      const filterSize = Math.floor(sampleRate / 200);
+      const filtered = [];
+      for (let i = startSample; i < startSample + maxSamples; i++) {
+        let sum = 0;
+        const start = Math.max(0, i - filterSize);
+        const end = Math.min(channelData.length, i + filterSize);
+        for (let j = start; j < end; j++) {
+          sum += channelData[j] * channelData[j];
+        }
+        filtered.push(sum / (end - start));
+      }
+
+      const windowSize = Math.floor(sampleRate / 20);
+      const energyEnvelope = [];
+      for (let i = 0; i < filtered.length; i += windowSize) {
+        let sum = 0;
+        const count = Math.min(windowSize, filtered.length - i);
+        for (let j = 0; j < count; j++) {
+          sum += filtered[i + j];
+        }
+        energyEnvelope.push(sum / count);
+      }
+
+      const minLag = Math.floor(60 / (200 * (windowSize / sampleRate)));
+      const maxLag = Math.floor(60 / (60 * (windowSize / sampleRate)));
+
+      let bestLag = minLag;
+      let bestCorrelation = -Infinity;
+
+      for (let lag = minLag; lag <= Math.min(maxLag, energyEnvelope.length / 2); lag++) {
+        let correlation = 0;
+        let count = 0;
+        for (let i = 0; i < energyEnvelope.length - lag; i++) {
+          correlation += energyEnvelope[i] * energyEnvelope[i + lag];
+          count++;
+        }
+        correlation /= count;
+
+        if (correlation > bestCorrelation) {
+          bestCorrelation = correlation;
+          bestLag = lag;
+        }
+      }
+
+      const secondsPerBeat = (bestLag * windowSize) / sampleRate;
+      let bpm = Math.round(60 / secondsPerBeat);
+
+      while (bpm < 70) bpm *= 2;
+      while (bpm > 180) bpm /= 2;
+
+      const commonBPMs = [70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180];
+      return commonBPMs.reduce((prev, curr) =>
+        Math.abs(curr - bpm) < Math.abs(prev - bpm) ? curr : prev
+      );
+    }
+
+    // Key detection function using chromagram analysis
+    function detectKeyFromBuffer(audioBuffer) {
+      const channelData = audioBuffer.getChannelData(0);
+      const sampleRate = audioBuffer.sampleRate;
+      const chroma = new Array(12).fill(0);
+
+      const startSample = Math.floor(channelData.length * 0.1);
+      const endSample = Math.min(startSample + sampleRate * 20, channelData.length);
+      const frameSize = 4096;
+      const hopSize = 2048;
+
+      for (let i = startSample; i < endSample - frameSize; i += hopSize) {
+        const frame = [];
+        for (let j = 0; j < frameSize; j++) {
+          const window = 0.5 * (1 - Math.cos(2 * Math.PI * j / frameSize));
+          frame.push(channelData[i + j] * window);
+        }
+
+        const pitchFreqs = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88];
+
+        for (let pc = 0; pc < 12; pc++) {
+          for (let octave = 0; octave < 4; octave++) {
+            const freq = pitchFreqs[pc] * Math.pow(2, octave - 1);
+            if (freq > sampleRate / 2) continue;
+
+            const k = Math.round(freq * frameSize / sampleRate);
+            const w = 2 * Math.PI * k / frameSize;
+            const coeff = 2 * Math.cos(w);
+
+            let s0 = 0, s1 = 0, s2 = 0;
+            for (let j = 0; j < frameSize; j++) {
+              s0 = frame[j] + coeff * s1 - s2;
+              s2 = s1;
+              s1 = s0;
+            }
+
+            const power = s1 * s1 + s2 * s2 - coeff * s1 * s2;
+            chroma[pc] += Math.sqrt(Math.abs(power));
+          }
+        }
+      }
+
+      const maxChroma = Math.max(...chroma);
+      if (maxChroma > 0) {
+        for (let i = 0; i < 12; i++) chroma[i] /= maxChroma;
+      }
+
+      const majorProfile = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+      const minorProfile = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+      const keyNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+      let bestKey = 'C Major';
+      let bestScore = -Infinity;
+
+      for (let root = 0; root < 12; root++) {
+        const rotatedChroma = [];
+        for (let i = 0; i < 12; i++) rotatedChroma.push(chroma[(i + root) % 12]);
+
+        let chromaSum = 0, majorProfileSum = 0, minorProfileSum = 0;
+        let majorScore = 0, minorScore = 0;
+
+        for (let i = 0; i < 12; i++) {
+          majorScore += rotatedChroma[i] * majorProfile[i];
+          minorScore += rotatedChroma[i] * minorProfile[i];
+          chromaSum += rotatedChroma[i] * rotatedChroma[i];
+          majorProfileSum += majorProfile[i] * majorProfile[i];
+          minorProfileSum += minorProfile[i] * minorProfile[i];
+        }
+
+        majorScore /= Math.sqrt(chromaSum * majorProfileSum) || 1;
+        minorScore /= Math.sqrt(chromaSum * minorProfileSum) || 1;
+
+        if (majorScore > bestScore) { bestScore = majorScore; bestKey = keyNames[root] + ' Major'; }
+        if (minorScore > bestScore) { bestScore = minorScore; bestKey = keyNames[root] + ' Minor'; }
+      }
+
+      return bestKey;
+    }
+
+    // File preview handlers
+    document.getElementById('audioFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const preview = document.getElementById('audioPreview');
+        preview.textContent = file.name + ' - Analyzing...';
+
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const arrayBuffer = await file.arrayBuffer();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+          // Detect BPM
+          const detectedBpm = await detectBPMFromFile(file);
+          document.getElementById('bpm').value = detectedBpm;
+
+          // Detect Key
+          const detectedKey = detectKeyFromBuffer(audioBuffer);
+          document.getElementById('key').value = detectedKey;
+
+          preview.textContent = file.name + ' (' + detectedBpm + ' BPM, ' + detectedKey + ')';
+        } catch (err) {
+          console.error('Audio analysis error:', err);
+          preview.textContent = file.name;
+        }
+      }
+    });
+    
+    document.getElementById('coverArt').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('coverPreview').textContent = file.name;
+      }
+    });
+    
+    // Form submission
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const uploadBtn = document.getElementById('uploadBtn');
+      const uploadMessage = document.getElementById('uploadMessage');
+      
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Uploading...';
+      uploadMessage.innerHTML = '';
+      
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+        
+        // Get producer
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+        
+        // Get form data
+        const title = document.getElementById('title').value;
+        const bpm = document.getElementById('bpm').value;
+        const key = document.getElementById('key').value;
+        // Standardize genre to Title Case
+        const genreRaw = document.getElementById('genre').value;
+        const genre = genreRaw ? genreRaw.split(/[\s,]+/).map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ').replace(/r\&b/gi, 'R&B').replace(/lo-fi/gi, 'Lo-Fi').replace(/hip hop/gi, 'Hip Hop') : '';
+        const audioFile = document.getElementById('audioFile').files[0];
+        const coverFile = document.getElementById('coverArt').files[0];
+        const priceBasic = parseInt(document.getElementById('priceBasic').value) * 100;
+        const pricePremium = document.getElementById('pricePremium').value ? 
+          parseInt(document.getElementById('pricePremium').value) * 100 : null;
+        const priceExclusive = document.getElementById('priceExclusive').value ? 
+          parseInt(document.getElementById('priceExclusive').value) * 100 : null;
+        
+        // Upload audio file
+        const audioPath = `${producer.id}/${Date.now()}-${audioFile.name}`;
+        const { error: audioError } = await supabaseClient.storage
+          .from('beat-files')
+          .upload(audioPath, audioFile);
+        
+        if (audioError) throw audioError;
+        
+        // Upload cover art
+        const coverPath = `${producer.id}/${Date.now()}-${coverFile.name}`;
+        const { error: coverError } = await supabaseClient.storage
+          .from('cover-art')
+          .upload(coverPath, coverFile);
+        
+        if (coverError) throw coverError;
+        
+        // Get public URLs
+        const { data: audioUrl } = supabaseClient.storage
+          .from('beat-files')
+          .getPublicUrl(audioPath);
+        
+        const { data: coverUrl } = supabaseClient.storage
+          .from('cover-art')
+          .getPublicUrl(coverPath);
+        
+        // Insert beat into database
+        const { error: beatError } = await supabaseClient
+          .from('beats')
+          .insert([
+            {
+              producer_id: producer.id,
+              title,
+              bpm: bpm || null,
+              key: key || null,
+              genre: genre || null,
+              audio_url: audioUrl.publicUrl,
+              audio_preview_url: audioUrl.publicUrl, // TODO: Generate 30-sec preview
+              cover_art_url: coverUrl.publicUrl,
+              price_basic: priceBasic,
+              price_premium: pricePremium,
+              price_exclusive: priceExclusive,
+              views: 0,
+              is_published: true
+            }
+          ]);
+        
+        if (beatError) throw beatError;
+        
+        uploadMessage.innerHTML = '<div class="alert alert-success">Beat uploaded successfully!</div>';
+        
+        // Reset form
+        document.getElementById('uploadForm').reset();
+        document.getElementById('audioPreview').textContent = '';
+        document.getElementById('coverPreview').textContent = '';
+        
+        // Redirect to beats page after 2 seconds
+        setTimeout(() => {
+          window.location.href = 'beats.html';
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Upload error:', error);
+        uploadMessage.innerHTML = `<div class="alert alert-error">Error uploading beat: ${error.message}</div>`;
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload Beat';
+      }
+    });
+  </script>
+</body>
+</html>

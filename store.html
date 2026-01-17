@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <button class="hamburger-menu" onclick="toggleMobileMenu()">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html" class="active"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <h1 class="page-title">Your Store</h1>
+        <div class="theme-toggle-wrapper">
+          <i data-lucide="sun" style="width:16px;height:16px;"></i>
+          <label class="theme-toggle">
+            <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+            <span class="theme-toggle-slider"></span>
+          </label>
+          <i data-lucide="moon" style="width:16px;height:16px;"></i>
+        </div>
+      </div>
+
+      <!-- Store URL Banner -->
+      <div class="table-container" style="margin-bottom: 24px; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h3 style="font-size: 16px; margin-bottom: 4px;">Your Store URL</h3>
+            <a id="storeUrl" href="#" target="_blank" style="color: var(--red); font-size: 18px; font-weight: 600; text-decoration: none;"></a>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="copyStoreUrl()">
+              <i data-lucide="copy" style="width: 16px; height: 16px;"></i> Copy URL
+            </button>
+            <a id="visitStoreBtn" href="#" target="_blank" class="btn btn-primary">
+              <i data-lucide="external-link" style="width: 16px; height: 16px;"></i> Visit Store
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Store Options -->
+      <h2 style="margin-bottom: 16px;">What would you like to do?</h2>
+
+      <div class="store-options">
+        <div class="store-option-card" onclick="window.location.href='customize.html'">
+          <i data-lucide="palette"></i>
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Customize Store</h3>
+          <p style="color: var(--gray-dark); font-size: 14px;">Edit your store's design, colors, layout, and branding</p>
+        </div>
+
+        <div class="store-option-card" onclick="window.location.href='profile-editor.html'">
+          <i data-lucide="user-circle"></i>
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Edit Profile</h3>
+          <p style="color: var(--gray-dark); font-size: 14px;">Update your bio, social links, and profile photo</p>
+        </div>
+
+        <div class="store-option-card" onclick="window.location.href='beats.html'">
+          <i data-lucide="music"></i>
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Manage Beats</h3>
+          <p style="color: var(--gray-dark); font-size: 14px;">Upload, edit, and organize your beat catalog</p>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div style="margin-top: 40px;">
+        <h2 style="margin-bottom: 16px;">Store Performance</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Beats</div>
+            <div class="stat-value" id="totalBeats">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Store Views</div>
+            <div class="stat-value" id="storeViews">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Sales</div>
+            <div class="stat-value" id="totalSales">-</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>
+    lucide.createIcons();
+
+    let currentProducer = null;
+
+    async function init() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+
+      if (!producer) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      currentProducer = producer;
+
+      // Set store URL
+      const storeUrl = `https://${producer.username || producer.subdomain}.redpine.systems`;
+      document.getElementById('storeUrl').href = storeUrl;
+      document.getElementById('storeUrl').textContent = storeUrl;
+      document.getElementById('visitStoreBtn').href = storeUrl;
+
+      // Load stats
+      loadStats(producer.id);
+    }
+
+    async function loadStats(producerId) {
+      // Total beats
+      const { count: beatsCount } = await supabaseClient
+        .from('beats')
+        .select('*', { count: 'exact', head: true })
+        .eq('producer_id', producerId);
+
+      document.getElementById('totalBeats').textContent = beatsCount || 0;
+
+      // Total sales
+      const { data: sales } = await supabaseClient
+        .from('sales')
+        .select('amount')
+        .eq('producer_id', producerId);
+
+      const totalSales = sales ? sales.reduce((sum, s) => sum + (s.amount || 0), 0) / 100 : 0;
+      document.getElementById('totalSales').textContent = '$' + totalSales.toFixed(0);
+
+      // Store views (placeholder - would need analytics tracking)
+      document.getElementById('storeViews').textContent = '-';
+    }
+
+    function copyStoreUrl() {
+      const url = document.getElementById('storeUrl').href;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('URL copied to clipboard!', 'success');
+      });
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.querySelector('.sidebar-overlay').classList.toggle('open');
+    }
+
+    init();
+  </script>
+</body>
+</html>

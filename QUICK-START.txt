@@ -1,0 +1,107 @@
+🚀 RED PINE - QUICK START GUIDE
+================================
+
+✅ EVERYTHING IS INCLUDED & FIXED!
+
+WHAT'S NEW IN THIS VERSION:
+----------------------------
+✅ Logo included (assets/images/red_pine_logo.png)
+✅ store-preview.html added (preview system)
+✅ Main domain NOW loads login.html (NOT public-store!)
+✅ Routing fixed for all subdomains
+✅ Complete subdomain setup guide included
+
+
+STEP 1: EXTRACT & CONFIG
+-------------------------
+1. Extract red-pine-complete-DEPLOY-FINAL.zip
+2. Edit assets/js/config.js:
+   - Update SUPABASE_URL
+   - Update SUPABASE_ANON_KEY
+
+
+STEP 2: DEPLOY TO NETLIFY
+--------------------------
+1. Go to app.netlify.com
+2. Drag entire "red-pine-complete-deploy" folder
+3. Wait for deployment
+4. Note your site URL: your-site.netlify.app
+
+
+STEP 3: CONFIGURE CUSTOM DOMAIN
+--------------------------------
+In Netlify → Site settings → Domain management:
+
+1. Add custom domain: beats.redpinemarketing.com
+2. Follow DNS instructions from Netlify
+3. Add wildcard subdomain support:
+   - DNS Record Type: CNAME
+   - Name: *
+   - Value: your-site.netlify.app
+
+
+STEP 4: SET ENVIRONMENT VARIABLES
+----------------------------------
+In Netlify → Site settings → Environment variables:
+- STRIPE_SECRET_KEY = sk_test_...
+
+
+STEP 5: SET UP SUPABASE
+------------------------
+1. Create 3 tables (see SUBDOMAIN-SETUP.md for SQL)
+   - producers
+   - site_customizations  
+   - beats
+
+2. Create 2 storage buckets:
+   - logos (make public)
+   - cover-art (make public)
+
+
+STEP 6: TEST EVERYTHING
+------------------------
+✅ beats.redpinemarketing.com → Login page
+✅ dashboard.redpine.systems → Dashboard  
+✅ diegor.redpine.systems → Public store
+✅ customize.html → All 7 panels work
+✅ Upload images → Saves to Supabase
+
+
+HOW ROUTING WORKS:
+------------------
+Main Domain (beats.redpinemarketing.com):
+→ Loads login.html (producer login)
+
+Dashboard Subdomain (dashboard.redpine.systems):
+→ Loads dashboard.html (producer dashboard)
+
+Producer Subdomains (diegor.redpine.systems):
+→ Loads public-store.html (public beat store)
+
+
+TROUBLESHOOTING:
+----------------
+Issue: "diegor.redpine.systems" not working
+Fix: Add wildcard DNS (*.redpine.systems)
+     Wait 5-10 minutes for propagation
+
+Issue: Main domain loads public store
+Fix: Clear browser cache
+     Verify _redirects file deployed
+
+Issue: Images not uploading
+Fix: Make Supabase storage buckets public
+     Check bucket policies
+
+Issue: Wrong customization showing
+Fix: Check producer subdomain matches database
+
+
+HELPFUL FILES:
+--------------
+- SUBDOMAIN-SETUP.md = Complete DNS & subdomain guide
+- DEPLOYMENT-GUIDE.md = Full testing checklist
+- README.md = Complete documentation
+
+
+READY TO LAUNCH! 🎉

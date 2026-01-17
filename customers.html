@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .customers-header {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border: 1px solid var(--gray-medium);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--white);
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-dark);
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 10px 16px;
+      border: 1px solid var(--gray-medium);
+      border-radius: 8px;
+      background: var(--white);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: var(--gray-light);
+    }
+
+    .filter-btn.active {
+      background: var(--red);
+      color: white;
+      border-color: var(--red);
+    }
+
+    .customers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .customer-card {
+      background: var(--white);
+      border: 1px solid var(--gray-medium);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .customer-card:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .customer-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .customer-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .customer-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .customer-info h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .customer-info p {
+      font-size: 13px;
+      color: var(--gray-dark);
+    }
+
+    .customer-star {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--gray-dark);
+      transition: color 0.2s;
+    }
+
+    .customer-star:hover,
+    .customer-star.starred {
+      color: #F59E0B;
+    }
+
+    .customer-stats {
+      display: flex;
+      gap: 24px;
+      padding-top: 12px;
+      border-top: 1px solid var(--gray-medium);
+    }
+
+    .customer-stat {
+      text-align: center;
+    }
+
+    .customer-stat-value {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--red);
+    }
+
+    .customer-stat-label {
+      font-size: 11px;
+      color: var(--gray-dark);
+      text-transform: uppercase;
+    }
+
+    .customer-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .customer-tag {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* Sort dropdown */
+    .sort-dropdown {
+      position: relative;
+    }
+
+    .sort-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--gray-medium);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      z-index: 100;
+      min-width: 150px;
+      display: none;
+    }
+
+    .sort-dropdown-menu.open {
+      display: block;
+    }
+
+    .sort-option {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .sort-option:hover {
+      background: var(--gray-light);
+    }
+
+    .sort-option.active {
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    /* Tag filter dropdown */
+    .tag-filter-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: var(--white);
+      border: 1px solid var(--gray-medium);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      z-index: 100;
+      min-width: 180px;
+      display: none;
+      padding: 8px 0;
+    }
+
+    .tag-filter-menu.open {
+      display: block;
+    }
+
+    .tag-filter-option {
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .tag-filter-option:hover {
+      background: var(--gray-light);
+    }
+
+    .tag-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Customer detail modal styles */
+    .customer-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .customer-detail-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--red);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 32px;
+    }
+
+    .customer-detail-info h2 {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .customer-detail-info p {
+      color: var(--gray-dark);
+    }
+
+    .customer-detail-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: var(--gray-light);
+      border-radius: 8px;
+    }
+
+    .detail-stat {
+      text-align: center;
+    }
+
+    .detail-stat-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .detail-stat-label {
+      font-size: 12px;
+      color: var(--gray-dark);
+    }
+
+    .purchase-history {
+      margin-bottom: 24px;
+    }
+
+    .purchase-history h4 {
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .purchase-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-medium);
+    }
+
+    .purchase-item:last-child {
+      border-bottom: none;
+    }
+
+    .purchase-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .purchase-cover {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .tag-manager {
+      margin-top: 24px;
+    }
+
+    .tag-manager h4 {
+      margin-bottom: 12px;
+    }
+
+    .tag-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .editable-tag {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .editable-tag .remove-tag {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .editable-tag .remove-tag:hover {
+      opacity: 1;
+    }
+
+    .color-options {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .color-option {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.selected {
+      border-color: var(--black);
+    }
+  </style>
+</head>
+<body>
+  <!-- RPB-112: Invite Customer Modal -->
+  <div id="invite-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Invite Customer</h3>
+        <button class="modal-close" onclick="closeInviteModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--gray-dark); margin-bottom: 20px;">Send an invitation email to add a customer to your store.</p>
+        <div class="form-group">
+          <label class="form-label">Customer Email</label>
+          <input type="email" class="form-input" id="invite-email" placeholder="customer@example.com">
+        </div>
+        <div id="inviteError" style="margin-top: 16px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeInviteModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="sendInvitation()">
+          <i data-lucide="send" style="width:14px;height:14px;"></i> Send Invitation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button class="hamburger-menu" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html" class="active"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <h1 class="page-title">Customers</h1>
+        <div class="theme-toggle-wrapper">
+          <i data-lucide="sun" style="width:16px;height:16px;"></i>
+          <label class="theme-toggle">
+            <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+            <span class="theme-toggle-slider"></span>
+          </label>
+          <i data-lucide="moon" style="width:16px;height:16px;"></i>
+        </div>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="customers-header">
+        <div class="search-box">
+          <i data-lucide="search" style="width:18px;height:18px;"></i>
+          <input type="text" id="customerSearch" placeholder="Search by name or email..." oninput="filterCustomers()">
+        </div>
+
+        <div class="filter-buttons">
+          <div class="sort-dropdown" style="position: relative;">
+            <button class="filter-btn" onclick="toggleSortMenu()">
+              <i data-lucide="arrow-up-down" style="width:14px;height:14px;"></i>
+              <span id="currentSort">Recent</span>
+            </button>
+            <div class="sort-dropdown-menu" id="sortMenu">
+              <div class="sort-option active" data-sort="recent" onclick="setSort('recent', 'Recent')">Recent</div>
+              <div class="sort-option" data-sort="spent" onclick="setSort('spent', 'Total Spent')">Total Spent</div>
+              <div class="sort-option" data-sort="name" onclick="setSort('name', 'Name A-Z')">Name A-Z</div>
+            </div>
+          </div>
+
+          <div style="position: relative;">
+            <button class="filter-btn" id="tagFilterBtn" onclick="toggleTagFilter()">
+              <i data-lucide="tag" style="width:14px;height:14px;"></i>
+              <span id="currentTagFilter">All Tags</span>
+            </button>
+            <div class="tag-filter-menu" id="tagFilterMenu">
+              <div class="tag-filter-option" onclick="setTagFilter(null, 'All Tags')">All Tags</div>
+              <div id="tagFilterOptions"></div>
+            </div>
+          </div>
+
+          <button class="filter-btn" id="starredFilter" onclick="toggleStarredFilter()">
+            <i data-lucide="star" style="width:14px;height:14px;"></i>
+            Starred
+          </button>
+
+          <!-- CRM-019: Customer Segments -->
+          <div style="position: relative;">
+            <button class="filter-btn" id="segmentFilterBtn" onclick="toggleSegmentMenu()">
+              <i data-lucide="users" style="width:14px;height:14px;"></i>
+              <span id="currentSegment">All Customers</span>
+            </button>
+            <div class="sort-dropdown-menu" id="segmentMenu" style="min-width: 220px;">
+              <div class="sort-option active" onclick="setSegment(null, 'All Customers')">All Customers</div>
+              <div id="savedSegments">
+                <!-- Saved segments will be listed here -->
+              </div>
+              <div style="border-top: 1px solid var(--gray-medium); margin-top: 8px; padding-top: 8px;">
+                <div class="sort-option" onclick="showCreateSegmentModal()" style="color: var(--red);">
+                  <i data-lucide="plus" style="width:12px;height:12px;display:inline;margin-right:6px;"></i> Create Segment
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="filter-btn" style="background:var(--red);color:white;border-color:var(--red);" onclick="showAddCustomerModal()">
+            <i data-lucide="user-plus" style="width:14px;height:14px;"></i>
+            Add Customer
+          </button>
+
+          <button class="filter-btn" onclick="showInviteModal()">
+            <i data-lucide="mail-plus" style="width:14px;height:14px;"></i>
+            Invite
+          </button>
+
+          <button class="filter-btn" onclick="showBulkEmailModal()" data-tooltip="Email All">
+            <i data-lucide="mail" style="width:14px;height:14px;"></i>
+            Bulk Email
+          </button>
+
+          <button class="filter-btn" onclick="showImportModal()" data-tooltip="Import from CSV">
+            <i data-lucide="upload" style="width:14px;height:14px;"></i>
+            Import
+          </button>
+
+          <button class="filter-btn" onclick="exportCustomersCSV()" data-tooltip="Export to CSV">
+            <i data-lucide="download" style="width:14px;height:14px;"></i>
+            Export
+          </button>
+
+          <button class="filter-btn" onclick="clearFilters()" style="margin-left:auto;">
+            <i data-lucide="x" style="width:14px;height:14px;"></i>
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Customers Grid -->
+      <div class="customers-grid" id="customersGrid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 48px;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/branding.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>lucide.createIcons();</script>
+  <script>
+    let allCustomers = [];
+    let allTags = [];
+    let currentFilters = {
+      search: '',
+      sort: 'recent',
+      tag: null,
+      starred: false
+    };
+    let currentProducerId = null;
+
+    const tagColors = [
+      '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
+    ];
+
+    async function loadCustomers() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      try {
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return;
+        currentProducerId = producer.id;
+
+        // Load customers (from sales, aggregated by email)
+        const { data: sales } = await supabaseClient
+          .from('sales')
+          .select('*, beats(title, cover_art_url)')
+          .eq('producer_id', producer.id)
+          .order('created_at', { ascending: false });
+
+        // Aggregate by customer email
+        const customerMap = {};
+        (sales || []).forEach(sale => {
+          const email = sale.customer_email;
+          if (!customerMap[email]) {
+            customerMap[email] = {
+              email: email,
+              name: sale.customer_name || email.split('@')[0],
+              total_spent: 0,
+              purchase_count: 0,
+              purchases: [],
+              first_purchase: sale.created_at,
+              last_purchase: sale.created_at,
+              starred: false,
+              tags: []
+            };
+          }
+          customerMap[email].total_spent += sale.amount;
+          customerMap[email].purchase_count += 1;
+          customerMap[email].purchases.push({
+            beat_title: sale.beats?.title || 'Unknown',
+            beat_cover: sale.beats?.cover_art_url,
+            amount: sale.amount,
+            license: sale.license_type,
+            date: sale.created_at
+          });
+          if (new Date(sale.created_at) > new Date(customerMap[email].last_purchase)) {
+            customerMap[email].last_purchase = sale.created_at;
+          }
+        });
+
+        allCustomers = Object.values(customerMap);
+
+        // Load customer metadata (starred, tags) from localStorage for now
+        const savedMeta = JSON.parse(localStorage.getItem('customerMeta_' + producer.id) || '{}');
+        allCustomers.forEach(c => {
+          if (savedMeta[c.email]) {
+            c.starred = savedMeta[c.email].starred || false;
+            c.tags = savedMeta[c.email].tags || [];
+          }
+        });
+
+        // Load tags
+        allTags = JSON.parse(localStorage.getItem('customerTags_' + producer.id) || '[]');
+        if (allTags.length === 0) {
+          // Default tags
+          allTags = [
+            { id: '1', name: 'VIP', color: '#EF4444' },
+            { id: '2', name: 'Repeat', color: '#10B981' },
+            { id: '3', name: 'New', color: '#3B82F6' }
+          ];
+          saveTags();
+        }
+
+        updateTagFilterOptions();
+        loadSavedSegments(); // CRM-019: Load saved segments
+        renderCustomers();
+
+      } catch (error) {
+        console.error('Error loading customers:', error);
+        document.getElementById('customersGrid').innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 48px; color: var(--gray-dark);">
+            Error loading customers. Please refresh the page.
+          </div>
+        `;
+      }
+    }
+
+    function renderCustomers() {
+      let filtered = [...allCustomers];
+
+      // Apply search filter
+      if (currentFilters.search) {
+        const search = currentFilters.search.toLowerCase();
+        filtered = filtered.filter(c =>
+          c.name.toLowerCase().includes(search) ||
+          c.email.toLowerCase().includes(search)
+        );
+      }
+
+      // Apply tag filter
+      if (currentFilters.tag) {
+        filtered = filtered.filter(c => c.tags.includes(currentFilters.tag));
+      }
+
+      // Apply starred filter
+      if (currentFilters.starred) {
+        filtered = filtered.filter(c => c.starred);
+      }
+
+      // CRM-019: Apply segment filter
+      if (currentSegmentFilter) {
+        const segment = savedSegments.find(s => s.id === currentSegmentFilter);
+        if (segment) {
+          filtered = filtered.filter(c => matchesSegmentRules(c, segment.rules));
+        }
+      }
+
+      // Apply sort
+      if (currentFilters.sort === 'recent') {
+        filtered.sort((a, b) => new Date(b.last_purchase) - new Date(a.last_purchase));
+      } else if (currentFilters.sort === 'spent') {
+        filtered.sort((a, b) => b.total_spent - a.total_spent);
+      } else if (currentFilters.sort === 'name') {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      const grid = document.getElementById('customersGrid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <div style="margin-bottom: 16px;"><i data-lucide="users" style="width:48px;height:48px;color:var(--gray-dark);"></i></div>
+            <div class="empty-state-title">${allCustomers.length === 0 ? 'No customers yet' : 'No matching customers'}</div>
+            <div class="empty-state-text">
+              ${allCustomers.length === 0
+                ? 'When people buy your beats, they\'ll appear here.'
+                : 'Try adjusting your search or filters.'}
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      grid.innerHTML = filtered.map(customer => {
+        const initial = customer.name.charAt(0).toUpperCase();
+        const customerTags = customer.tags.map(tagId => {
+          const tag = allTags.find(t => t.id === tagId);
+          return tag ? `<span class="customer-tag" style="background: ${tag.color}20; color: ${tag.color};">${tag.name}</span>` : '';
+        }).join('');
+
+        return `
+          <div class="customer-card" onclick="openCustomerDetail('${customer.email}')">
+            <button class="customer-star ${customer.starred ? 'starred' : ''}" onclick="event.stopPropagation(); toggleStar('${customer.email}')">
+              <i data-lucide="${customer.starred ? 'star' : 'star'}" style="width:18px;height:18px;${customer.starred ? 'fill:currentColor;' : ''}"></i>
+            </button>
+            <div class="customer-header">
+              <div class="customer-avatar">${initial}</div>
+              <div class="customer-info">
+                <h3>${customer.name}</h3>
+                <p>${customer.email}</p>
+              </div>
+            </div>
+            ${customerTags ? `<div class="customer-tags">${customerTags}</div>` : ''}
+            <div class="customer-stats">
+              <div class="customer-stat">
+                <div class="customer-stat-value">$${(customer.total_spent / 100).toFixed(0)}</div>
+                <div class="customer-stat-label">Total Spent</div>
+              </div>
+              <div class="customer-stat">
+                <div class="customer-stat-value">${customer.purchase_count}</div>
+                <div class="customer-stat-label">Purchases</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function filterCustomers() {
+      currentFilters.search = document.getElementById('customerSearch').value;
+      renderCustomers();
+    }
+
+    function toggleSortMenu() {
+      document.getElementById('sortMenu').classList.toggle('open');
+      document.getElementById('tagFilterMenu').classList.remove('open');
+    }
+
+    function setSort(sort, label) {
+      currentFilters.sort = sort;
+      document.getElementById('currentSort').textContent = label;
+      document.querySelectorAll('.sort-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.sort === sort);
+      });
+      document.getElementById('sortMenu').classList.remove('open');
+      renderCustomers();
+    }
+
+    function toggleTagFilter() {
+      document.getElementById('tagFilterMenu').classList.toggle('open');
+      document.getElementById('sortMenu').classList.remove('open');
+    }
+
+    function updateTagFilterOptions() {
+      const container = document.getElementById('tagFilterOptions');
+      container.innerHTML = allTags.map(tag => `
+        <div class="tag-filter-option" onclick="setTagFilter('${tag.id}', '${tag.name}')">
+          <span class="tag-dot" style="background: ${tag.color};"></span>
+          ${tag.name}
+        </div>
+      `).join('');
+    }
+
+    function setTagFilter(tagId, label) {
+      currentFilters.tag = tagId;
+      document.getElementById('currentTagFilter').textContent = label;
+      document.getElementById('tagFilterMenu').classList.remove('open');
+      renderCustomers();
+    }
+
+    function toggleStarredFilter() {
+      currentFilters.starred = !currentFilters.starred;
+      document.getElementById('starredFilter').classList.toggle('active', currentFilters.starred);
+      renderCustomers();
+    }
+
+    function clearFilters() {
+      currentFilters = { search: '', sort: 'recent', tag: null, starred: false };
+      document.getElementById('customerSearch').value = '';
+      document.getElementById('currentSort').textContent = 'Recent';
+      document.getElementById('currentTagFilter').textContent = 'All Tags';
+      document.getElementById('starredFilter').classList.remove('active');
+      document.querySelectorAll('.sort-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.sort === 'recent');
+      });
+      renderCustomers();
+    }
+
+    function toggleStar(email) {
+      const customer = allCustomers.find(c => c.email === email);
+      if (customer) {
+        customer.starred = !customer.starred;
+        saveCustomerMeta();
+        renderCustomers();
+      }
+    }
+
+    function saveCustomerMeta() {
+      const meta = {};
+      allCustomers.forEach(c => {
+        meta[c.email] = { starred: c.starred, tags: c.tags };
+      });
+      localStorage.setItem('customerMeta_' + currentProducerId, JSON.stringify(meta));
+    }
+
+    function saveTags() {
+      localStorage.setItem('customerTags_' + currentProducerId, JSON.stringify(allTags));
+    }
+
+    // CRM-019: Customer Segments
+    let savedSegments = [];
+    let currentSegmentFilter = null;
+
+    function loadSavedSegments() {
+      const saved = localStorage.getItem('customerSegments_' + currentProducerId);
+      savedSegments = saved ? JSON.parse(saved) : [];
+      renderSegmentsList();
+    }
+
+    function renderSegmentsList() {
+      const container = document.getElementById('savedSegments');
+      if (!container) return;
+
+      if (savedSegments.length === 0) {
+        container.innerHTML = '<div style="padding: 8px 16px; font-size: 12px; color: var(--gray-dark);">No saved segments</div>';
+        return;
+      }
+
+      container.innerHTML = savedSegments.map(seg => `
+        <div class="sort-option" onclick="setSegment('${seg.id}', '${seg.name}')" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>${seg.name}</span>
+          <span style="font-size: 11px; color: var(--gray-dark);">${getSegmentCount(seg)} customers</span>
+        </div>
+      `).join('');
+    }
+
+    function getSegmentCount(segment) {
+      return allCustomers.filter(c => matchesSegmentRules(c, segment.rules)).length;
+    }
+
+    function matchesSegmentRules(customer, rules) {
+      return rules.every(rule => {
+        switch (rule.field) {
+          case 'total_spent':
+            if (rule.operator === 'gt') return customer.total_spent > rule.value * 100;
+            if (rule.operator === 'lt') return customer.total_spent < rule.value * 100;
+            if (rule.operator === 'eq') return customer.total_spent === rule.value * 100;
+            break;
+          case 'purchases':
+            if (rule.operator === 'gt') return customer.purchases.length > rule.value;
+            if (rule.operator === 'lt') return customer.purchases.length < rule.value;
+            if (rule.operator === 'eq') return customer.purchases.length === rule.value;
+            break;
+          case 'tags':
+            return customer.tags && customer.tags.some(t => t.toLowerCase().includes(rule.value.toLowerCase()));
+          case 'starred':
+            return customer.starred === (rule.value === 'true');
+        }
+        return true;
+      });
+    }
+
+    function toggleSegmentMenu() {
+      const menu = document.getElementById('segmentMenu');
+      const isOpen = menu.classList.contains('open');
+      document.querySelectorAll('.sort-dropdown-menu, .tag-filter-menu').forEach(m => m.classList.remove('open'));
+      if (!isOpen) menu.classList.add('open');
+    }
+
+    function setSegment(segmentId, name) {
+      currentSegmentFilter = segmentId;
+      document.getElementById('currentSegment').textContent = name;
+      document.getElementById('segmentMenu').classList.remove('open');
+      renderCustomers();
+    }
+
+    function showCreateSegmentModal() {
+      document.getElementById('segmentMenu').classList.remove('open');
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'createSegmentModal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Create Segment</h3>
+            <button class="modal-close" onclick="closeCreateSegmentModal()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Segment Name</label>
+              <input type="text" class="form-input" id="segmentName" placeholder="e.g., VIP Customers">
+            </div>
+
+            <div style="margin-top: 20px;">
+              <label class="form-label">Rules</label>
+              <div id="segmentRules">
+                <div class="segment-rule" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                  <select class="form-input" style="flex: 1;" id="ruleField1">
+                    <option value="total_spent">Total Spent</option>
+                    <option value="purchases">Number of Purchases</option>
+                    <option value="tags">Has Tag</option>
+                    <option value="starred">Is Starred</option>
+                  </select>
+                  <select class="form-input" style="width: 80px;" id="ruleOperator1">
+                    <option value="gt">></option>
+                    <option value="lt"><</option>
+                    <option value="eq">=</option>
+                  </select>
+                  <input type="text" class="form-input" style="flex: 1;" id="ruleValue1" placeholder="Value">
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-small" onclick="addSegmentRule()" style="margin-top: 8px;">
+                <i data-lucide="plus" style="width:12px;height:12px;"></i> Add Rule
+              </button>
+            </div>
+
+            <div style="margin-top: 16px; padding: 12px; background: var(--gray-light); border-radius: 8px;">
+              <span style="font-size: 13px; color: var(--gray-dark);">Matching customers: </span>
+              <strong id="matchingCount">0</strong>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCreateSegmentModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSegment()">Save Segment</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // Update matching count on field change
+      document.querySelectorAll('#createSegmentModal select, #createSegmentModal input').forEach(el => {
+        el.addEventListener('change', updateMatchingCount);
+        el.addEventListener('input', updateMatchingCount);
+      });
+
+      updateMatchingCount();
+    }
+
+    let ruleCounter = 1;
+
+    function addSegmentRule() {
+      ruleCounter++;
+      const rulesContainer = document.getElementById('segmentRules');
+      const ruleHtml = `
+        <div class="segment-rule" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+          <select class="form-input" style="flex: 1;" id="ruleField${ruleCounter}">
+            <option value="total_spent">Total Spent</option>
+            <option value="purchases">Number of Purchases</option>
+            <option value="tags">Has Tag</option>
+            <option value="starred">Is Starred</option>
+          </select>
+          <select class="form-input" style="width: 80px;" id="ruleOperator${ruleCounter}">
+            <option value="gt">></option>
+            <option value="lt"><</option>
+            <option value="eq">=</option>
+          </select>
+          <input type="text" class="form-input" style="flex: 1;" id="ruleValue${ruleCounter}" placeholder="Value">
+          <button type="button" onclick="this.parentElement.remove(); updateMatchingCount();" style="background: none; border: none; cursor: pointer; color: var(--red);">
+            <i data-lucide="x" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      `;
+      rulesContainer.insertAdjacentHTML('beforeend', ruleHtml);
+      lucide.createIcons();
+
+      // Add listeners to new elements
+      document.querySelectorAll(`#ruleField${ruleCounter}, #ruleOperator${ruleCounter}, #ruleValue${ruleCounter}`).forEach(el => {
+        el.addEventListener('change', updateMatchingCount);
+        el.addEventListener('input', updateMatchingCount);
+      });
+    }
+
+    function getRulesFromModal() {
+      const rules = [];
+      const ruleElements = document.querySelectorAll('.segment-rule');
+
+      ruleElements.forEach((rule, i) => {
+        const idx = i + 1;
+        const field = document.getElementById('ruleField' + idx)?.value;
+        const operator = document.getElementById('ruleOperator' + idx)?.value;
+        const value = document.getElementById('ruleValue' + idx)?.value;
+
+        if (field && value) {
+          rules.push({ field, operator, value });
+        }
+      });
+
+      return rules;
+    }
+
+    function updateMatchingCount() {
+      const rules = getRulesFromModal();
+      const count = allCustomers.filter(c => matchesSegmentRules(c, rules)).length;
+      const countEl = document.getElementById('matchingCount');
+      if (countEl) countEl.textContent = count;
+    }
+
+    function saveSegment() {
+      const name = document.getElementById('segmentName')?.value.trim();
+      const rules = getRulesFromModal();
+
+      if (!name) {
+        alert('Please enter a segment name');
+        return;
+      }
+
+      if (rules.length === 0) {
+        alert('Please add at least one rule');
+        return;
+      }
+
+      const segment = {
+        id: 'seg_' + Date.now(),
+        name,
+        rules,
+        created_at: new Date().toISOString()
+      };
+
+      savedSegments.push(segment);
+      localStorage.setItem('customerSegments_' + currentProducerId, JSON.stringify(savedSegments));
+
+      closeCreateSegmentModal();
+      renderSegmentsList();
+
+      // Apply the new segment
+      setSegment(segment.id, segment.name);
+    }
+
+    function closeCreateSegmentModal() {
+      document.getElementById('createSegmentModal')?.remove();
+      ruleCounter = 1;
+    }
+
+    function openCustomerDetail(email) {
+      const customer = allCustomers.find(c => c.email === email);
+      if (!customer) return;
+
+      const initial = customer.name.charAt(0).toUpperCase();
+      const memberSince = new Date(customer.first_purchase).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'customerDetailModal';
+      modal.innerHTML = `
+        <div class="modal-content large">
+          <div class="modal-header">
+            <h3 class="modal-title">Customer Details</h3>
+            <button class="modal-close" onclick="closeCustomerDetail()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="customer-detail-header">
+              <div class="customer-detail-avatar">${initial}</div>
+              <div class="customer-detail-info">
+                <h2>${customer.name}</h2>
+                <p>${customer.email}</p>
+              </div>
+              <button class="btn btn-secondary btn-small" style="margin-left: auto;" onclick="emailCustomer('${customer.email}', '${customer.name}')" data-tooltip="Send Email">
+                <i data-lucide="mail" style="width:16px;height:16px;"></i> Email
+              </button>
+              <button class="customer-star ${customer.starred ? 'starred' : ''}" style="position:static;" onclick="toggleStar('${customer.email}'); closeCustomerDetail(); openCustomerDetail('${customer.email}');">
+                <i data-lucide="star" style="width:24px;height:24px;${customer.starred ? 'fill:currentColor;' : ''}"></i>
+              </button>
+            </div>
+
+            <div class="customer-detail-stats">
+              <div class="detail-stat">
+                <div class="detail-stat-value" style="color: var(--red);">$${(customer.total_spent / 100).toFixed(2)}</div>
+                <div class="detail-stat-label">Total Spent</div>
+              </div>
+              <div class="detail-stat">
+                <div class="detail-stat-value">${customer.purchase_count}</div>
+                <div class="detail-stat-label">Purchases</div>
+              </div>
+              <div class="detail-stat">
+                <div class="detail-stat-value">${memberSince}</div>
+                <div class="detail-stat-label">Member Since</div>
+              </div>
+            </div>
+
+            <!-- CRM-018: Activity Timeline -->
+            <div class="purchase-history">
+              <h4>Activity Timeline</h4>
+              <div style="position: relative; padding-left: 24px;">
+                ${customer.purchases.map((p, index) => `
+                  <div style="position: relative; padding-bottom: ${index < customer.purchases.length - 1 ? '16px' : '0'};">
+                    <div style="position: absolute; left: -24px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--red); border: 2px solid white; box-shadow: 0 0 0 2px var(--red);"></div>
+                    ${index < customer.purchases.length - 1 ? '<div style="position: absolute; left: -19px; top: 14px; bottom: 0; width: 2px; background: var(--gray-medium);"></div>' : ''}
+                    <div class="purchase-item" style="border: 1px solid var(--gray-medium); border-radius: 8px; padding: 12px;">
+                      <div class="purchase-info">
+                        <img src="${p.beat_cover || 'https://via.placeholder.com/40'}" class="purchase-cover" alt="">
+                        <div>
+                          <div style="font-size: 11px; color: var(--gray-dark); margin-bottom: 4px;">
+                            <i data-lucide="shopping-cart" style="width:10px;height:10px;vertical-align:middle;"></i>
+                            Purchased
+                          </div>
+                          <div style="font-weight: 500;">${p.beat_title}</div>
+                          <div style="font-size: 12px; color: var(--gray-dark); text-transform: capitalize;">${p.license} License</div>
+                        </div>
+                      </div>
+                      <div style="text-align: right;">
+                        <div style="font-weight: 600; color: var(--red);">$${(p.amount / 100).toFixed(2)}</div>
+                        <div style="font-size: 11px; color: var(--gray-dark);">${new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+                ${customer.purchases.length === 0 ? '<div style="color: var(--gray-dark); font-size: 13px;">No activity yet</div>' : ''}
+              </div>
+            </div>
+
+            <div class="tag-manager">
+              <h4>Tags</h4>
+              <div class="tag-input-row">
+                <select class="form-select" id="addTagSelect" style="flex:1;">
+                  <option value="">Add a tag...</option>
+                  ${allTags.filter(t => !customer.tags.includes(t.id)).map(t =>
+                    `<option value="${t.id}">${t.name}</option>`
+                  ).join('')}
+                </select>
+                <button class="btn btn-primary btn-small" onclick="addTagToCustomer('${customer.email}')">Add</button>
+                <button class="btn btn-secondary btn-small" onclick="openTagManager()">
+                  <i data-lucide="settings" style="width:14px;height:14px;"></i>
+                </button>
+              </div>
+              <div class="tag-list" id="customerTagList">
+                ${customer.tags.map(tagId => {
+                  const tag = allTags.find(t => t.id === tagId);
+                  return tag ? `
+                    <span class="editable-tag" style="background: ${tag.color}20; color: ${tag.color};">
+                      ${tag.name}
+                      <span class="remove-tag" onclick="removeTagFromCustomer('${customer.email}', '${tag.id}')">
+                        <i data-lucide="x" style="width:12px;height:12px;"></i>
+                      </span>
+                    </span>
+                  ` : '';
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeCustomerDetail();
+      });
+    }
+
+    function closeCustomerDetail() {
+      document.getElementById('customerDetailModal')?.remove();
+      renderCustomers();
+    }
+
+    function addTagToCustomer(email) {
+      const select = document.getElementById('addTagSelect');
+      const tagId = select.value;
+      if (!tagId) return;
+
+      const customer = allCustomers.find(c => c.email === email);
+      if (customer && !customer.tags.includes(tagId)) {
+        customer.tags.push(tagId);
+        saveCustomerMeta();
+        closeCustomerDetail();
+        openCustomerDetail(email);
+      }
+    }
+
+    function removeTagFromCustomer(email, tagId) {
+      const customer = allCustomers.find(c => c.email === email);
+      if (customer) {
+        customer.tags = customer.tags.filter(t => t !== tagId);
+        saveCustomerMeta();
+        closeCustomerDetail();
+        openCustomerDetail(email);
+      }
+    }
+
+    function openTagManager() {
+      closeCustomerDetail();
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'tagManagerModal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Manage Tags</h3>
+            <button class="modal-close" onclick="closeTagManager()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin-bottom: 12px;">Create New Tag</h4>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" class="form-input" id="newTagName" placeholder="Tag name">
+                <button class="btn btn-primary" onclick="createTag()">Create</button>
+              </div>
+              <div class="color-options" id="colorOptions">
+                ${tagColors.map((color, i) => `
+                  <div class="color-option ${i === 0 ? 'selected' : ''}" style="background: ${color};" data-color="${color}" onclick="selectTagColor('${color}')"></div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div>
+              <h4 style="margin-bottom: 12px;">Existing Tags</h4>
+              <div id="existingTags">
+                ${allTags.map(tag => `
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-medium);">
+                    <span class="tag-dot" style="background: ${tag.color}; width: 16px; height: 16px;"></span>
+                    <span style="flex: 1;">${tag.name}</span>
+                    <button class="btn btn-small btn-secondary" onclick="deleteTag('${tag.id}')">
+                      <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    function closeTagManager() {
+      document.getElementById('tagManagerModal')?.remove();
+      updateTagFilterOptions();
+    }
+
+    let selectedTagColor = tagColors[0];
+
+    function selectTagColor(color) {
+      selectedTagColor = color;
+      document.querySelectorAll('.color-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.color === color);
+      });
+    }
+
+    function createTag() {
+      const name = document.getElementById('newTagName').value.trim();
+      if (!name) return;
+
+      const newTag = {
+        id: Date.now().toString(),
+        name: name,
+        color: selectedTagColor
+      };
+      allTags.push(newTag);
+      saveTags();
+      closeTagManager();
+      openTagManager();
+    }
+
+    function deleteTag(tagId) {
+      allTags = allTags.filter(t => t.id !== tagId);
+      // Remove tag from all customers
+      allCustomers.forEach(c => {
+        c.tags = c.tags.filter(t => t !== tagId);
+      });
+      saveTags();
+      saveCustomerMeta();
+      closeTagManager();
+      openTagManager();
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sort-dropdown')) {
+        document.getElementById('sortMenu')?.classList.remove('open');
+      }
+      if (!e.target.closest('#tagFilterBtn') && !e.target.closest('#tagFilterMenu')) {
+        document.getElementById('tagFilterMenu')?.classList.remove('open');
+      }
+    });
+
+    // CRM-014: Email customer directly
+    function emailCustomer(email, name) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'emailModal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Send Email to ${name}</h3>
+            <button class="modal-close" onclick="document.getElementById('emailModal').remove()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">To</label>
+              <input type="email" class="form-input" value="${email}" readonly style="background: var(--gray-light);">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input type="text" class="form-input" id="emailSubject" placeholder="Enter subject...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message</label>
+              <textarea class="form-input" id="emailMessage" rows="6" placeholder="Write your message..."></textarea>
+            </div>
+            <div id="emailError"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('emailModal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="sendCustomerEmail('${email}')">
+              <i data-lucide="send" style="width:14px;height:14px;"></i> Send Email
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    async function sendCustomerEmail(toEmail) {
+      const subject = document.getElementById('emailSubject').value;
+      const message = document.getElementById('emailMessage').value;
+      const errorDiv = document.getElementById('emailError');
+
+      if (!subject || !message) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please fill in subject and message</div>';
+        return;
+      }
+
+      // For now, open default email client as fallback
+      // In production, this would send via SendGrid/platform email
+      const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+      window.open(mailtoLink);
+
+      document.getElementById('emailModal').remove();
+      showToast('Opening email client...', 'info');
+    }
+
+    // CRM-017: Export customers to CSV
+    function exportCustomersCSV() {
+      if (allCustomers.length === 0) {
+        showToast('No customers to export', 'error');
+        return;
+      }
+
+      // Get filtered customers (current view)
+      const filtered = getFilteredCustomers();
+
+      // Create CSV headers
+      const headers = ['Name', 'Email', 'Total Purchases', 'Total Spent', 'First Purchase', 'Last Purchase', 'Tags', 'Starred'];
+
+      // Create CSV rows
+      const rows = filtered.map(customer => {
+        const tags = customer.tags
+          .map(tagId => allTags.find(t => t.id === tagId)?.name || '')
+          .filter(Boolean)
+          .join('; ');
+
+        return [
+          customer.name || '',
+          customer.email,
+          customer.purchases?.length || 0,
+          `$${((customer.totalSpent || 0) / 100).toFixed(2)}`,
+          customer.firstPurchase ? new Date(customer.firstPurchase).toLocaleDateString() : '',
+          customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString() : '',
+          tags,
+          customer.starred ? 'Yes' : 'No'
+        ];
+      });
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `customers_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast(`Exported ${filtered.length} customers to CSV`, 'success');
+    }
+
+    // Helper to get filtered customers
+    function getFilteredCustomers() {
+      let filtered = [...allCustomers];
+
+      if (currentFilters.search) {
+        const search = currentFilters.search.toLowerCase();
+        filtered = filtered.filter(c =>
+          (c.name && c.name.toLowerCase().includes(search)) ||
+          c.email.toLowerCase().includes(search)
+        );
+      }
+
+      if (currentFilters.tag) {
+        filtered = filtered.filter(c => c.tags.includes(currentFilters.tag));
+      }
+
+      if (currentFilters.starred) {
+        filtered = filtered.filter(c => c.starred);
+      }
+
+      return filtered;
+    }
+
+    // RPB-113: Show/Close Invite Modal
+    function showInviteModal() {
+      document.getElementById('invite-modal').classList.remove('hidden');
+      document.getElementById('invite-email').value = '';
+      document.getElementById('inviteError').innerHTML = '';
+      lucide.createIcons();
+    }
+
+    function closeInviteModal() {
+      document.getElementById('invite-modal').classList.add('hidden');
+      document.getElementById('invite-email').value = '';
+      document.getElementById('inviteError').innerHTML = '';
+    }
+
+    // RPB-114: Send Invitation
+    async function sendInvitation() {
+      const email = document.getElementById('invite-email').value.trim();
+      const errorDiv = document.getElementById('inviteError');
+
+      if (!email) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter an email address</div>';
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a valid email address</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch('/.netlify/functions/send-invitation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            producerId: currentProducer.id,
+            storeName: currentProducer.store_name || currentProducer.name,
+            storeUrl: 'https://' + currentProducer.username + '.redpine.systems'
+          })
+        });
+
+        if (response.ok) {
+          showToast('Invitation sent!', 'success');
+          closeInviteModal();
+        } else {
+          throw new Error('Failed to send invitation');
+        }
+      } catch (e) {
+        console.error('Invitation error:', e);
+        errorDiv.innerHTML = '<div class="alert alert-error">Failed to send invitation. Please try again.</div>';
+      }
+    }
+
+    // CRM-001: Add Customer manually
+    function showAddCustomerModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'addCustomerModal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 480px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Add New Customer</h3>
+            <button class="modal-close" onclick="document.getElementById('addCustomerModal').remove()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" class="form-input" id="newCustomerName" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address *</label>
+              <input type="email" class="form-input" id="newCustomerEmail" placeholder="john@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notes (optional)</label>
+              <textarea class="form-input" id="newCustomerNotes" rows="3" placeholder="Add any notes about this customer..."></textarea>
+            </div>
+            <div id="addCustomerError" style="margin-top: 16px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('addCustomerModal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="addNewCustomer()">
+              <i data-lucide="user-plus" style="width:14px;height:14px;"></i> Add Customer
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    async function addNewCustomer() {
+      const name = document.getElementById('newCustomerName').value.trim();
+      const email = document.getElementById('newCustomerEmail').value.trim();
+      const notes = document.getElementById('newCustomerNotes').value.trim();
+      const errorDiv = document.getElementById('addCustomerError');
+
+      if (!name || !email) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter both name and email</div>';
+        return;
+      }
+
+      // Basic email validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a valid email address</div>';
+        return;
+      }
+
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return;
+
+        // Check if email already exists
+        const { data: existing } = await supabaseClient
+          .from('customers')
+          .select('id')
+          .eq('producer_id', producer.id)
+          .eq('email', email)
+          .single();
+
+        if (existing) {
+          errorDiv.innerHTML = '<div class="alert alert-error">A customer with this email already exists</div>';
+          return;
+        }
+
+        // Insert new customer
+        const { error } = await supabaseClient
+          .from('customers')
+          .insert([{
+            producer_id: producer.id,
+            name: name,
+            email: email,
+            notes: notes || null,
+            source: 'manual'
+          }]);
+
+        if (error) throw error;
+
+        // Close modal and refresh
+        document.getElementById('addCustomerModal').remove();
+        showToast('Customer added successfully!', 'success');
+        loadCustomers();
+
+      } catch (err) {
+        console.error('Error adding customer:', err);
+        errorDiv.innerHTML = '<div class="alert alert-error">Failed to add customer: ' + err.message + '</div>';
+      }
+    }
+
+    // CRM-016: Import customers from CSV
+    function showImportModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'importModal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Import Customers from CSV</h3>
+            <button class="modal-close" onclick="document.getElementById('importModal').remove()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div style="margin-bottom: 16px; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+              <strong>CSV Format Requirements:</strong>
+              <ul style="margin: 8px 0 0 20px; font-size: 13px; color: var(--gray-dark);">
+                <li>First row should contain headers</li>
+                <li>Required columns: <code>Name</code> and <code>Email</code></li>
+                <li>Duplicate emails will be skipped</li>
+              </ul>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Upload CSV File</label>
+              <input type="file" id="csvFileInput" accept=".csv" class="form-input" onchange="previewCSV()">
+            </div>
+
+            <div id="csvPreview" style="display: none;">
+              <h4 style="margin-bottom: 12px;">Column Mapping</h4>
+              <div id="columnMapping"></div>
+
+              <div style="margin-top: 16px;">
+                <h4 style="margin-bottom: 12px;">Preview (first 5 rows)</h4>
+                <div id="csvPreviewTable" style="overflow-x: auto; max-height: 200px;"></div>
+              </div>
+
+              <div id="importSummary" style="margin-top: 16px; padding: 12px; background: var(--gray-light); border-radius: 6px;"></div>
+            </div>
+
+            <div id="importError" style="margin-top: 16px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('importModal').remove()">Cancel</button>
+            <button class="btn btn-primary" id="importBtn" onclick="importCustomers()" disabled>
+              <i data-lucide="upload" style="width:14px;height:14px;"></i> Import Customers
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    let csvData = null;
+    let csvHeaders = [];
+    let columnMap = { name: -1, email: -1 };
+
+    function previewCSV() {
+      const fileInput = document.getElementById('csvFileInput');
+      const file = fileInput.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+
+        if (rows.length < 2) {
+          document.getElementById('importError').innerHTML =
+            '<div class="alert alert-error">CSV file must have headers and at least one data row</div>';
+          return;
+        }
+
+        csvHeaders = rows[0];
+        csvData = rows.slice(1);
+
+        // Auto-detect column mapping
+        csvHeaders.forEach((header, i) => {
+          const h = header.toLowerCase().trim();
+          if (h === 'name' || h === 'customer name' || h === 'full name') {
+            columnMap.name = i;
+          }
+          if (h === 'email' || h === 'customer email' || h === 'e-mail') {
+            columnMap.email = i;
+          }
+        });
+
+        // Show column mapping dropdowns
+        document.getElementById('columnMapping').innerHTML = `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Name Column</label>
+              <select class="form-select" id="nameColumn" onchange="updateColumnMap()">
+                <option value="-1">-- Select --</option>
+                ${csvHeaders.map((h, i) => `<option value="${i}" ${columnMap.name === i ? 'selected' : ''}>${h}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Email Column</label>
+              <select class="form-select" id="emailColumn" onchange="updateColumnMap()">
+                <option value="-1">-- Select --</option>
+                ${csvHeaders.map((h, i) => `<option value="${i}" ${columnMap.email === i ? 'selected' : ''}>${h}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        `;
+
+        // Show preview table
+        const previewRows = csvData.slice(0, 5);
+        document.getElementById('csvPreviewTable').innerHTML = `
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr>${csvHeaders.map(h => `<th style="padding: 8px; border-bottom: 2px solid var(--gray-medium); text-align: left;">${h}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${previewRows.map(row =>
+                `<tr>${row.map(cell => `<td style="padding: 8px; border-bottom: 1px solid var(--gray-medium);">${cell}</td>`).join('')}</tr>`
+              ).join('')}
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('csvPreview').style.display = 'block';
+        updateColumnMap();
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let currentRow = [];
+      let currentCell = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (inQuotes) {
+          if (char === '"' && nextChar === '"') {
+            currentCell += '"';
+            i++; // Skip next quote
+          } else if (char === '"') {
+            inQuotes = false;
+          } else {
+            currentCell += char;
+          }
+        } else {
+          if (char === '"') {
+            inQuotes = true;
+          } else if (char === ',') {
+            currentRow.push(currentCell.trim());
+            currentCell = '';
+          } else if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+            currentRow.push(currentCell.trim());
+            if (currentRow.some(cell => cell)) { // Skip empty rows
+              rows.push(currentRow);
+            }
+            currentRow = [];
+            currentCell = '';
+            if (char === '\r') i++; // Skip \n in \r\n
+          } else if (char !== '\r') {
+            currentCell += char;
+          }
+        }
+      }
+
+      // Add last row if not empty
+      if (currentCell || currentRow.length > 0) {
+        currentRow.push(currentCell.trim());
+        if (currentRow.some(cell => cell)) {
+          rows.push(currentRow);
+        }
+      }
+
+      return rows;
+    }
+
+    function updateColumnMap() {
+      columnMap.name = parseInt(document.getElementById('nameColumn')?.value || -1);
+      columnMap.email = parseInt(document.getElementById('emailColumn')?.value || -1);
+
+      const emailValid = columnMap.email >= 0;
+      const importBtn = document.getElementById('importBtn');
+      importBtn.disabled = !emailValid;
+
+      // Count valid and duplicate entries
+      const existingEmails = new Set(allCustomers.map(c => c.email.toLowerCase()));
+      let validCount = 0;
+      let duplicateCount = 0;
+      let invalidCount = 0;
+
+      csvData.forEach(row => {
+        const email = columnMap.email >= 0 ? (row[columnMap.email] || '').trim().toLowerCase() : '';
+        if (!email || !email.includes('@')) {
+          invalidCount++;
+        } else if (existingEmails.has(email)) {
+          duplicateCount++;
+        } else {
+          validCount++;
+          existingEmails.add(email); // Track within import to catch internal duplicates
+        }
+      });
+
+      document.getElementById('importSummary').innerHTML = `
+        <div style="display: flex; gap: 24px;">
+          <div><strong>${csvData.length}</strong> total rows</div>
+          <div style="color: #10B981;"><strong>${validCount}</strong> new to import</div>
+          <div style="color: #F59E0B;"><strong>${duplicateCount}</strong> duplicates (skip)</div>
+          ${invalidCount > 0 ? `<div style="color: #EF4444;"><strong>${invalidCount}</strong> invalid</div>` : ''}
+        </div>
+      `;
+    }
+
+    async function importCustomers() {
+      if (columnMap.email < 0) {
+        document.getElementById('importError').innerHTML =
+          '<div class="alert alert-error">Please select the Email column</div>';
+        return;
+      }
+
+      const importBtn = document.getElementById('importBtn');
+      importBtn.disabled = true;
+      importBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;"></span> Importing...';
+
+      const existingEmails = new Set(allCustomers.map(c => c.email.toLowerCase()));
+      const newCustomers = [];
+
+      csvData.forEach(row => {
+        const email = (row[columnMap.email] || '').trim().toLowerCase();
+        const name = columnMap.name >= 0 ? (row[columnMap.name] || '').trim() : email.split('@')[0];
+
+        if (email && email.includes('@') && !existingEmails.has(email)) {
+          existingEmails.add(email);
+          newCustomers.push({
+            email: email,
+            name: name || email.split('@')[0],
+            total_spent: 0,
+            purchase_count: 0,
+            purchases: [],
+            first_purchase: null,
+            last_purchase: null,
+            starred: false,
+            tags: []
+          });
+        }
+      });
+
+      // Add to allCustomers
+      allCustomers.push(...newCustomers);
+      saveCustomerMeta();
+
+      document.getElementById('importModal').remove();
+      showToast(`Imported ${newCustomers.length} new customers`, 'success');
+      renderCustomers();
+    }
+
+    // CRM-015: Bulk email to customers
+    function showBulkEmailModal() {
+      const filtered = getFilteredCustomers();
+
+      if (filtered.length === 0) {
+        showToast('No customers to email', 'error');
+        return;
+      }
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'bulkEmailModal';
+      modal.innerHTML = `
+        <div class="modal-content large">
+          <div class="modal-header">
+            <h3 class="modal-title">Send Bulk Email</h3>
+            <button class="modal-close" onclick="document.getElementById('bulkEmailModal').remove()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div style="padding: 12px 16px; background: var(--gray-light); border-radius: 8px; margin-bottom: 16px;">
+              <strong>${filtered.length}</strong> customers will receive this email
+              ${currentFilters.search || currentFilters.tag || currentFilters.starred ?
+                '<div style="font-size: 12px; color: var(--gray-dark);">Based on current filters</div>' : ''}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input type="text" class="form-input" id="bulkEmailSubject" placeholder="Enter subject...">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Message</label>
+              <textarea class="form-input" id="bulkEmailMessage" rows="8" placeholder="Write your message...
+
+You can use these variables:
+{name} - Customer's name
+{email} - Customer's email"></textarea>
+            </div>
+
+            <div style="padding: 12px; background: var(--gray-light); border-radius: 6px; font-size: 12px; color: var(--gray-dark);">
+              <i data-lucide="info" style="width:14px;height:14px;vertical-align:middle;"></i>
+              The email will open in your default email client with all recipients in BCC for privacy.
+            </div>
+
+            <div id="bulkEmailError" style="margin-top: 12px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('bulkEmailModal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="sendBulkEmail()">
+              <i data-lucide="send" style="width:14px;height:14px;"></i> Send to ${filtered.length} Customers
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+    }
+
+    function sendBulkEmail() {
+      const subject = document.getElementById('bulkEmailSubject').value.trim();
+      const message = document.getElementById('bulkEmailMessage').value.trim();
+      const errorDiv = document.getElementById('bulkEmailError');
+
+      if (!subject) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a subject</div>';
+        return;
+      }
+
+      if (!message) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a message</div>';
+        return;
+      }
+
+      const filtered = getFilteredCustomers();
+      const emails = filtered.map(c => c.email).join(',');
+
+      // Create mailto link with BCC for privacy
+      // Using BCC so recipients don't see each other's emails
+      const mailtoLink = `mailto:?bcc=${encodeURIComponent(emails)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+
+      window.open(mailtoLink);
+      document.getElementById('bulkEmailModal').remove();
+      showToast(`Opening email client for ${filtered.length} recipients`, 'info');
+    }
+
+    loadCustomers();
+  </script>
+</body>
+</html>

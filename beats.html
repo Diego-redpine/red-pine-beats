@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Beats - Red Pine</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- BP-006: Wavesurfer.js for waveforms -->
+  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <style>
+    /* MOBILE-003: Pull to refresh styles */
+    .pull-refresh-indicator {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(-60px);
+      background: var(--red);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 0 0 12px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pull-refresh-indicator.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+    .pull-refresh-indicator.refreshing .spinner {
+      width: 16px;
+      height: 16px;
+      border-width: 2px;
+    }
+
+    /* BP-006: Beat list waveform styles */
+    .beat-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--gray-medium);
+      transition: all 0.3s ease-out;
+    }
+    .beat-row:hover {
+      background: var(--gray-light);
+    }
+    .beat-cover-large {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .beat-info {
+      min-width: 150px;
+    }
+    .beat-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    .beat-price {
+      color: var(--red);
+      font-weight: 700;
+    }
+    .beat-waveform-container {
+      flex: 1;
+      min-width: 200px;
+      max-width: 400px;
+      height: 60px;
+      position: relative;
+      cursor: pointer;
+      background: var(--gray-light);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .beat-waveform {
+      width: 100%;
+      height: 100%;
+    }
+    .waveform-play-btn {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: var(--red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .beat-waveform-container:hover .waveform-play-btn {
+      opacity: 0.9;
+    }
+    .beat-waveform-container.playing .waveform-play-btn {
+      opacity: 1;
+    }
+    .beat-stats {
+      display: flex;
+      gap: 24px;
+      min-width: 100px;
+    }
+    .beat-stat {
+      text-align: center;
+    }
+    .beat-stat-value {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .beat-stat-label {
+      font-size: 11px;
+      color: var(--gray-dark);
+      text-transform: uppercase;
+    }
+    .beat-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .beats-list-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 24px;
+      background: var(--gray-light);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+    }
+    .beats-list-header .beat-info { min-width: 150px; }
+    .beats-list-header .beat-waveform-container {
+      background: transparent;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <button class="hamburger-menu" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+    <i data-lucide="menu"></i>
+  </button>
+  <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/images/red_pine_logo.png" alt="Red Pine" id="brandLogo">
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+          <li><a href="beats.html" class="active"><i data-lucide="music"></i> Beats</a></li>
+          <li><a href="store.html"><i data-lucide="store"></i> Store</a></li>
+          <li><a href="customers.html"><i data-lucide="users"></i> Customers</a></li>
+          <li><a href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></li>
+          <li><a href="settings.html"><i data-lucide="settings"></i> Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn"><i data-lucide="log-out"></i> Logout</button>
+      </div>
+
+      <div class="powered-by">
+        <a href="https://redpine.systems" target="_blank">
+          <span>Powered by</span>
+          <img src="assets/images/red_pine_logo.png" alt="Red Pine">
+        </a>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <h1 class="page-title">My Beats</h1>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div class="theme-toggle-wrapper">
+            <i data-lucide="sun" style="width:16px;height:16px;"></i>
+            <label class="theme-toggle">
+              <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+              <span class="theme-toggle-slider"></span>
+            </label>
+            <i data-lucide="moon" style="width:16px;height:16px;"></i>
+          </div>
+          <button class="btn btn-secondary" onclick="openBulkUploadModal()"><i data-lucide="folder-up"></i> Bulk Upload</button>
+          <button class="btn btn-primary" onclick="openUploadModal()"><i data-lucide="upload"></i> Upload New Beat</button>
+        </div>
+      </div>
+      
+      <!-- BEAT-021: Filter and Sort Options -->
+      <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 200px;">
+          <input type="text" class="form-input" id="beatSearchInput" placeholder="Search beats..." oninput="filterBeats()">
+        </div>
+        <select class="form-select" id="beatSortSelect" style="width: auto;" onchange="filterBeats()">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="sales">Most Sales</option>
+          <option value="title">Title A-Z</option>
+        </select>
+        <select class="form-select" id="beatGenreFilter" style="width: auto;" onchange="filterBeats()">
+          <option value="">All Genres</option>
+        </select>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="showPublicOnly" onchange="filterBeats()">
+          <span style="font-size: 14px;">Public Only</span>
+        </label>
+      </div>
+
+      <!-- BEAT-022: Collections Section -->
+      <div class="table-container" style="margin-bottom: 20px;">
+        <div class="table-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>Collections</h2>
+          <button class="btn btn-secondary btn-small" onclick="openCollectionModal()">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i> New Collection
+          </button>
+        </div>
+        <div id="collectionsGrid" style="padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+          <div style="padding: 32px; text-align: center; color: #6B7280; grid-column: 1/-1;">
+            Loading collections...
+          </div>
+        </div>
+      </div>
+
+      <!-- BP-006: Redesigned Beats List with Waveforms -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>All Beats</h2>
+        </div>
+        <div class="beats-list-header">
+          <div style="width: 80px;">Cover</div>
+          <div class="beat-info">Beat Info</div>
+          <div class="beat-waveform-container">Preview</div>
+          <div class="beat-stats">Stats</div>
+          <div class="beat-actions">Actions</div>
+        </div>
+        <div id="beatsListBody">
+          <div style="padding: 32px; text-align: center;">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/branding.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script>lucide.createIcons();</script>
+  <script>
+    // BP-006: Store wavesurfer instances
+    const wavesurfers = {};
+    let currentlyPlaying = null;
+
+    async function loadBeats() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      try {
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id, primary_color')
+          .eq('email', user.email)
+          .single();
+
+        const { data: beats } = await supabaseClient
+          .from('beats')
+          .select('*')
+          .eq('producer_id', producer.id)
+          .order('created_at', { ascending: false });
+
+        const beatsWithSales = await Promise.all(
+          (beats || []).map(async (beat) => {
+            const { data: sales } = await supabaseClient
+              .from('sales')
+              .select('amount')
+              .eq('beat_id', beat.id);
+
+            return {
+              ...beat,
+              sales_count: sales?.length || 0,
+              revenue: sales?.reduce((sum, sale) => sum + sale.amount, 0) || 0
+            };
+          })
+        );
+
+        const primaryColor = producer.primary_color || '#CE0707';
+        document.documentElement.style.setProperty('--red', primaryColor);
+
+        // Store beats for filtering and populate genres
+        allBeats = beatsWithSales;
+        allGenres = new Set(beatsWithSales.filter(b => b.genre).map(b => b.genre));
+        populateGenreFilter();
+
+        if (beatsWithSales.length > 0) {
+          renderBeats(beatsWithSales);
+        } else {
+          const listBody = document.getElementById('beatsListBody');
+          listBody.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon"><i data-lucide="music" style="width:48px;height:48px;"></i></div>
+              <div class="empty-state-title">No beats yet</div>
+              <div class="empty-state-text">Upload your first beat to get started!</div>
+              <button class="btn btn-primary" onclick="openUploadModal()">
+                <i data-lucide="upload"></i> Upload Beat
+              </button>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      } catch (error) {
+        console.error('Error loading beats:', error);
+      }
+    }
+
+    // BP-006: Initialize waveform for a beat
+    function initWaveform(beatId, audioUrl, primaryColor) {
+      const container = document.getElementById(`waveform-${beatId}`);
+      if (!container) return;
+
+      try {
+        const ws = WaveSurfer.create({
+          container: container,
+          waveColor: '#ddd',
+          progressColor: primaryColor,
+          cursorColor: primaryColor,
+          barWidth: 2,
+          barGap: 1,
+          barRadius: 2,
+          height: 60,
+          normalize: true,
+          hideScrollbar: true,
+        });
+
+        ws.load(audioUrl);
+
+        ws.on('finish', () => {
+          const playBtn = document.getElementById(`play-btn-${beatId}`);
+          const waveContainer = document.getElementById(`waveform-container-${beatId}`);
+          if (playBtn) playBtn.innerHTML = '<i data-lucide="play" style="width:16px;height:16px;margin-left:2px;"></i>';
+          if (waveContainer) waveContainer.classList.remove('playing');
+          lucide.createIcons();
+          currentlyPlaying = null;
+        });
+
+        wavesurfers[beatId] = ws;
+      } catch (e) {
+        console.error('Error initializing waveform:', e);
+      }
+    }
+
+    // BP-006: Toggle play/pause
+    function togglePlay(beatId) {
+      const ws = wavesurfers[beatId];
+      if (!ws) return;
+
+      // Stop any currently playing
+      if (currentlyPlaying && currentlyPlaying !== beatId) {
+        const prevWs = wavesurfers[currentlyPlaying];
+        if (prevWs) prevWs.pause();
+        const prevBtn = document.getElementById(`play-btn-${currentlyPlaying}`);
+        const prevContainer = document.getElementById(`waveform-container-${currentlyPlaying}`);
+        if (prevBtn) prevBtn.innerHTML = '<i data-lucide="play" style="width:16px;height:16px;margin-left:2px;"></i>';
+        if (prevContainer) prevContainer.classList.remove('playing');
+      }
+
+      const playBtn = document.getElementById(`play-btn-${beatId}`);
+      const waveContainer = document.getElementById(`waveform-container-${beatId}`);
+
+      if (ws.isPlaying()) {
+        ws.pause();
+        if (playBtn) playBtn.innerHTML = '<i data-lucide="play" style="width:16px;height:16px;margin-left:2px;"></i>';
+        if (waveContainer) waveContainer.classList.remove('playing');
+        currentlyPlaying = null;
+      } else {
+        ws.play();
+        if (playBtn) playBtn.innerHTML = '<i data-lucide="pause" style="width:16px;height:16px;"></i>';
+        if (waveContainer) waveContainer.classList.add('playing');
+        currentlyPlaying = beatId;
+      }
+      lucide.createIcons();
+    }
+    
+    // BP-007: Open comprehensive edit modal
+    async function openEditModal(beatId) {
+      const { data: beat } = await supabaseClient
+        .from('beats')
+        .select('*')
+        .eq('id', beatId)
+        .single();
+
+      if (!beat) {
+        alert('Beat not found');
+        return;
+      }
+
+      // Get sales data for this beat
+      const { data: sales } = await supabaseClient
+        .from('sales')
+        .select('amount')
+        .eq('beat_id', beatId);
+
+      const salesCount = sales?.length || 0;
+      const revenue = sales?.reduce((sum, sale) => sum + sale.amount, 0) || 0;
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'editBeatModal';
+      modal.innerHTML = `
+        <div class="modal-content large">
+          <div class="modal-header">
+            <h3 class="modal-title">Edit Beat</h3>
+            <button class="modal-close" onclick="closeEditModal()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div style="display: flex; gap: 24px; margin-bottom: 24px;">
+              <div style="flex-shrink: 0;">
+                <img src="${beat.cover_art_url || 'https://via.placeholder.com/160'}"
+                     alt="${beat.title}"
+                     style="width: 160px; height: 160px; border-radius: 12px; object-fit: cover;">
+                <button class="btn btn-secondary btn-small" style="width: 100%; margin-top: 8px;" onclick="document.getElementById('editCoverArt').click()">
+                  <i data-lucide="image" style="width:14px;height:14px;"></i> Change Cover
+                </button>
+                <input type="file" id="editCoverArt" accept="image/*" style="display: none;">
+              </div>
+              <div style="flex: 1;">
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-input" id="editBeatTitle" value="${beat.title || ''}">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">BPM</label>
+                    <input type="number" class="form-input" id="editBeatBpm" value="${beat.bpm || ''}">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Key</label>
+                    <select class="form-select" id="editBeatKey">
+                      <option value="">Select key...</option>
+                      ${['C Major', 'C Minor', 'D Major', 'D Minor', 'E Major', 'E Minor', 'F Major', 'F Minor', 'G Major', 'G Minor', 'A Major', 'A Minor', 'B Major', 'B Minor'].map(k =>
+                        `<option value="${k}" ${beat.key === k ? 'selected' : ''}>${k}</option>`
+                      ).join('')}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Genre</label>
+                  <input type="text" class="form-input" id="editBeatGenre" value="${beat.genre || ''}">
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+              <div style="flex: 1; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700;">${(beat.views || 0).toLocaleString()}</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Views</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700;">${salesCount}</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Sales</div>
+              </div>
+              <div style="flex: 1; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700; color: var(--red);">$${(revenue / 100).toFixed(2)}</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Revenue</div>
+              </div>
+            </div>
+
+            <!-- BEAT-016: Visibility Toggle -->
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+              <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1;">
+                <input type="checkbox" id="editBeatPublished" ${beat.is_published !== false ? 'checked' : ''}>
+                <div>
+                  <div style="font-weight: 600;">Public Beat</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);">When enabled, this beat will be visible on your public store</div>
+                </div>
+              </label>
+              <i data-lucide="${beat.is_published !== false ? 'eye' : 'eye-off'}" style="width: 24px; height: 24px; color: var(--gray-dark);"></i>
+            </div>
+
+            <!-- BEAT-023: Schedule Release -->
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 16px; background: var(--gray-light); border-radius: 8px;">
+              <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                <input type="checkbox" id="editScheduleRelease" ${beat.scheduled_release ? 'checked' : ''} onchange="toggleScheduleRelease()">
+                <div>
+                  <div style="font-weight: 600;">Schedule Release</div>
+                  <div style="font-size: 12px; color: var(--gray-dark);">Set a future date for this beat to go public</div>
+                </div>
+              </label>
+              <input type="datetime-local" id="editReleaseDate" class="form-input" style="width: 200px; ${beat.scheduled_release ? '' : 'display: none;'}" value="${beat.scheduled_release ? new Date(beat.scheduled_release).toISOString().slice(0, 16) : ''}">
+              <i data-lucide="calendar-clock" style="width: 24px; height: 24px; color: var(--gray-dark);"></i>
+            </div>
+
+            <!-- BEAT-024: Related Beats -->
+            <h4 style="margin-bottom: 12px; font-size: 16px;">Related Beats</h4>
+            <div style="margin-bottom: 24px;">
+              <p style="font-size: 12px; color: var(--gray-dark); margin-bottom: 12px;">Select up to 3 related beats to show on your public store</p>
+              <select id="editRelatedBeats" class="form-select" multiple style="height: 100px;">
+                <!-- Options populated via JS -->
+              </select>
+              <div id="relatedBeatsPreview" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
+            </div>
+
+            <!-- Pricing -->
+            <h4 style="margin-bottom: 16px; font-size: 16px;">Pricing Tiers</h4>
+            <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+              <div style="flex: 1; padding: 16px; border: 1px solid var(--gray-medium); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <input type="checkbox" id="editPriceBasicEnabled" ${beat.price_basic ? 'checked' : ''}>
+                  <span style="font-weight: 600;">Basic Lease</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span>$</span>
+                  <input type="number" class="form-input" id="editPriceBasic" value="${beat.price_basic ? (beat.price_basic / 100) : '30'}" style="width: 80px;">
+                </div>
+              </div>
+              <div style="flex: 1; padding: 16px; border: 1px solid var(--gray-medium); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <input type="checkbox" id="editPricePremiumEnabled" ${beat.price_premium ? 'checked' : ''}>
+                  <span style="font-weight: 600;">Premium Lease</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span>$</span>
+                  <input type="number" class="form-input" id="editPricePremium" value="${beat.price_premium ? (beat.price_premium / 100) : '100'}" style="width: 80px;">
+                </div>
+              </div>
+              <div style="flex: 1; padding: 16px; border: 1px solid var(--gray-medium); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <input type="checkbox" id="editPriceExclusiveEnabled" ${beat.price_exclusive ? 'checked' : ''}>
+                  <span style="font-weight: 600;">Exclusive</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <span>$</span>
+                  <input type="number" class="form-input" id="editPriceExclusive" value="${beat.price_exclusive ? (beat.price_exclusive / 100) : '500'}" style="width: 80px;">
+                </div>
+              </div>
+            </div>
+
+            <div id="editBeatError"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveBeatChanges('${beatId}')" id="saveBeatBtn">
+              <i data-lucide="save" style="width:16px;height:16px;"></i> Save Changes
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // BEAT-024: Populate related beats dropdown
+      const relatedSelect = document.getElementById('editRelatedBeats');
+      const otherBeats = allBeats.filter(b => b.id !== beatId);
+      relatedSelect.innerHTML = otherBeats.map(b =>
+        `<option value="${b.id}" ${(beat.related_beats || []).includes(b.id) ? 'selected' : ''}>${b.title}</option>`
+      ).join('');
+
+      // Update preview on change
+      relatedSelect.addEventListener('change', () => updateRelatedBeatsPreview());
+      updateRelatedBeatsPreview();
+
+      // Click outside to close
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeEditModal();
+      });
+    }
+
+    function updateRelatedBeatsPreview() {
+      const select = document.getElementById('editRelatedBeats');
+      const preview = document.getElementById('relatedBeatsPreview');
+      const selected = Array.from(select.selectedOptions).slice(0, 3);
+
+      if (selected.length > 3) {
+        showToast('Maximum 3 related beats allowed', 'error');
+      }
+
+      preview.innerHTML = selected.map(opt => {
+        const beat = allBeats.find(b => b.id === opt.value);
+        return beat ? `
+          <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--gray-light); border-radius: 6px; font-size: 12px;">
+            <img src="${beat.cover_art_url || 'https://via.placeholder.com/20'}" style="width: 20px; height: 20px; border-radius: 4px;">
+            ${beat.title}
+          </div>
+        ` : '';
+      }).join('');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editBeatModal')?.remove();
+    }
+
+    // BEAT-023: Toggle schedule release UI
+    function toggleScheduleRelease() {
+      const checkbox = document.getElementById('editScheduleRelease');
+      const dateInput = document.getElementById('editReleaseDate');
+      if (checkbox.checked) {
+        dateInput.style.display = 'block';
+        // Set default to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.value = tomorrow.toISOString().slice(0, 16);
+      } else {
+        dateInput.style.display = 'none';
+        dateInput.value = '';
+      }
+    }
+
+    async function saveBeatChanges(beatId) {
+      const saveBtn = document.getElementById('saveBeatBtn');
+      const errorDiv = document.getElementById('editBeatError');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<div class="spinner" style="width:16px;height:16px;"></div> Saving...';
+
+      try {
+        // BEAT-023: Handle scheduled release
+        const scheduleCheckbox = document.getElementById('editScheduleRelease');
+        const releaseDateInput = document.getElementById('editReleaseDate');
+        let scheduledRelease = null;
+        if (scheduleCheckbox && scheduleCheckbox.checked && releaseDateInput.value) {
+          scheduledRelease = new Date(releaseDateInput.value).toISOString();
+        }
+
+        // BEAT-024: Handle related beats (max 3)
+        const relatedSelect = document.getElementById('editRelatedBeats');
+        const relatedBeats = Array.from(relatedSelect?.selectedOptions || [])
+          .slice(0, 3)
+          .map(opt => opt.value);
+
+        const beatData = {
+          title: document.getElementById('editBeatTitle').value,
+          bpm: document.getElementById('editBeatBpm').value || null,
+          key: document.getElementById('editBeatKey').value || null,
+          genre: document.getElementById('editBeatGenre').value || null,
+          is_published: document.getElementById('editBeatPublished').checked,
+          scheduled_release: scheduledRelease,
+          related_beats: relatedBeats,
+          price_basic: document.getElementById('editPriceBasicEnabled').checked
+            ? parseInt(document.getElementById('editPriceBasic').value) * 100
+            : null,
+          price_premium: document.getElementById('editPricePremiumEnabled').checked
+            ? parseInt(document.getElementById('editPricePremium').value) * 100
+            : null,
+          price_exclusive: document.getElementById('editPriceExclusiveEnabled').checked
+            ? parseInt(document.getElementById('editPriceExclusive').value) * 100
+            : null,
+        };
+
+        // Handle cover art upload if changed
+        const coverFile = document.getElementById('editCoverArt').files[0];
+        if (coverFile) {
+          const user = await checkAuth();
+          const { data: producer } = await supabaseClient
+            .from('producers')
+            .select('id')
+            .eq('email', user.email)
+            .single();
+
+          const coverPath = `${producer.id}/${Date.now()}-${coverFile.name}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('cover-art')
+            .upload(coverPath, coverFile);
+
+          if (uploadError) throw uploadError;
+
+          const { data: coverUrl } = supabaseClient.storage
+            .from('cover-art')
+            .getPublicUrl(coverPath);
+
+          beatData.cover_art_url = coverUrl.publicUrl;
+        }
+
+        const { error } = await supabaseClient
+          .from('beats')
+          .update(beatData)
+          .eq('id', beatId);
+
+        if (error) throw error;
+
+        closeEditModal();
+        loadBeats();
+      } catch (error) {
+        console.error('Error saving beat:', error);
+        errorDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Save Changes';
+        lucide.createIcons();
+      }
+    }
+    
+    function deleteBeat(beatId, title) {
+      // Create custom delete modal
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Delete Beat</h3>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-text">Are you sure you want to delete <strong>"${title}"</strong>?</p>
+            <p class="modal-text" style="color: var(--red); font-size: 14px;">This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDeleteBeat('${beatId}')">Delete Beat</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    async function confirmDeleteBeat(beatId) {
+      try {
+        const { error } = await supabaseClient
+          .from('beats')
+          .delete()
+          .eq('id', beatId);
+        
+        if (error) throw error;
+        
+        // Close modal
+        document.querySelector('.modal-overlay').remove();
+        
+        // Show success message
+        const successModal = document.createElement('div');
+        successModal.className = 'modal-overlay';
+        successModal.innerHTML = `
+          <div class="modal-content" style="max-width: 350px;">
+            <div class="modal-body" style="text-align: center; padding: 32px;">
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: #10B981; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;"><i data-lucide="check" style="width:24px;height:24px;"></i></div>
+              <h3 style="margin-bottom: 8px;">Beat Deleted</h3>
+              <p style="color: var(--gray);">The beat has been removed from your library.</p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove(); loadBeats();">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successModal);
+      } catch (error) {
+        console.error('Error deleting beat:', error);
+        alert('Error deleting beat. Please try again.');
+      }
+    }
+    
+    // Store all beats for filtering
+    let allBeats = [];
+    let allGenres = new Set();
+
+    // BEAT-021: Filter and sort beats
+    function filterBeats() {
+      const searchTerm = document.getElementById('beatSearchInput').value.toLowerCase();
+      const sortBy = document.getElementById('beatSortSelect').value;
+      const genreFilter = document.getElementById('beatGenreFilter').value;
+      const publicOnly = document.getElementById('showPublicOnly').checked;
+
+      let filtered = [...allBeats];
+
+      // Filter by search term
+      if (searchTerm) {
+        filtered = filtered.filter(beat =>
+          beat.title.toLowerCase().includes(searchTerm) ||
+          (beat.genre && beat.genre.toLowerCase().includes(searchTerm))
+        );
+      }
+
+      // Filter by genre
+      if (genreFilter) {
+        filtered = filtered.filter(beat => beat.genre === genreFilter);
+      }
+
+      // Filter by public only
+      if (publicOnly) {
+        filtered = filtered.filter(beat => beat.is_published !== false);
+      }
+
+      // Sort
+      switch(sortBy) {
+        case 'oldest':
+          filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+          break;
+        case 'sales':
+          filtered.sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0));
+          break;
+        case 'title':
+          filtered.sort((a, b) => a.title.localeCompare(b.title));
+          break;
+        default: // newest
+          filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      }
+
+      renderBeats(filtered);
+    }
+
+    // BEAT-016: Toggle visibility
+    async function toggleVisibility(beatId, currentStatus) {
+      try {
+        const newStatus = currentStatus === false ? true : false;
+        const { error } = await supabaseClient
+          .from('beats')
+          .update({ is_published: newStatus })
+          .eq('id', beatId);
+
+        if (error) throw error;
+
+        // Update local data
+        const beat = allBeats.find(b => b.id === beatId);
+        if (beat) beat.is_published = newStatus;
+
+        filterBeats();
+        showToast(newStatus ? 'Beat is now public' : 'Beat is now private', 'success');
+      } catch (error) {
+        console.error('Error toggling visibility:', error);
+        showToast('Error updating visibility', 'error');
+      }
+    }
+
+    // BEAT-025: Download beat
+    function downloadBeat(beatId, audioUrl) {
+      if (!audioUrl) {
+        showToast('No audio file available', 'error');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = audioUrl;
+      link.download = '';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Download started', 'success');
+    }
+
+    // Render beats list
+    function renderBeats(beats) {
+      const listBody = document.getElementById('beatsListBody');
+      const primaryColor = document.documentElement.style.getPropertyValue('--red') || '#CE0707';
+
+      if (beats.length > 0) {
+        listBody.innerHTML = beats.map(beat => `
+          <div class="beat-row" data-beat-id="${beat.id}">
+            <img src="${beat.cover_art_url || 'https://via.placeholder.com/80'}"
+                 alt="${beat.title}"
+                 class="beat-cover-large">
+            <div class="beat-info">
+              <div class="beat-title">
+                ${beat.title}
+                ${beat.scheduled_release && new Date(beat.scheduled_release) > new Date() ?
+                  `<i data-lucide="calendar-clock" style="width:14px;height:14px;vertical-align:middle;color:var(--gray-dark);margin-left:6px;" title="Scheduled: ${new Date(beat.scheduled_release).toLocaleString()}"></i>` : ''}
+              </div>
+              <div class="beat-price">$${(beat.price_basic / 100).toFixed(2)}</div>
+            </div>
+            <div class="beat-waveform-container" onclick="togglePlay('${beat.id}')" id="waveform-container-${beat.id}">
+              <div class="beat-waveform" id="waveform-${beat.id}"></div>
+              <div class="waveform-play-btn" id="play-btn-${beat.id}">
+                <i data-lucide="play" style="width:16px;height:16px;margin-left:2px;"></i>
+              </div>
+            </div>
+            <div class="beat-stats">
+              <div class="beat-stat">
+                <div class="beat-stat-value">${beat.sales_count || 0}</div>
+                <div class="beat-stat-label">Sales</div>
+              </div>
+            </div>
+            <div class="beat-actions">
+              <div class="collection-dropdown-wrapper" style="position:relative;display:inline-block;">
+                <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); toggleCollectionDropdown('${beat.id}')">
+                  <i data-lucide="folder-plus" style="width:14px;height:14px;"></i>
+                </button>
+                <div class="collection-dropdown" id="collection-dropdown-${beat.id}" style="display:none;position:absolute;top:100%;left:0;background:white;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);min-width:180px;z-index:100;margin-top:4px;">
+                  <div style="padding:8px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#6b7280;">Add to Collection</div>
+                  <div class="collection-list" id="collection-list-${beat.id}" style="max-height:150px;overflow-y:auto;"></div>
+                  <div style="padding:8px;border-top:1px solid #e5e7eb;">
+                    <button class="btn btn-small btn-primary" style="width:100%;" onclick="event.stopPropagation(); openNewCollectionModal('${beat.id}')">
+                      <i data-lucide="plus" style="width:12px;height:12px;"></i> New Collection
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); openEditModal('${beat.id}')">
+                <i data-lucide="edit-2" style="width:14px;height:14px;"></i> Edit
+              </button>
+              <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteBeat('${beat.id}', '${beat.title}')">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        // Re-initialize Lucide icons
+        lucide.createIcons();
+
+        // Initialize waveforms for each beat
+        beats.forEach(beat => {
+          if (beat.audio_preview_url || beat.audio_url) {
+            initWaveform(beat.id, beat.audio_preview_url || beat.audio_url, primaryColor);
+          }
+        });
+      } else {
+        listBody.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="search" style="width:48px;height:48px;"></i></div>
+            <div class="empty-state-title">No beats found</div>
+            <div class="empty-state-text">Try adjusting your search or filters</div>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    // Collection dropdown functionality
+    let collectionsCache = null;
+
+    async function loadCollections() {
+      if (collectionsCache) return collectionsCache;
+
+      try {
+        const user = await checkAuth();
+        if (!user) return [];
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return [];
+
+        const { data: collections, error } = await supabaseClient
+          .from('beat_collections')
+          .select('*')
+          .eq('producer_id', producer.id)
+          .order('name');
+
+        if (error) throw error;
+        collectionsCache = collections || [];
+        return collectionsCache;
+      } catch (err) {
+        console.error('Error loading collections:', err);
+        return [];
+      }
+    }
+
+    async function toggleCollectionDropdown(beatId) {
+      const dropdown = document.getElementById(`collection-dropdown-${beatId}`);
+      const isVisible = dropdown.style.display !== 'none';
+
+      // Close all other dropdowns
+      document.querySelectorAll('.collection-dropdown').forEach(d => {
+        d.style.display = 'none';
+      });
+
+      if (!isVisible) {
+        dropdown.style.display = 'block';
+
+        // Load collections
+        const collections = await loadCollections();
+        const listEl = document.getElementById(`collection-list-${beatId}`);
+
+        if (collections.length === 0) {
+          listEl.innerHTML = '<div style="padding:12px;text-align:center;color:#6b7280;font-size:13px;">No collections yet</div>';
+        } else {
+          listEl.innerHTML = collections.map(col => `
+            <div class="collection-item" onclick="event.stopPropagation(); addToCollection('${beatId}', '${col.id}')" style="padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.2s;">
+              <i data-lucide="folder" style="width:14px;height:14px;color:#6b7280;"></i>
+              <span style="font-size:13px;">${col.name}</span>
+            </div>
+          `).join('');
+
+          // Add hover styles
+          listEl.querySelectorAll('.collection-item').forEach(item => {
+            item.addEventListener('mouseenter', () => item.style.background = '#f3f4f6');
+            item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+          });
+        }
+
+        lucide.createIcons();
+      }
+    }
+
+    async function addToCollection(beatId, collectionId) {
+      try {
+        // Check if already in collection
+        const { data: existing } = await supabaseClient
+          .from('beat_collection_items')
+          .select('id')
+          .eq('beat_id', beatId)
+          .eq('collection_id', collectionId)
+          .single();
+
+        if (existing) {
+          showToast('Beat is already in this collection', 'info');
+          return;
+        }
+
+        const { error } = await supabaseClient
+          .from('beat_collection_items')
+          .insert([{ beat_id: beatId, collection_id: collectionId }]);
+
+        if (error) throw error;
+
+        showToast('Added to collection!', 'success');
+
+        // Close dropdown
+        document.querySelectorAll('.collection-dropdown').forEach(d => {
+          d.style.display = 'none';
+        });
+      } catch (err) {
+        console.error('Error adding to collection:', err);
+        showToast('Failed to add to collection', 'error');
+      }
+    }
+
+    let collectionCoverFile = null;
+    let selectedBeatsForCollection = [];
+
+    function openNewCollectionModal(beatIdToAdd) {
+      // Close dropdown first
+      document.querySelectorAll('.collection-dropdown').forEach(d => {
+        d.style.display = 'none';
+      });
+
+      collectionCoverFile = null;
+      selectedBeatsForCollection = beatIdToAdd ? [beatIdToAdd] : [];
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'newCollectionModal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width:600px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Create New Collection</h3>
+            <button class="modal-close" onclick="closeNewCollectionModal()">×</button>
+          </div>
+          <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+            <div style="display:flex;gap:20px;margin-bottom:20px;">
+              <!-- Cover Art -->
+              <div style="flex-shrink:0;">
+                <div onclick="document.getElementById('collectionCoverInput').click()" style="width:120px;height:120px;background:var(--gray-light);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;border:2px dashed var(--gray-medium);">
+                  <input type="file" id="collectionCoverInput" accept="image/*" style="display:none;">
+                  <div id="collectionCoverPreview" style="text-align:center;color:var(--gray-dark);">
+                    <i data-lucide="image-plus" style="width:32px;height:32px;"></i>
+                    <div style="font-size:11px;margin-top:4px;">Add Cover</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Name and Price -->
+              <div style="flex:1;">
+                <div class="form-group" style="margin-bottom:12px;">
+                  <label class="form-label">Collection Name *</label>
+                  <input type="text" class="form-input" id="newCollectionName" placeholder="e.g., Summer Vibes Pack">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bundle Price ($)</label>
+                  <input type="number" class="form-input" id="newCollectionPrice" placeholder="99" min="0">
+                </div>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:20px;">
+              <label class="form-label">Description</label>
+              <textarea class="form-input" id="newCollectionDesc" rows="2" placeholder="Describe your collection..."></textarea>
+            </div>
+            <!-- Beat Selection -->
+            <div class="form-group">
+              <label class="form-label">Select Beats</label>
+              <div id="beatSelectionGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;max-height:200px;overflow-y:auto;padding:8px;background:var(--gray-light);border-radius:8px;">
+                <div style="text-align:center;color:var(--gray-dark);padding:20px;">Loading beats...</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeNewCollectionModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="createNewCollection()">Create Collection</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // Setup cover upload handler
+      document.getElementById('collectionCoverInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          collectionCoverFile = file;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            document.getElementById('collectionCoverPreview').innerHTML = `
+              <img src="${event.target.result}" style="width:100%;height:100%;object-fit:cover;">
+            `;
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      // Load beats for selection
+      loadBeatsForSelection(beatIdToAdd);
+    }
+
+    async function loadBeatsForSelection(preSelectedBeatId) {
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        const { data: beats } = await supabaseClient
+          .from('beats')
+          .select('id, title, cover_art_url')
+          .eq('producer_id', producer.id)
+          .order('created_at', { ascending: false });
+
+        const grid = document.getElementById('beatSelectionGrid');
+        if (!beats || beats.length === 0) {
+          grid.innerHTML = '<div style="text-align:center;color:var(--gray-dark);padding:20px;">No beats available</div>';
+          return;
+        }
+
+        grid.innerHTML = beats.map(beat => `
+          <div class="beat-select-item" data-beat-id="${beat.id}" onclick="toggleBeatSelection('${beat.id}')" style="display:flex;align-items:center;gap:8px;padding:8px;background:white;border-radius:6px;cursor:pointer;border:2px solid ${preSelectedBeatId === beat.id ? 'var(--red)' : 'transparent'};transition:all 0.2s;">
+            <img src="${beat.cover_art_url || 'https://via.placeholder.com/40'}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">
+            <span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${beat.title}</span>
+            <div class="beat-select-check" style="width:20px;height:20px;border-radius:50%;background:${preSelectedBeatId === beat.id ? 'var(--red)' : 'var(--gray-medium)'};display:flex;align-items:center;justify-content:center;">
+              ${preSelectedBeatId === beat.id ? '<i data-lucide="check" style="width:12px;height:12px;color:white;"></i>' : ''}
+            </div>
+          </div>
+        `).join('');
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading beats:', err);
+      }
+    }
+
+    function toggleBeatSelection(beatId) {
+      const index = selectedBeatsForCollection.indexOf(beatId);
+      if (index > -1) {
+        selectedBeatsForCollection.splice(index, 1);
+      } else {
+        selectedBeatsForCollection.push(beatId);
+      }
+
+      // Update UI
+      document.querySelectorAll('.beat-select-item').forEach(item => {
+        const id = item.dataset.beatId;
+        const isSelected = selectedBeatsForCollection.includes(id);
+        item.style.border = isSelected ? '2px solid var(--red)' : '2px solid transparent';
+        item.querySelector('.beat-select-check').style.background = isSelected ? 'var(--red)' : 'var(--gray-medium)';
+        item.querySelector('.beat-select-check').innerHTML = isSelected ? '<i data-lucide="check" style="width:12px;height:12px;color:white;"></i>' : '';
+      });
+      lucide.createIcons();
+    }
+
+    function closeNewCollectionModal() {
+      document.getElementById('newCollectionModal')?.remove();
+    }
+
+    async function createNewCollection() {
+      const name = document.getElementById('newCollectionName').value.trim();
+      const description = document.getElementById('newCollectionDesc').value.trim();
+      const bundlePrice = document.getElementById('newCollectionPrice').value ? parseInt(document.getElementById('newCollectionPrice').value) * 100 : null;
+
+      if (!name) {
+        showToast('Please enter a collection name', 'error');
+        return;
+      }
+
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return;
+
+        // Upload cover art if provided
+        let coverUrl = null;
+        if (collectionCoverFile) {
+          const coverPath = `${producer.id}/collections/${Date.now()}-${collectionCoverFile.name}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('cover-art')
+            .upload(coverPath, collectionCoverFile);
+
+          if (!uploadError) {
+            const { data: urlData } = supabaseClient.storage
+              .from('cover-art')
+              .getPublicUrl(coverPath);
+            coverUrl = urlData.publicUrl;
+          }
+        }
+
+        const { data: newCollection, error } = await supabaseClient
+          .from('beat_collections')
+          .insert([{
+            producer_id: producer.id,
+            name,
+            description,
+            cover_url: coverUrl,
+            bundle_price: bundlePrice
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Clear cache
+        collectionsCache = null;
+
+        // Add selected beats to new collection
+        if (selectedBeatsForCollection.length > 0 && newCollection) {
+          const items = selectedBeatsForCollection.map(beatId => ({
+            beat_id: beatId,
+            collection_id: newCollection.id
+          }));
+          await supabaseClient
+            .from('beat_collection_items')
+            .insert(items);
+        }
+
+        showToast('Collection created!', 'success');
+        closeNewCollectionModal();
+      } catch (err) {
+        console.error('Error creating collection:', err);
+        showToast('Failed to create collection', 'error');
+      }
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.collection-dropdown-wrapper')) {
+        document.querySelectorAll('.collection-dropdown').forEach(d => {
+          d.style.display = 'none';
+        });
+      }
+    });
+
+    // BEAT-019: Duplicate beat
+    async function duplicateBeat(beatId) {
+      try {
+        const user = await checkAuth();
+        if (!user) return;
+
+        // Get the original beat
+        const { data: originalBeat, error: fetchError } = await supabaseClient
+          .from('beats')
+          .select('*')
+          .eq('id', beatId)
+          .single();
+
+        if (fetchError || !originalBeat) {
+          showToast('Beat not found', 'error');
+          return;
+        }
+
+        // Create duplicate beat data (without id, created_at)
+        const duplicateBeatData = {
+          producer_id: originalBeat.producer_id,
+          title: originalBeat.title + ' (Copy)',
+          bpm: originalBeat.bpm,
+          key: originalBeat.key,
+          genre: originalBeat.genre,
+          audio_url: originalBeat.audio_url,
+          audio_preview_url: originalBeat.audio_preview_url,
+          cover_art_url: originalBeat.cover_art_url,
+          price_basic: originalBeat.price_basic,
+          price_premium: originalBeat.price_premium,
+          price_exclusive: originalBeat.price_exclusive,
+          views: 0,
+          is_published: false // Set to unpublished by default
+        };
+
+        // Insert duplicate
+        const { data: newBeat, error: insertError } = await supabaseClient
+          .from('beats')
+          .insert([duplicateBeatData])
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        showToast('Beat duplicated! Edit to customize.', 'success');
+        loadBeats(); // Refresh the list
+
+        // Open edit modal for the new beat
+        setTimeout(() => {
+          if (newBeat) openEditModal(newBeat.id);
+        }, 500);
+
+      } catch (error) {
+        console.error('Error duplicating beat:', error);
+        showToast('Error duplicating beat', 'error');
+      }
+    }
+
+    // Populate genre filter dropdown
+    function populateGenreFilter() {
+      const genreSelect = document.getElementById('beatGenreFilter');
+      genreSelect.innerHTML = '<option value="">All Genres</option>';
+      allGenres.forEach(genre => {
+        genreSelect.innerHTML += `<option value="${genre}">${genre}</option>`;
+      });
+    }
+
+    // BEAT-017: Send beat to customer
+    async function sendBeatToCustomer(beatId, beatTitle, priceBasic, pricePremium, priceExclusive) {
+      // Load customers for the dropdown
+      const user = await checkAuth();
+      if (!user) return;
+
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('id')
+        .eq('email', user.email)
+        .single();
+
+      // Get customers from sales
+      const { data: sales } = await supabaseClient
+        .from('sales')
+        .select('customer_email, customer_name')
+        .eq('producer_id', producer.id);
+
+      const customerMap = {};
+      (sales || []).forEach(sale => {
+        if (sale.customer_email && !customerMap[sale.customer_email]) {
+          customerMap[sale.customer_email] = sale.customer_name || sale.customer_email.split('@')[0];
+        }
+      });
+      const customers = Object.entries(customerMap).map(([email, name]) => ({ email, name }));
+
+      // Build license options based on available prices
+      let licenseOptions = '';
+      if (priceBasic) {
+        licenseOptions += `<option value="basic" data-price="${priceBasic}">Basic Lease - $${(priceBasic / 100).toFixed(2)}</option>`;
+      }
+      if (pricePremium) {
+        licenseOptions += `<option value="premium" data-price="${pricePremium}">Premium Lease - $${(pricePremium / 100).toFixed(2)}</option>`;
+      }
+      if (priceExclusive) {
+        licenseOptions += `<option value="exclusive" data-price="${priceExclusive}">Exclusive - $${(priceExclusive / 100).toFixed(2)}</option>`;
+      }
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'sendBeatModal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Send "${beatTitle}" to Customer</h3>
+            <button class="modal-close" onclick="document.getElementById('sendBeatModal').remove()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Customer</label>
+              ${customers.length > 0 ? `
+                <select class="form-select" id="sendCustomerSelect">
+                  <option value="">Select a customer...</option>
+                  ${customers.map(c => `<option value="${c.email}">${c.name} (${c.email})</option>`).join('')}
+                  <option value="new">+ New Customer</option>
+                </select>
+              ` : ''}
+              <input type="email" class="form-input" id="sendCustomerEmail" placeholder="customer@email.com" style="margin-top: 8px; ${customers.length > 0 ? 'display: none;' : ''}">
+              <input type="text" class="form-input" id="sendCustomerName" placeholder="Customer name (optional)" style="margin-top: 8px; ${customers.length > 0 ? 'display: none;' : ''}">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">License Type</label>
+              <select class="form-select" id="sendLicenseSelect">
+                ${licenseOptions || '<option value="">No prices set</option>'}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Message (optional)</label>
+              <textarea class="form-input" id="sendMessage" rows="3" placeholder="Add a personal message..."></textarea>
+            </div>
+
+            <div style="padding: 16px; background: var(--gray-light); border-radius: 8px; margin-top: 16px;">
+              <div style="font-size: 13px; color: var(--gray-dark);">
+                <i data-lucide="info" style="width:14px;height:14px;vertical-align:middle;"></i>
+                The customer will receive an email with a payment link. After payment, they'll automatically receive the beat files.
+              </div>
+            </div>
+
+            <div id="sendBeatError" style="margin-top: 16px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('sendBeatModal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmSendBeat('${beatId}')" id="sendBeatBtn">
+              <i data-lucide="send" style="width:14px;height:14px;"></i> Send Payment Link
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // Handle customer select change
+      const customerSelect = document.getElementById('sendCustomerSelect');
+      if (customerSelect) {
+        customerSelect.addEventListener('change', function() {
+          const emailInput = document.getElementById('sendCustomerEmail');
+          const nameInput = document.getElementById('sendCustomerName');
+          if (this.value === 'new') {
+            emailInput.style.display = 'block';
+            nameInput.style.display = 'block';
+            emailInput.value = '';
+          } else if (this.value) {
+            emailInput.style.display = 'none';
+            nameInput.style.display = 'none';
+            emailInput.value = this.value;
+          } else {
+            emailInput.style.display = 'none';
+            nameInput.style.display = 'none';
+          }
+        });
+      }
+    }
+
+    async function confirmSendBeat(beatId) {
+      const errorDiv = document.getElementById('sendBeatError');
+      const sendBtn = document.getElementById('sendBeatBtn');
+
+      // Get values
+      const customerSelect = document.getElementById('sendCustomerSelect');
+      let customerEmail = document.getElementById('sendCustomerEmail').value.trim();
+      const customerName = document.getElementById('sendCustomerName').value.trim();
+      const licenseSelect = document.getElementById('sendLicenseSelect');
+      const message = document.getElementById('sendMessage').value.trim();
+
+      // If customer was selected from dropdown
+      if (customerSelect && customerSelect.value && customerSelect.value !== 'new') {
+        customerEmail = customerSelect.value;
+      }
+
+      // Validation
+      if (!customerEmail || !customerEmail.includes('@')) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please enter a valid customer email</div>';
+        return;
+      }
+
+      if (!licenseSelect.value) {
+        errorDiv.innerHTML = '<div class="alert alert-error">Please select a license type</div>';
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;"></span> Sending...';
+
+      try {
+        const user = await checkAuth();
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id, name, email, stripe_account_id, subdomain')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer.stripe_account_id) {
+          throw new Error('Please connect your Stripe account in Settings first');
+        }
+
+        // Get beat details
+        const { data: beat } = await supabaseClient
+          .from('beats')
+          .select('*')
+          .eq('id', beatId)
+          .single();
+
+        const selectedOption = licenseSelect.options[licenseSelect.selectedIndex];
+        const price = parseInt(selectedOption.dataset.price);
+        const licenseType = licenseSelect.value;
+
+        // Create a private sale record (pending payment)
+        const { data: sale, error: saleError } = await supabaseClient
+          .from('sales')
+          .insert([{
+            producer_id: producer.id,
+            beat_id: beatId,
+            customer_email: customerEmail,
+            customer_name: customerName || customerEmail.split('@')[0],
+            amount: price,
+            license_type: licenseType,
+            payment_status: 'pending',
+            is_private_sale: true,
+            private_sale_message: message
+          }])
+          .select()
+          .single();
+
+        if (saleError) throw saleError;
+
+        // In production, this would create a Stripe payment link and send email
+        // For now, we'll show success and inform the user
+        document.getElementById('sendBeatModal').remove();
+
+        const successModal = document.createElement('div');
+        successModal.className = 'modal-overlay';
+        successModal.innerHTML = `
+          <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-body" style="text-align: center; padding: 32px;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: #10B981; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <i data-lucide="check" style="width:32px;height:32px;"></i>
+              </div>
+              <h3 style="margin-bottom: 8px;">Payment Link Sent</h3>
+              <p style="color: var(--gray-dark); margin-bottom: 16px;">
+                A payment link for <strong>${beat.title}</strong> (${licenseType} license) has been created for <strong>${customerEmail}</strong>.
+              </p>
+              <p style="font-size: 13px; color: var(--gray-dark);">
+                In production, this would send an email with the Stripe payment link. The customer will receive the beat files automatically after payment.
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">Done</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successModal);
+        lucide.createIcons();
+
+      } catch (error) {
+        console.error('Error sending beat:', error);
+        errorDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i data-lucide="send" style="width:14px;height:14px;"></i> Send Payment Link';
+        lucide.createIcons();
+      }
+    }
+
+    // MOBILE-003: Pull to refresh implementation
+    let pullStartY = 0;
+    let isPulling = false;
+
+    function initPullToRefresh() {
+      // Only enable on touch devices
+      if (!('ontouchstart' in window)) return;
+
+      // Create indicator
+      const indicator = document.createElement('div');
+      indicator.className = 'pull-refresh-indicator';
+      indicator.innerHTML = '<div class="spinner"></div> <span>Refreshing...</span>';
+      document.body.appendChild(indicator);
+
+      const mainContent = document.querySelector('.main-content');
+      if (!mainContent) return;
+
+      mainContent.addEventListener('touchstart', (e) => {
+        if (mainContent.scrollTop === 0) {
+          pullStartY = e.touches[0].clientY;
+          isPulling = true;
+        }
+      });
+
+      mainContent.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+
+        const pullDistance = e.touches[0].clientY - pullStartY;
+        if (pullDistance > 60 && mainContent.scrollTop === 0) {
+          indicator.classList.add('visible');
+        }
+      });
+
+      mainContent.addEventListener('touchend', async () => {
+        if (indicator.classList.contains('visible')) {
+          indicator.classList.add('refreshing');
+          await loadBeats();
+          setTimeout(() => {
+            indicator.classList.remove('visible', 'refreshing');
+          }, 500);
+        }
+        isPulling = false;
+      });
+    }
+
+    // BEAT-022: Collections functionality
+    let collections = [];
+    let currentProducerId = null;
+
+    async function loadCollections() {
+      const user = await checkAuth();
+      if (!user) return;
+
+      try {
+        const { data: producer } = await supabaseClient
+          .from('producers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!producer) return;
+        currentProducerId = producer.id;
+
+        const { data, error } = await supabaseClient
+          .from('collections')
+          .select('*, collection_beats(beat_id)')
+          .eq('producer_id', producer.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        collections = data || [];
+        renderCollections();
+      } catch (error) {
+        console.error('Error loading collections:', error);
+      }
+    }
+
+    function renderCollections() {
+      const grid = document.getElementById('collectionsGrid');
+      if (!collections.length) {
+        grid.innerHTML = `
+          <div style="padding: 32px; text-align: center; color: #6B7280; grid-column: 1/-1;">
+            <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
+            <div>No collections yet</div>
+            <button class="btn btn-secondary" style="margin-top: 12px;" onclick="openCollectionModal()">Create Collection</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = collections.map(col => `
+        <div class="collection-card" style="background: white; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; cursor: pointer;" onclick="openCollectionDetail('${col.id}')">
+          <div style="height: 120px; background: ${col.cover_url ? 'url(' + col.cover_url + ') center/cover' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; display: flex; align-items: center; justify-content: center;">
+            ${!col.cover_url ? '<span style="font-size: 32px;">🎵</span>' : ''}
+          </div>
+          <div style="padding: 12px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">${col.name}</div>
+            <div style="font-size: 12px; color: #6B7280;">${col.collection_beats?.length || 0} beats</div>
+            ${col.bundle_price ? `<div style="font-size: 13px; color: var(--red); margin-top: 4px;">Bundle: $${col.bundle_price}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openCollectionModal(collectionId = null) {
+      const collection = collectionId ? collections.find(c => c.id === collectionId) : null;
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'collectionModal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+            <h3 class="modal-title">${collection ? 'Edit Collection' : 'New Collection'}</h3>
+            <button class="modal-close" onclick="closeCollectionModal()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Collection Name</label>
+              <input type="text" class="form-input" id="collectionName" value="${collection?.name || ''}" placeholder="Summer Vibes Pack">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea class="form-input" id="collectionDesc" rows="3" placeholder="A collection of summer beats...">${collection?.description || ''}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cover Image</label>
+              <div class="file-upload" style="height: 120px;" onclick="document.getElementById('collectionCover').click()">
+                <input type="file" id="collectionCover" accept="image/*" style="display: none;">
+                <div id="collectionCoverPreview" style="${collection?.cover_url ? '' : 'display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;'}">
+                  ${collection?.cover_url ? `<img src="${collection.cover_url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;">` : '<div>📁 Click to upload</div>'}
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bundle Price (Optional)</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span>$</span>
+                <input type="number" class="form-input" id="collectionBundlePrice" value="${collection?.bundle_price || ''}" placeholder="99" style="width: 100px;">
+                <span style="font-size: 12px; color: #6B7280;">Sell all beats as a bundle</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCollectionModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveCollection('${collectionId || ''}')">${collection ? 'Save Changes' : 'Create Collection'}</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      // Handle cover upload
+      document.getElementById('collectionCover').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            document.getElementById('collectionCoverPreview').innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;">`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function closeCollectionModal() {
+      document.getElementById('collectionModal')?.remove();
+    }
+
+    async function saveCollection(collectionId) {
+      const name = document.getElementById('collectionName').value.trim();
+      const description = document.getElementById('collectionDesc').value.trim();
+      const bundlePrice = parseInt(document.getElementById('collectionBundlePrice').value) || null;
+      const coverFile = document.getElementById('collectionCover').files[0];
+
+      if (!name) {
+        alert('Please enter a collection name');
+        return;
+      }
+
+      try {
+        let coverUrl = null;
+        if (coverFile) {
+          const fileName = `collections/${currentProducerId}/${Date.now()}_${coverFile.name}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('beats')
+            .upload(fileName, coverFile);
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabaseClient.storage
+              .from('beats')
+              .getPublicUrl(fileName);
+            coverUrl = publicUrl;
+          }
+        }
+
+        const collectionData = {
+          producer_id: currentProducerId,
+          name,
+          description,
+          bundle_price: bundlePrice,
+          ...(coverUrl && { cover_url: coverUrl })
+        };
+
+        if (collectionId) {
+          await supabaseClient
+            .from('collections')
+            .update(collectionData)
+            .eq('id', collectionId);
+        } else {
+          await supabaseClient
+            .from('collections')
+            .insert([collectionData]);
+        }
+
+        closeCollectionModal();
+        loadCollections();
+      } catch (error) {
+        console.error('Error saving collection:', error);
+        alert('Error saving collection');
+      }
+    }
+
+    async function openCollectionDetail(collectionId) {
+      const collection = collections.find(c => c.id === collectionId);
+      if (!collection) return;
+
+      // Fetch beats in collection
+      const { data: collectionBeats } = await supabaseClient
+        .from('collection_beats')
+        .select('beat_id, position, beats(*)')
+        .eq('collection_id', collectionId)
+        .order('position');
+
+      // Fetch all beats for adding
+      const { data: allBeats } = await supabaseClient
+        .from('beats')
+        .select('id, title, cover_art_url')
+        .eq('producer_id', currentProducerId);
+
+      const beatsInCollection = collectionBeats?.map(cb => cb.beats) || [];
+      const availableBeats = allBeats?.filter(b => !beatsInCollection.find(cb => cb?.id === b.id)) || [];
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'collectionDetailModal';
+      modal.innerHTML = `
+        <div class="modal-content large" style="max-width: 700px; max-height: 90vh;">
+          <div class="modal-header">
+            <h3 class="modal-title">${collection.name}</h3>
+            <button class="modal-close" onclick="closeCollectionDetailModal()">×</button>
+          </div>
+          <div class="modal-body" style="overflow-y: auto; max-height: 60vh;">
+            <div style="display: flex; gap: 20px;">
+              <div style="flex: 1;">
+                <h4 style="margin-bottom: 12px;">Beats in Collection</h4>
+                <div id="collectionBeatsList" style="min-height: 200px; background: #F9FAFB; border-radius: 8px; padding: 12px;">
+                  ${beatsInCollection.length ? beatsInCollection.map((beat, i) => `
+                    <div class="collection-beat-item" draggable="true" data-beat-id="${beat?.id}" data-position="${i}" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 8px; cursor: grab;">
+                      <span style="color: #9CA3AF;">☰</span>
+                      <img src="${beat?.cover_art_url || '/assets/images/default-cover.png'}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                      <span style="flex: 1;">${beat?.title || 'Unknown'}</span>
+                      <button class="btn btn-small btn-secondary" onclick="removeBeatFromCollection('${collectionId}', '${beat?.id}')" style="padding: 4px 8px;">×</button>
+                    </div>
+                  `).join('') : '<div style="text-align: center; color: #6B7280; padding: 20px;">No beats yet. Add beats from the right panel.</div>'}
+                </div>
+              </div>
+              <div style="width: 200px;">
+                <h4 style="margin-bottom: 12px;">Add Beats</h4>
+                <div style="max-height: 300px; overflow-y: auto;">
+                  ${availableBeats.length ? availableBeats.map(beat => `
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: #F9FAFB; border-radius: 6px; margin-bottom: 8px;">
+                      <img src="${beat.cover_art_url || '/assets/images/default-cover.png'}" style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;">
+                      <span style="flex: 1; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${beat.title}</span>
+                      <button class="btn btn-small btn-primary" onclick="addBeatToCollection('${collectionId}', '${beat.id}')" style="padding: 4px 8px;">+</button>
+                    </div>
+                  `).join('') : '<div style="color: #6B7280; font-size: 12px;">All beats added</div>'}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="display: flex; justify-content: space-between;">
+            <button class="btn btn-secondary" onclick="deleteCollection('${collectionId}')" style="color: #DC2626;">Delete Collection</button>
+            <div>
+              <button class="btn btn-secondary" onclick="openCollectionModal('${collectionId}')">Edit Details</button>
+              <button class="btn btn-primary" onclick="closeCollectionDetailModal()">Done</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+    }
+
+    function closeCollectionDetailModal() {
+      document.getElementById('collectionDetailModal')?.remove();
+    }
+
+    async function addBeatToCollection(collectionId, beatId) {
+      try {
+        const { data: existing } = await supabaseClient
+          .from('collection_beats')
+          .select('position')
+          .eq('collection_id', collectionId)
+          .order('position', { ascending: false })
+          .limit(1);
+
+        const nextPosition = (existing?.[0]?.position || 0) + 1;
+
+        await supabaseClient
+          .from('collection_beats')
+          .insert([{ collection_id: collectionId, beat_id: beatId, position: nextPosition }]);
+
+        closeCollectionDetailModal();
+        await loadCollections();
+        openCollectionDetail(collectionId);
+      } catch (error) {
+        console.error('Error adding beat to collection:', error);
+      }
+    }
+
+    async function removeBeatFromCollection(collectionId, beatId) {
+      try {
+        await supabaseClient
+          .from('collection_beats')
+          .delete()
+          .eq('collection_id', collectionId)
+          .eq('beat_id', beatId);
+
+        closeCollectionDetailModal();
+        await loadCollections();
+        openCollectionDetail(collectionId);
+      } catch (error) {
+        console.error('Error removing beat from collection:', error);
+      }
+    }
+
+    async function deleteCollection(collectionId) {
+      if (!confirm('Are you sure you want to delete this collection?')) return;
+
+      try {
+        await supabaseClient
+          .from('collection_beats')
+          .delete()
+          .eq('collection_id', collectionId);
+
+        await supabaseClient
+          .from('collections')
+          .delete()
+          .eq('id', collectionId);
+
+        closeCollectionDetailModal();
+        loadCollections();
+      } catch (error) {
+        console.error('Error deleting collection:', error);
+      }
+    }
+
+    // RP-BEAT-001: Bulk Upload Modal
+    function openBulkUploadModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'bulkUploadModal';
+      modal.innerHTML = `
+        <div class="modal-content large">
+          <div class="modal-header">
+            <h3 class="modal-title">Bulk Upload Beats</h3>
+            <button class="modal-close" onclick="closeBulkUploadModal()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="file-upload" style="padding: 48px;" id="bulkDropZone">
+              <input type="file" id="bulkFileInput" multiple accept="audio/*" style="display: none;">
+              <div style="text-align: center;">
+                <i data-lucide="folder-up" style="width: 48px; height: 48px; color: var(--gray-dark); margin-bottom: 16px;"></i>
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Drop audio files here</div>
+                <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 16px;">or click to browse</div>
+                <div style="font-size: 12px; color: var(--gray-dark);">Supports MP3, WAV, FLAC (max 50MB each)</div>
+              </div>
+            </div>
+
+            <div id="bulkUploadQueue" style="margin-top: 24px; display: none;">
+              <h4 style="margin-bottom: 12px;">Upload Queue</h4>
+              <div id="bulkQueueList"></div>
+            </div>
+
+            <div id="bulkUploadProgress" style="margin-top: 16px; display: none;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span id="bulkProgressText">Uploading...</span>
+                <span id="bulkProgressPercent">0%</span>
+              </div>
+              <div style="height: 8px; background: var(--gray-light); border-radius: 4px; overflow: hidden;">
+                <div id="bulkProgressBar" style="height: 100%; background: var(--red); width: 0%; transition: width 0.3s;"></div>
+              </div>
+            </div>
+
+            <div id="bulkUploadError" style="margin-top: 16px;"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeBulkUploadModal()">Cancel</button>
+            <button class="btn btn-primary" id="startBulkUploadBtn" onclick="startBulkUpload()" disabled>
+              <i data-lucide="upload" style="width:16px;height:16px;"></i> Upload All
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // Set up file input and drop zone
+      const dropZone = document.getElementById('bulkDropZone');
+      const fileInput = document.getElementById('bulkFileInput');
+
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--red)';
+        dropZone.style.background = 'var(--gray-light)';
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '';
+        dropZone.style.background = '';
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '';
+        dropZone.style.background = '';
+        handleBulkFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        handleBulkFiles(e.target.files);
+      });
+    }
+
+    let bulkUploadFiles = [];
+
+    function handleBulkFiles(files) {
+      const queue = document.getElementById('bulkUploadQueue');
+      const queueList = document.getElementById('bulkQueueList');
+      const uploadBtn = document.getElementById('startBulkUploadBtn');
+
+      bulkUploadFiles = Array.from(files).filter(f => {
+        const isAudio = f.type.startsWith('audio/') || /\.(mp3|wav|flac|m4a|aac)$/i.test(f.name);
+        const isValidSize = f.size <= 50 * 1024 * 1024; // 50MB
+        return isAudio && isValidSize;
+      });
+
+      if (bulkUploadFiles.length === 0) {
+        document.getElementById('bulkUploadError').innerHTML = '<div class="alert alert-error">No valid audio files selected. Please select MP3, WAV, or FLAC files under 50MB.</div>';
+        return;
+      }
+
+      queue.style.display = 'block';
+      queueList.innerHTML = bulkUploadFiles.map((file, i) => `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--gray-light); border-radius: 8px; margin-bottom: 8px;" id="queue-item-${i}">
+          <i data-lucide="music" style="width:20px;height:20px;color:var(--gray-dark);"></i>
+          <div style="flex: 1;">
+            <div style="font-weight: 500;">${file.name.replace(/\.[^/.]+$/, '')}</div>
+            <div style="font-size: 12px; color: var(--gray-dark);">${(file.size / (1024 * 1024)).toFixed(2)} MB</div>
+          </div>
+          <div id="queue-status-${i}"><i data-lucide="clock" style="width:16px;height:16px;color:var(--gray-dark);"></i></div>
+        </div>
+      `).join('');
+
+      uploadBtn.disabled = false;
+      lucide.createIcons();
+    }
+
+    async function startBulkUpload() {
+      const uploadBtn = document.getElementById('startBulkUploadBtn');
+      const progressDiv = document.getElementById('bulkUploadProgress');
+      const progressBar = document.getElementById('bulkProgressBar');
+      const progressText = document.getElementById('bulkProgressText');
+      const progressPercent = document.getElementById('bulkProgressPercent');
+
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '<div class="spinner" style="width:16px;height:16px;"></div> Uploading...';
+      progressDiv.style.display = 'block';
+
+      const user = await checkAuth();
+      if (!user) return;
+
+      const { data: producer } = await supabaseClient
+        .from('producers')
+        .select('id')
+        .eq('email', user.email)
+        .single();
+
+      let completed = 0;
+      const total = bulkUploadFiles.length;
+
+      for (let i = 0; i < bulkUploadFiles.length; i++) {
+        const file = bulkUploadFiles[i];
+        const statusDiv = document.getElementById(`queue-status-${i}`);
+
+        try {
+          statusDiv.innerHTML = '<div class="spinner" style="width:16px;height:16px;"></div>';
+
+          // Upload audio file
+          const audioPath = `${producer.id}/${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('beats')
+            .upload(audioPath, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: audioUrlData } = supabaseClient.storage
+            .from('beats')
+            .getPublicUrl(audioPath);
+
+          // Create beat record
+          const title = file.name.replace(/\.[^/.]+$/, '');
+          await supabaseClient.from('beats').insert([{
+            producer_id: producer.id,
+            title: title,
+            audio_url: audioUrlData.publicUrl,
+            price_basic: 3000, // $30 default
+            is_published: false
+          }]);
+
+          statusDiv.innerHTML = '<i data-lucide="check-circle" style="width:16px;height:16px;color:#10B981;"></i>';
+          completed++;
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          statusDiv.innerHTML = '<i data-lucide="x-circle" style="width:16px;height:16px;color:#EF4444;"></i>';
+        }
+
+        const percent = Math.round((completed / total) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressPercent.textContent = `${percent}%`;
+        progressText.textContent = `Uploaded ${completed} of ${total}`;
+        lucide.createIcons();
+      }
+
+      progressText.textContent = `Completed: ${completed} of ${total} uploaded`;
+      uploadBtn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Done';
+      lucide.createIcons();
+
+      // Refresh beats list after a delay
+      setTimeout(() => {
+        closeBulkUploadModal();
+        loadBeats();
+        showToast(`${completed} beats uploaded successfully!`, 'success');
+      }, 1500);
+    }
+
+    function closeBulkUploadModal() {
+      document.getElementById('bulkUploadModal')?.remove();
+      bulkUploadFiles = [];
+    }
+
+    loadBeats();
+    loadCollections(); // BEAT-022
+    initPullToRefresh(); // MOBILE-003
+  </script>
+</body>
+</html>
